@@ -498,6 +498,7 @@
       <button class="tab-btn"        data-tab="portfolio" onclick="switchTab(this,'portfolio')">🎬 Portfolio</button>
       <button class="tab-btn"        data-tab="ticker"    onclick="switchTab(this,'ticker')">✦ Ticker</button>
       <button class="tab-btn"        data-tab="media"     onclick="switchTab(this,'media')">🖼️ Media</button>
+      <button class="tab-btn"        data-tab="cloud"     onclick="switchTab(this,'cloud')">☁️ Cloud</button>
     </div>
     <!-- Body -->
     <div class="panel-body" style="padding:20px;flex:1;overflow-y:auto;">
@@ -543,9 +544,78 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
+      <!-- Cloud Tab -->
+      <div id="tab-cloud" style="display:none;flex-direction:column;gap:18px;">
+
+        <!-- Status bar -->
+        <div id="cloud-status-bar" style="border-radius:12px;padding:13px 16px;background:#141414;border:1px solid rgba(255,255,255,0.08);font-size:12px;display:flex;align-items:center;gap:10px;">
+          <span id="cloud-status-dot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;flex-shrink:0;"></span>
+          <span id="cloud-status-text" style="color:#86868b;">Belum terhubung ke cloud</span>
+        </div>
+
+        <!-- How it works -->
+        <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 18px;">
+          <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0071e3;margin-bottom:10px;">Cara kerja</p>
+          <p style="font-size:12px;color:#86868b;line-height:1.7;">Settingan disimpan ke <strong style="color:#f5f5f7;">GitHub Gist</strong> (file JSON gratis di akun GitHub kamu). Saat halaman dibuka dari device/browser manapun, data otomatis di-load dari Gist.</p>
+        </div>
+
+        <!-- Step 1: Token -->
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 1 — GitHub Token</p>
+          <input id="gist-token-input" class="ai field-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            oninput="localStorage.setItem('gf_gh_token', this.value); updateCloudStatus()">
+          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
+            Buat token di <a href="https://github.com/settings/tokens/new" target="_blank" style="color:#0071e3;">github.com/settings/tokens/new</a> → pilih scope <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist</code> saja → Generate → paste di sini.<br>
+            <span style="color:#ff9f0a;">Token tersimpan hanya di browser ini (localStorage), tidak dikirim ke mana pun selain GitHub.</span>
+          </p>
+        </div>
+
+        <!-- Step 2: Gist ID -->
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 2 — Gist ID</p>
+          <div style="display:flex;gap:8px;">
+            <input id="gist-id-input" class="ai field-input" type="text" placeholder="abc123def456..."
+              style="flex:1;" oninput="localStorage.setItem('gf_gist_id', this.value); updateCloudStatus()">
+            <button onclick="createNewGist()" id="create-gist-btn"
+              style="background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:0 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
+              Buat Baru
+            </button>
+          </div>
+          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
+            Klik <strong style="color:#f5f5f7;">"Buat Baru"</strong> untuk auto-create Gist baru (butuh token di Step 1), atau isi manual dari URL gist kamu: <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist.github.com/user/<strong>ID_INI</strong></code>
+          </p>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="pushToGist()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↑ Push ke Gist
+          </button>
+          <button onclick="pullFromGist()" style="flex:1;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↓ Pull dari Gist
+          </button>
+        </div>
+        <p id="cloud-action-msg" class="hidden" style="font-size:12px;text-align:center;padding:8px;border-radius:8px;background:#141414;"></p>
+
+        <!-- Auto-load toggle -->
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <p style="font-size:13px;font-weight:500;margin-bottom:2px;">Auto-load saat halaman dibuka</p>
+            <p style="font-size:11px;color:#6e6e73;">Load data dari Gist otomatis setiap kali halaman dibuka</p>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;"
+              onchange="localStorage.setItem('gf_autoload', this.checked?'1':'0')">
+            <span onclick="document.getElementById('autoload-toggle').click()" style="position:absolute;cursor:pointer;inset:0;background:#3a3a3c;border-radius:13px;transition:0.3s;"
+              id="autoload-knob"></span>
+          </label>
+        </div>
+
+      </div>
+
+    </div><!-- end panel-body -->
+  </div><!-- end adm-panel -->
+</div><!-- end admin-overlay -->
 
 <script>
 /* ─── CONFIG ─── */
@@ -870,10 +940,11 @@ function logoutAdmin() {
 function switchTab(btn, tab) {
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-  ["content","portfolio","ticker","media"].forEach(t => {
+  ["content","portfolio","ticker","media","cloud"].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = t === tab ? "flex" : "none";
   });
+  if (tab === "cloud") renderCloudTab();
 }
 
 /* ─── CONTENT FIELDS ─── */
@@ -1000,6 +1071,17 @@ function saveAdmin() {
     const hv = document.getElementById("hero-video");
     hv.src = heroSrc; hv.load();
 
+    // If Gist is configured, push to cloud too
+    if (getGistToken() && getGistId()) {
+      msg.textContent = "Saving & syncing to cloud…";
+      pushToGist().then(() => {
+        msg.style.color = "#30d158";
+        msg.textContent = "Saved & synced ✓";
+        setTimeout(() => msg.classList.add("hidden"), 3000);
+      });
+      return; // msg will be hidden by pushToGist callback
+    }
+
     msg.style.color = "#30d158";
     msg.textContent = "Saved ✓";
   } catch(e) {
@@ -1009,12 +1091,171 @@ function saveAdmin() {
   setTimeout(() => msg.classList.add("hidden"), 3000);
 }
 
+/* ─── GITHUB GIST CLOUD SYNC ─── */
+const GIST_FILENAME = "genframe-settings.json";
+
+function getGistToken() { return localStorage.getItem("gf_gh_token") || ""; }
+function getGistId()    { return localStorage.getItem("gf_gist_id")  || ""; }
+
+function gistPayload() {
+  return {
+    c:    editC,
+    p:    editP,
+    mq:   editM,
+    img:  editPro,
+    hero: editHero,
+  };
+}
+
+function applyGistData(data) {
+  if (data.c)    { content = {...data.c};                     editC = {...content}; }
+  if (data.p)    { portfolio = JSON.parse(JSON.stringify(data.p)); editP = JSON.parse(JSON.stringify(data.p)); }
+  if (data.mq)   { marqueeItems = JSON.parse(JSON.stringify(data.mq)); editM = JSON.parse(JSON.stringify(data.mq)); }
+  if (data.img)  { profileSrc = data.img;  editPro  = data.img; }
+  if (data.hero) { heroSrc    = data.hero; editHero = data.hero; }
+  // also mirror to localStorage as cache
+  trySave("gf_c",    JSON.stringify(content));
+  trySave("gf_p",    JSON.stringify(portfolio));
+  trySave("gf_mq",   JSON.stringify(marqueeItems));
+  trySave("gf_img",  profileSrc);
+  trySave("gf_hero", heroSrc);
+  applyContent(); renderPortfolio(); renderMarquee();
+  const hv = document.getElementById("hero-video");
+  if (hv) { hv.src = heroSrc; hv.load(); }
+}
+
+function setCloudMsg(text, color) {
+  const el = document.getElementById("cloud-action-msg");
+  if (!el) return;
+  el.classList.remove("hidden");
+  el.style.color = color || "#86868b";
+  el.textContent = text;
+  setTimeout(() => el.classList.add("hidden"), 4000);
+}
+
+async function createNewGist() {
+  const token = getGistToken();
+  if (!token) { setCloudMsg("Isi GitHub Token dulu di Step 1.", "#ff453a"); return; }
+  const btn = document.getElementById("create-gist-btn");
+  btn.textContent = "Membuat…"; btn.disabled = true;
+  try {
+    const res = await fetch("https://api.github.com/gists", {
+      method: "POST",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        description: "GenFrame Portfolio Settings",
+        public: false,
+        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
+      })
+    });
+    const json = await res.json();
+    if (json.id) {
+      localStorage.setItem("gf_gist_id", json.id);
+      document.getElementById("gist-id-input").value = json.id;
+      updateCloudStatus();
+      setCloudMsg("✓ Gist baru berhasil dibuat & data sudah di-push!", "#30d158");
+    } else {
+      setCloudMsg("Gagal buat Gist: " + (json.message||"unknown error"), "#ff453a");
+    }
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+  btn.textContent = "Buat Baru"; btn.disabled = false;
+}
+
+async function pushToGist() {
+  const token = getGistToken(), id = getGistId();
+  if (!token || !id) { setCloudMsg("Lengkapi Token dan Gist ID dulu.", "#ff453a"); return; }
+  setCloudMsg("Menyimpan ke Gist…", "#86868b");
+  try {
+    const res = await fetch(`https://api.github.com/gists/${id}`, {
+      method: "PATCH",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
+      })
+    });
+    const json = await res.json();
+    if (json.id) {
+      setCloudMsg("✓ Tersimpan di Gist!", "#30d158");
+      updateCloudStatus();
+    } else {
+      setCloudMsg("Gagal: " + (json.message||"unknown error"), "#ff453a");
+    }
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+}
+
+async function pullFromGist() {
+  const token = getGistToken(), id = getGistId();
+  if (!id) { setCloudMsg("Isi Gist ID dulu.", "#ff453a"); return; }
+  setCloudMsg("Mengambil data dari Gist…", "#86868b");
+  try {
+    const headers = token ? { "Authorization": `token ${token}` } : {};
+    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
+    const json = await res.json();
+    const file = json.files && json.files[GIST_FILENAME];
+    if (!file) { setCloudMsg("File tidak ditemukan di Gist.", "#ff453a"); return; }
+    const data = JSON.parse(file.content);
+    applyGistData(data);
+    setCloudMsg("✓ Data berhasil di-load dari Gist!", "#30d158");
+    // refresh admin panel inputs
+    openAdminPanel();
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+}
+
+function updateCloudStatus() {
+  const token = getGistToken(), id = getGistId();
+  const dot  = document.getElementById("cloud-status-dot");
+  const text = document.getElementById("cloud-status-text");
+  if (!dot || !text) return;
+  if (token && id) {
+    dot.style.background  = "#30d158";
+    text.style.color      = "#30d158";
+    text.textContent      = `Terhubung — Gist ID: ${id.slice(0,8)}…`;
+  } else if (token) {
+    dot.style.background  = "#ff9f0a";
+    text.style.color      = "#ff9f0a";
+    text.textContent      = "Token ada, tapi Gist ID belum diisi";
+  } else {
+    dot.style.background  = "#6e6e73";
+    text.style.color      = "#86868b";
+    text.textContent      = "Belum terhubung ke cloud";
+  }
+}
+
+function renderCloudTab() {
+  const tokenInput = document.getElementById("gist-token-input");
+  const idInput    = document.getElementById("gist-id-input");
+  const autoToggle = document.getElementById("autoload-toggle");
+  const knob       = document.getElementById("autoload-knob");
+  if (tokenInput) tokenInput.value = getGistToken();
+  if (idInput)    idInput.value    = getGistId();
+  const autoOn = localStorage.getItem("gf_autoload") === "1";
+  if (autoToggle) autoToggle.checked = autoOn;
+  if (knob) knob.style.background = autoOn ? "#0071e3" : "#3a3a3c";
+  updateCloudStatus();
+}
+
+async function autoLoadFromGist() {
+  if (localStorage.getItem("gf_autoload") !== "1") return;
+  const id = getGistId(); if (!id) return;
+  const token = getGistToken();
+  try {
+    const headers = token ? { "Authorization": `token ${token}` } : {};
+    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
+    const json = await res.json();
+    const file = json.files && json.files[GIST_FILENAME];
+    if (!file) return;
+    const data = JSON.parse(file.content);
+    applyGistData(data);
+  } catch(e) { /* silent fail on auto-load */ }
+}
+
 /* ─── INIT ─── */
 loadStorage();
 applyContent();
 renderPortfolio();
 renderMarquee();
 updateMmBtn();
+autoLoadFromGist(); // silently sync from Gist on page load if configured
 </script>
 </body>
 </html>
