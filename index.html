@@ -406,6 +406,167 @@
     style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
 </div>
 
+<<<<<<< HEAD
+=======
+<!-- ─── LOGIN MODAL ─── -->
+<div id="login-modal" class="hidden"
+  style="position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;"
+  onclick="if(event.target===this)closeLogin();">
+  <div style="background:#1c1c1e;border-radius:22px;padding:34px 28px;width:100%;max-width:360px;border:1px solid rgba(255,255,255,0.14);">
+    <div style="font-size:28px;margin-bottom:12px;">🔐</div>
+    <h3 style="font-size:20px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px;">Admin Login</h3>
+    <p style="color:#86868b;font-size:14px;margin-bottom:22px;line-height:1.6;">Masukkan password untuk akses admin panel.</p>
+    <input id="pwd-input" class="ai field-input" type="password" placeholder="Password"
+      style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')login()">
+    <p id="pwd-error" class="hidden" style="color:#ff453a;font-size:12px;margin-bottom:10px;">Password salah. Coba lagi.</p>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button onclick="login()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">Masuk</button>
+      <button onclick="closeLogin()" style="background:#141414;color:#86868b;border:1px solid rgba(255,255,255,0.08);border-radius:11px;padding:13px 16px;font-size:15px;cursor:pointer;font-family:inherit;">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ADMIN PANEL ─── -->
+<div id="admin-overlay" class="hidden"
+  style="position:fixed;inset:0;z-index:300;display:flex;">
+  <div onclick="closeAdminPanel()" style="flex:1;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"></div>
+  <div class="adm-panel">
+    <!-- Header -->
+    <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#1c1c1e;z-index:10;flex-shrink:0;">
+      <div>
+        <h3 style="font-size:16px;font-weight:700;letter-spacing:-0.03em;margin-bottom:1px;">Admin Panel</h3>
+        <p style="font-size:11px;color:#86868b;">Edit konten portofolio kamu</p>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center;">
+        <span id="save-msg" class="hidden" style="font-size:11px;font-weight:500;"></span>
+        <button onclick="saveAdmin()" style="background:#0071e3;color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Simpan</button>
+        <button onclick="closeAdminPanel()" style="background:transparent;color:#86868b;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:7px 11px;font-size:14px;cursor:pointer;font-family:inherit;">✕</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;padding:10px 20px;gap:5px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1c1c1e;position:sticky;top:56px;z-index:9;flex-shrink:0;">
+      <button class="tab-btn active" data-tab="content"   onclick="switchTab(this,'content')">📝 Konten</button>
+      <button class="tab-btn"        data-tab="portfolio" onclick="switchTab(this,'portfolio')">🎬 Portfolio</button>
+      <button class="tab-btn"        data-tab="ticker"    onclick="switchTab(this,'ticker')">✦ Ticker</button>
+      <button class="tab-btn"        data-tab="media"     onclick="switchTab(this,'media')">🖼️ Media</button>
+      <button class="tab-btn"        data-tab="cloud"     onclick="switchTab(this,'cloud')">☁️ Cloud</button>
+    </div>
+    <!-- Body -->
+    <div class="panel-body" style="padding:20px;flex:1;overflow-y:auto;">
+
+      <!-- Content Tab -->
+      <div id="tab-content" style="display:flex;flex-direction:column;gap:15px;"></div>
+
+      <!-- Portfolio Tab -->
+      <div id="tab-portfolio" style="display:none;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;">Portfolio Items</p>
+          <button onclick="addPortfolioItem()" style="background:#0071e3;color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">+ Tambah</button>
+        </div>
+        <div id="portfolio-edit-list"></div>
+      </div>
+
+      <!-- Ticker Tab -->
+      <div id="tab-ticker" style="display:none;flex-direction:column;gap:14px;"></div>
+
+      <!-- Media Tab -->
+      <div id="tab-media" style="display:none;flex-direction:column;gap:22px;">
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Foto Profil</p>
+          <div style="border-radius:14px;overflow:hidden;aspect-ratio:4/5;margin-bottom:12px;background:#141414;">
+            <img id="edit-profile-preview" src="" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+          <label class="field-label">Nama File / URL Foto Profil</label>
+          <input id="profile-src-input" class="ai field-input" type="text" placeholder="foto.jpg atau https://..." oninput="handleProfileInput(this.value)">
+          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">profile.jpg</code>) jika ada di folder yang sama, atau paste URL lengkap.</p>
+        </div>
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Video Hero Background</p>
+          <div style="border-radius:14px;overflow:hidden;aspect-ratio:16/9;margin-bottom:12px;background:#141414;">
+            <video id="edit-hero-preview" muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+          </div>
+          <label class="field-label">Nama File / URL Video Hero</label>
+          <input id="hero-src-input" class="ai field-input" type="text" placeholder="NamaFile.mp4 atau https://..." oninput="handleHeroInput(this.value)">
+          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">Valord_5AM.mp4</code>) jika video ada di folder yang sama, atau paste URL lengkap. Video ini loop otomatis di hero homepage.</p>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:18px;">
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Session</p>
+          <button onclick="logoutAdmin()" style="background:transparent;color:#ff453a;border:1px solid rgba(255,69,58,0.25);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Logout dari Admin</button>
+        </div>
+      </div>
+
+      <!-- Cloud Tab -->
+      <div id="tab-cloud" style="display:none;flex-direction:column;gap:18px;">
+
+        <!-- Status bar -->
+        <div id="cloud-status-bar" style="border-radius:12px;padding:13px 16px;background:#141414;border:1px solid rgba(255,255,255,0.08);font-size:12px;display:flex;align-items:center;gap:10px;">
+          <span id="cloud-status-dot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;flex-shrink:0;"></span>
+          <span id="cloud-status-text" style="color:#86868b;">Belum terhubung ke cloud</span>
+        </div>
+
+        <!-- How it works -->
+        <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 18px;">
+          <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0071e3;margin-bottom:10px;">Cara kerja</p>
+          <p style="font-size:12px;color:#86868b;line-height:1.7;">Settingan disimpan ke <strong style="color:#f5f5f7;">JSONBin.io</strong> — layanan cloud gratis khusus menyimpan JSON dari browser. Tidak ada CORS, bisa diakses dari browser dan device manapun.</p>
+        </div>
+
+        <!-- Step 1: API Key -->
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 1 — API Key</p>
+          <input id="jb-key-input" class="ai field-input" type="password" placeholder="$2a$10$xxxx..."
+            oninput="localStorage.setItem('gf_jb_key', this.value); updateCloudStatus()">
+          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
+            Daftar gratis di <a href="https://jsonbin.io" target="_blank" style="color:#0071e3;">jsonbin.io</a> → masuk ke dashboard → <strong style="color:#f5f5f7;">API Keys</strong> → copy <strong style="color:#f5f5f7;">Secret Key</strong> → paste di sini.<br>
+            <span style="color:#ff9f0a;">Key tersimpan hanya di browser ini, tidak dikirim ke mana pun selain JSONBin.</span>
+          </p>
+        </div>
+
+        <!-- Step 2: Bin ID -->
+        <div>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 2 — Bin ID</p>
+          <div style="display:flex;gap:8px;">
+            <input id="jb-bin-input" class="ai field-input" type="text" placeholder="64a1b2c3d4e5f6..."
+              style="flex:1;" oninput="localStorage.setItem('gf_jb_bin', this.value); updateCloudStatus()">
+            <button onclick="createNewBin()" id="create-bin-btn"
+              style="background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:0 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
+              Buat Baru
+            </button>
+          </div>
+          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
+            Klik <strong style="color:#f5f5f7;">"Buat Baru"</strong> untuk auto-create Bin baru (butuh API Key di Step 1). Atau isi manual Bin ID yang sudah ada.
+          </p>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="pushToBin()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↑ Push ke Cloud
+          </button>
+          <button onclick="pullFromBin()" style="flex:1;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↓ Pull dari Cloud
+          </button>
+        </div>
+        <p id="cloud-action-msg" class="hidden" style="font-size:12px;text-align:center;padding:8px;border-radius:8px;background:#141414;"></p>
+
+        <!-- Auto-load toggle -->
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <p style="font-size:13px;font-weight:500;margin-bottom:2px;">Auto-load saat halaman dibuka</p>
+            <p style="font-size:11px;color:#6e6e73;">Load data dari cloud otomatis setiap kali halaman dibuka</p>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="autoload-knob" onclick="toggleAutoload()" style="position:absolute;cursor:pointer;inset:0;background:#3a3a3c;border-radius:13px;transition:background 0.3s;"></span>
+          </label>
+        </div>
+
+      </div>
+
+    </div><!-- end panel-body -->
+  </div><!-- end adm-panel -->
+</div><!-- end admin-overlay -->
+
+>>>>>>> 55e1a8e7de95f54850698b09a92935af4dfe5f17
 <script>
 /* ─── HARDCODED DATA ─── */
 const content = {
@@ -595,7 +756,366 @@ document.addEventListener("keydown", e => {
     if (!modal.classList.contains("hidden")) closeModal();
     if (menuOpen) closeMenu();
   }
+<<<<<<< HEAD
 });
+=======
+}
+
+/* ─── ADMIN PANEL ─── */
+function openAdminPanel() {
+  if (!isAdmin) return;
+  editC    = {...content};
+  editP    = JSON.parse(JSON.stringify(portfolio));
+  editM    = JSON.parse(JSON.stringify(marqueeItems));
+  editPro  = profileSrc;
+  editHero = heroSrc;
+
+  renderContentFields();
+  renderPortfolioEdit();
+  renderMarqueeEdit();
+  document.getElementById("edit-profile-preview").src = editPro;
+  const profileInput = document.getElementById("profile-src-input");
+  if (profileInput) profileInput.value = editPro;
+  const heroPreview = document.getElementById("edit-hero-preview");
+  heroPreview.src = editHero;
+  const heroInput = document.getElementById("hero-src-input");
+  if (heroInput) heroInput.value = editHero;
+
+  const o = document.getElementById("admin-overlay");
+  o.classList.remove("hidden"); o.style.display = "flex";
+  switchTab(document.querySelector('.tab-btn[data-tab="content"]'), "content");
+}
+function closeAdminPanel() {
+  const o = document.getElementById("admin-overlay");
+  o.classList.add("hidden"); o.style.display = "";
+}
+function logoutAdmin() {
+  isAdmin = false;
+  closeAdminPanel();
+  document.getElementById("admin-btn").classList.add("hidden");
+  document.getElementById("login-btn").classList.remove("hidden");
+  updateMmBtn();
+}
+function switchTab(btn, tab) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  ["content","portfolio","ticker","media","cloud"].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.style.display = t === tab ? "flex" : "none";
+  });
+  if (tab === "cloud") renderCloudTab();
+}
+
+/* ─── CONTENT FIELDS ─── */
+const CONTENT_FIELDS = [
+  ["Nama Studio",    "studioName",    "text"],
+  ["Hero Line 1",    "heroLine1",     "text"],
+  ["Hero Line 2",    "heroLine2",     "text"],
+  ["Hero Subtitle",  "heroSub",       "textarea"],
+  ["About Title",    "aboutTitle",    "text"],
+  ["About Deskripsi","aboutDesc",     "textarea"],
+  ["Lokasi",         "aboutLocation", "text"],
+  ["Nama Kamu",      "ownerName",     "text"],
+  ["Jabatan",        "ownerTitle",    "text"],
+  ["Email",          "email",         "text"],
+  ["WhatsApp",       "whatsapp",      "text"],
+  ["Upwork URL",     "upworkUrl",     "text"],
+  ["LinkedIn URL",   "linkedinUrl",   "text"],
+];
+function renderContentFields() {
+  const c = document.getElementById("tab-content");
+  c.innerHTML = CONTENT_FIELDS.map(([label,key,type]) => `
+    <div>
+      <label class="field-label">${label}</label>
+      ${type==="textarea"
+        ? `<textarea class="ai field-input" data-key="${key}" rows="3" style="resize:vertical;">${escHtml(editC[key]||"")}</textarea>`
+        : `<input class="ai field-input" type="text" data-key="${key}" value="${escHtml(editC[key]||"")}">`
+      }
+    </div>`).join("");
+  c.querySelectorAll("[data-key]").forEach(el => {
+    el.addEventListener("input", () => { editC[el.dataset.key] = el.value; });
+  });
+}
+
+/* ─── PORTFOLIO EDIT ─── */
+function renderPortfolioEdit() {
+  const list = document.getElementById("portfolio-edit-list");
+  list.innerHTML = editP.map((item,idx) => `
+    <div style="background:#141414;border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.08);margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:11px;color:#86868b;font-weight:600;">ITEM ${idx+1}${idx===0?" — FEATURED":""}</span>
+        <button onclick="removePortfolioItem(${idx})" style="background:transparent;color:#ff453a;border:none;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500;">Hapus</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div><label class="field-label">Judul</label><input class="ai field-input" data-pidx="${idx}" data-pkey="title" value="${escHtml(item.title)}"></div>
+        <div><label class="field-label">Tag / Kategori</label><input class="ai field-input" data-pidx="${idx}" data-pkey="tag" value="${escHtml(item.tag)}"></div>
+        <div>
+          <label class="field-label">Nama File / URL Video</label>
+          <input class="ai field-input" data-pidx="${idx}" data-pkey="src" placeholder="NamaFile.mp4 atau https://..." value="${escHtml(item.src||"")}">
+          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">Valord_5AM.mp4</code>) jika video ada di folder yang sama, atau paste URL lengkap.</p>
+        </div>
+        ${item.src ? `<video src="${escHtml(item.src)}" muted playsinline style="width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;" onerror="this.style.display='none'"></video>` : ""}
+      </div>
+    </div>`).join("");
+  list.querySelectorAll("[data-pidx]").forEach(el => {
+    el.addEventListener("input", () => {
+      editP[parseInt(el.dataset.pidx)][el.dataset.pkey] = el.value;
+      // live preview update for src field
+      if (el.dataset.pkey === "src") {
+        const card = el.closest("div[style]");
+        let vid = card ? card.querySelector("video") : null;
+        if (el.value) {
+          if (!vid) {
+            const v = document.createElement("video");
+            v.muted = true; v.setAttribute("playsinline","");
+            v.style.cssText = "width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;";
+            v.onerror = function(){ this.style.display="none"; };
+            card.appendChild(v);
+            vid = v;
+          }
+          vid.src = el.value;
+          vid.style.display = "";
+        } else if (vid) {
+          vid.style.display = "none";
+        }
+      }
+    });
+  });
+}
+function addPortfolioItem() {
+  editP.push({id:Date.now(),title:"New Project",tag:"Category \u00b7 Type",src:""});
+  renderPortfolioEdit();
+}
+function removePortfolioItem(idx) {
+  editP.splice(idx,1);
+  renderPortfolioEdit();
+}
+function handleProfileInput(val) {
+  editPro = val.trim();
+  document.getElementById("edit-profile-preview").src = editPro;
+}
+function handleHeroInput(val) {
+  editHero = val.trim();
+  document.getElementById("edit-hero-preview").src = editHero;
+}
+
+/* ─── SAVE ─── */
+function trySave(key, value) {
+  try { localStorage.setItem(key, value); return true; } catch(e) { return false; }
+}
+
+function saveAdmin() {
+  const msg = document.getElementById("save-msg");
+  msg.classList.remove("hidden");
+  msg.style.color = "#86868b";
+  msg.textContent = "Saving…";
+
+  try {
+    trySave("gf_c",    JSON.stringify(editC));
+    trySave("gf_p",    JSON.stringify(editP));
+    trySave("gf_mq",   JSON.stringify(editM));
+    trySave("gf_hero", editHero);
+    trySave("gf_img",  editPro);
+
+    content      = {...editC};
+    portfolio    = JSON.parse(JSON.stringify(editP));
+    marqueeItems = JSON.parse(JSON.stringify(editM));
+    profileSrc   = editPro;
+    heroSrc      = editHero;
+
+    applyContent();
+    renderPortfolio();
+    renderMarquee();
+
+    const hv = document.getElementById("hero-video");
+    hv.src = heroSrc; hv.load();
+
+    // If Gist is configured, push to cloud too
+    if (getGistToken() && getGistId()) {
+      msg.textContent = "Saving & syncing to cloud…";
+      pushToGist().then(() => {
+        msg.style.color = "#30d158";
+        msg.textContent = "Saved & synced ✓";
+        setTimeout(() => msg.classList.add("hidden"), 3000);
+      });
+      return; // msg will be hidden by pushToGist callback
+    }
+
+    msg.style.color = "#30d158";
+    msg.textContent = "Saved ✓";
+  } catch(e) {
+    msg.style.color = "#ff453a";
+    msg.textContent = "Error: " + e.message;
+  }
+  setTimeout(() => msg.classList.add("hidden"), 3000);
+}
+
+/* ─── GITHUB GIST CLOUD SYNC ─── */
+const GIST_FILENAME = "genframe-settings.json";
+
+function getGistToken() { return localStorage.getItem("gf_gh_token") || ""; }
+function getGistId()    { return localStorage.getItem("gf_gist_id")  || ""; }
+
+function gistPayload() {
+  return {
+    c:    editC,
+    p:    editP,
+    mq:   editM,
+    img:  editPro,
+    hero: editHero,
+  };
+}
+
+function applyGistData(data) {
+  if (data.c)    { content = {...data.c};                     editC = {...content}; }
+  if (data.p)    { portfolio = JSON.parse(JSON.stringify(data.p)); editP = JSON.parse(JSON.stringify(data.p)); }
+  if (data.mq)   { marqueeItems = JSON.parse(JSON.stringify(data.mq)); editM = JSON.parse(JSON.stringify(data.mq)); }
+  if (data.img)  { profileSrc = data.img;  editPro  = data.img; }
+  if (data.hero) { heroSrc    = data.hero; editHero = data.hero; }
+  // also mirror to localStorage as cache
+  trySave("gf_c",    JSON.stringify(content));
+  trySave("gf_p",    JSON.stringify(portfolio));
+  trySave("gf_mq",   JSON.stringify(marqueeItems));
+  trySave("gf_img",  profileSrc);
+  trySave("gf_hero", heroSrc);
+  applyContent(); renderPortfolio(); renderMarquee();
+  const hv = document.getElementById("hero-video");
+  if (hv) { hv.src = heroSrc; hv.load(); }
+}
+
+function setCloudMsg(text, color) {
+  const el = document.getElementById("cloud-action-msg");
+  if (!el) return;
+  el.classList.remove("hidden");
+  el.style.color = color || "#86868b";
+  el.textContent = text;
+  setTimeout(() => el.classList.add("hidden"), 4000);
+}
+
+async function createNewGist() {
+  const token = getGistToken();
+  if (!token) { setCloudMsg("Isi GitHub Token dulu di Step 1.", "#ff453a"); return; }
+  const btn = document.getElementById("create-gist-btn");
+  btn.textContent = "Membuat…"; btn.disabled = true;
+  try {
+    const res = await fetch("https://api.github.com/gists", {
+      method: "POST",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        description: "GenFrame Portfolio Settings",
+        public: false,
+        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
+      })
+    });
+    const json = await res.json();
+    if (json.id) {
+      localStorage.setItem("gf_gist_id", json.id);
+      document.getElementById("gist-id-input").value = json.id;
+      updateCloudStatus();
+      setCloudMsg("✓ Gist baru berhasil dibuat & data sudah di-push!", "#30d158");
+    } else {
+      setCloudMsg("Gagal buat Gist: " + (json.message||"unknown error"), "#ff453a");
+    }
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+  btn.textContent = "Buat Baru"; btn.disabled = false;
+}
+
+async function pushToGist() {
+  const token = getGistToken(), id = getGistId();
+  if (!token || !id) { setCloudMsg("Lengkapi Token dan Gist ID dulu.", "#ff453a"); return; }
+  setCloudMsg("Menyimpan ke Gist…", "#86868b");
+  try {
+    const res = await fetch(`https://api.github.com/gists/${id}`, {
+      method: "PATCH",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
+      })
+    });
+    const json = await res.json();
+    if (json.id) {
+      setCloudMsg("✓ Tersimpan di Gist!", "#30d158");
+      updateCloudStatus();
+    } else {
+      setCloudMsg("Gagal: " + (json.message||"unknown error"), "#ff453a");
+    }
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+}
+
+async function pullFromGist() {
+  const token = getGistToken(), id = getGistId();
+  if (!id) { setCloudMsg("Isi Gist ID dulu.", "#ff453a"); return; }
+  setCloudMsg("Mengambil data dari Gist…", "#86868b");
+  try {
+    const headers = token ? { "Authorization": `token ${token}` } : {};
+    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
+    const json = await res.json();
+    const file = json.files && json.files[GIST_FILENAME];
+    if (!file) { setCloudMsg("File tidak ditemukan di Gist.", "#ff453a"); return; }
+    const data = JSON.parse(file.content);
+    applyGistData(data);
+    setCloudMsg("✓ Data berhasil di-load dari Gist!", "#30d158");
+    // refresh admin panel inputs
+    openAdminPanel();
+  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
+}
+
+function updateCloudStatus() {
+  const token = getGistToken(), id = getGistId();
+  const dot  = document.getElementById("cloud-status-dot");
+  const text = document.getElementById("cloud-status-text");
+  if (!dot || !text) return;
+  if (token && id) {
+    dot.style.background  = "#30d158";
+    text.style.color      = "#30d158";
+    text.textContent      = `Terhubung — Gist ID: ${id.slice(0,8)}…`;
+  } else if (token) {
+    dot.style.background  = "#ff9f0a";
+    text.style.color      = "#ff9f0a";
+    text.textContent      = "Token ada, tapi Gist ID belum diisi";
+  } else {
+    dot.style.background  = "#6e6e73";
+    text.style.color      = "#86868b";
+    text.textContent      = "Belum terhubung ke cloud";
+  }
+}
+
+function toggleAutoload() {
+  const current = localStorage.getItem("gf_autoload") === "1";
+  const newVal  = !current;
+  localStorage.setItem("gf_autoload", newVal ? "1" : "0");
+  const knob = document.getElementById("autoload-knob");
+  if (knob) knob.style.background = newVal ? "#0071e3" : "#3a3a3c";
+}
+
+function renderCloudTab() {
+  const tokenInput = document.getElementById("gist-token-input");
+  const idInput    = document.getElementById("gist-id-input");
+  const autoToggle = document.getElementById("autoload-toggle");
+  const knob       = document.getElementById("autoload-knob");
+  if (tokenInput) tokenInput.value = getGistToken();
+  if (idInput)    idInput.value    = getGistId();
+  const autoOn = localStorage.getItem("gf_autoload") === "1";
+  if (autoToggle) autoToggle.checked = autoOn;
+  if (knob) knob.style.background = autoOn ? "#0071e3" : "#3a3a3c";
+  updateCloudStatus();
+}
+
+async function autoLoadFromGist() {
+  if (localStorage.getItem("gf_autoload") !== "1") return;
+  const id = getGistId(); if (!id) return;
+  const token = getGistToken();
+  try {
+    const headers = token ? { "Authorization": `token ${token}` } : {};
+    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
+    const json = await res.json();
+    const file = json.files && json.files[GIST_FILENAME];
+    if (!file) return;
+    const data = JSON.parse(file.content);
+    applyGistData(data);
+  } catch(e) { /* silent fail on auto-load */ }
+}
+>>>>>>> 55e1a8e7de95f54850698b09a92935af4dfe5f17
 
 /* ─── INIT ─── */
 applyContent();
