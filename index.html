@@ -556,43 +556,43 @@
         <!-- How it works -->
         <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 18px;">
           <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0071e3;margin-bottom:10px;">Cara kerja</p>
-          <p style="font-size:12px;color:#86868b;line-height:1.7;">Settingan disimpan ke <strong style="color:#f5f5f7;">GitHub Gist</strong> (file JSON gratis di akun GitHub kamu). Saat halaman dibuka dari device/browser manapun, data otomatis di-load dari Gist.</p>
+          <p style="font-size:12px;color:#86868b;line-height:1.7;">Settingan disimpan ke <strong style="color:#f5f5f7;">JSONBin.io</strong> — layanan cloud gratis khusus menyimpan JSON dari browser. Tidak ada CORS, bisa diakses dari browser dan device manapun.</p>
         </div>
 
-        <!-- Step 1: Token -->
+        <!-- Step 1: API Key -->
         <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 1 — GitHub Token</p>
-          <input id="gist-token-input" class="ai field-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-            oninput="localStorage.setItem('gf_gh_token', this.value); updateCloudStatus()">
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 1 — API Key</p>
+          <input id="jb-key-input" class="ai field-input" type="password" placeholder="$2a$10$xxxx..."
+            oninput="localStorage.setItem('gf_jb_key', this.value); updateCloudStatus()">
           <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
-            Buat token di <a href="https://github.com/settings/tokens/new" target="_blank" style="color:#0071e3;">github.com/settings/tokens/new</a> → pilih scope <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist</code> saja → Generate → paste di sini.<br>
-            <span style="color:#ff9f0a;">Token tersimpan hanya di browser ini (localStorage), tidak dikirim ke mana pun selain GitHub.</span>
+            Daftar gratis di <a href="https://jsonbin.io" target="_blank" style="color:#0071e3;">jsonbin.io</a> → masuk ke dashboard → <strong style="color:#f5f5f7;">API Keys</strong> → copy <strong style="color:#f5f5f7;">Secret Key</strong> → paste di sini.<br>
+            <span style="color:#ff9f0a;">Key tersimpan hanya di browser ini, tidak dikirim ke mana pun selain JSONBin.</span>
           </p>
         </div>
 
-        <!-- Step 2: Gist ID -->
+        <!-- Step 2: Bin ID -->
         <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 2 — Gist ID</p>
+          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 2 — Bin ID</p>
           <div style="display:flex;gap:8px;">
-            <input id="gist-id-input" class="ai field-input" type="text" placeholder="abc123def456..."
-              style="flex:1;" oninput="localStorage.setItem('gf_gist_id', this.value); updateCloudStatus()">
-            <button onclick="createNewGist()" id="create-gist-btn"
+            <input id="jb-bin-input" class="ai field-input" type="text" placeholder="64a1b2c3d4e5f6..."
+              style="flex:1;" oninput="localStorage.setItem('gf_jb_bin', this.value); updateCloudStatus()">
+            <button onclick="createNewBin()" id="create-bin-btn"
               style="background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:0 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
               Buat Baru
             </button>
           </div>
           <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
-            Klik <strong style="color:#f5f5f7;">"Buat Baru"</strong> untuk auto-create Gist baru (butuh token di Step 1), atau isi manual dari URL gist kamu: <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist.github.com/user/<strong>ID_INI</strong></code>
+            Klik <strong style="color:#f5f5f7;">"Buat Baru"</strong> untuk auto-create Bin baru (butuh API Key di Step 1). Atau isi manual Bin ID yang sudah ada.
           </p>
         </div>
 
         <!-- Action buttons -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="pushToGist()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
-            ↑ Push ke Gist
+          <button onclick="pushToBin()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↑ Push ke Cloud
           </button>
-          <button onclick="pullFromGist()" style="flex:1;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
-            ↓ Pull dari Gist
+          <button onclick="pullFromBin()" style="flex:1;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            ↓ Pull dari Cloud
           </button>
         </div>
         <p id="cloud-action-msg" class="hidden" style="font-size:12px;text-align:center;padding:8px;border-radius:8px;background:#141414;"></p>
@@ -601,7 +601,7 @@
         <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
           <div>
             <p style="font-size:13px;font-weight:500;margin-bottom:2px;">Auto-load saat halaman dibuka</p>
-            <p style="font-size:11px;color:#6e6e73;">Load data dari Gist otomatis setiap kali halaman dibuka</p>
+            <p style="font-size:11px;color:#6e6e73;">Load data dari cloud otomatis setiap kali halaman dibuka</p>
           </div>
           <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
             <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;position:absolute;">
