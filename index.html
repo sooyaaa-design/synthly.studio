@@ -604,10 +604,8 @@
             <p style="font-size:11px;color:#6e6e73;">Load data dari Gist otomatis setiap kali halaman dibuka</p>
           </div>
           <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
-            <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;"
-              onchange="localStorage.setItem('gf_autoload', this.checked?'1':'0')">
-            <span onclick="document.getElementById('autoload-toggle').click()" style="position:absolute;cursor:pointer;inset:0;background:#3a3a3c;border-radius:13px;transition:0.3s;"
-              id="autoload-knob"></span>
+            <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="autoload-knob" onclick="toggleAutoload()" style="position:absolute;cursor:pointer;inset:0;background:#3a3a3c;border-radius:13px;transition:background 0.3s;"></span>
           </label>
         </div>
 
@@ -1219,6 +1217,14 @@ function updateCloudStatus() {
     text.style.color      = "#86868b";
     text.textContent      = "Belum terhubung ke cloud";
   }
+}
+
+function toggleAutoload() {
+  const current = localStorage.getItem("gf_autoload") === "1";
+  const newVal  = !current;
+  localStorage.setItem("gf_autoload", newVal ? "1" : "0");
+  const knob = document.getElementById("autoload-knob");
+  if (knob) knob.style.background = newVal ? "#0071e3" : "#3a3a3c";
 }
 
 function renderCloudTab() {
