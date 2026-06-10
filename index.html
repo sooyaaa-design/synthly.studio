@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GENFRAME</title>
+<title>Synthly Studio</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -19,7 +19,6 @@
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
   @keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:0.8;}}
-  @keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
   .ha{animation:fadeUp 0.85s cubic-bezier(0.25,0.46,0.45,0.94) both;}
@@ -28,10 +27,8 @@
   .ha:nth-child(3){animation-delay:0.30s;}
   .ha:nth-child(4){animation-delay:0.42s;}
   .pls{animation:pulse 2.4s ease-in-out infinite;}
-  .ai:focus{border-color:#0071e3!important;outline:none;}
   .nl:hover{color:#f5f5f7!important;}
   .sc:hover{background:#181818!important;}
-  .pc:hover{transform:translateY(-4px)!important;}
 
   .mm{
     position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:90;
@@ -57,7 +54,6 @@
     .ps{grid-template-columns:1fr!important;}
     .cm{gap:28px;}
     .nl{display:none!important;}
-    .adm-panel{width:100%!important;}
     nav{padding:0 20px!important;}
     .hero-btns a{padding:12px 22px!important;font-size:14px!important;}
     .section-pad{padding:68px 20px!important;}
@@ -114,37 +110,6 @@
     border:1.5px solid rgba(255,255,255,0.3);
   }
   .video-card:hover .vc-play{transform:translate(-50%,-50%) scale(1);opacity:1;}
-
-  /* Form inputs */
-  .field-input{
-    width:100%;padding:10px 14px;background:#0a0a0a;
-    border:1px solid rgba(255,255,255,0.14);border-radius:10px;
-    color:#f5f5f7;font-size:13px;
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
-    outline:none;box-sizing:border-box;
-  }
-  .field-label{
-    font-size:11px;color:#86868b;display:block;
-    margin-bottom:6px;letter-spacing:0.05em;font-weight:500;
-  }
-
-  /* Admin panel */
-  .adm-panel{
-    width:500px;background:#1c1c1e;
-    border-left:1px solid rgba(255,255,255,0.14);
-    display:flex;flex-direction:column;
-    animation:slideIn 0.28s cubic-bezier(0.25,0.46,0.45,0.94);
-    overflow:hidden;
-  }
-  .tab-btn{
-    padding:7px 13px;border-radius:8px;border:none;cursor:pointer;
-    background:transparent;color:#86868b;font-size:12px;font-weight:500;
-    font-family:inherit;transition:all 0.2s;
-  }
-  .tab-btn.active{background:#0071e3;color:#fff;}
-  .panel-body{overflow-y:auto;}
-  .panel-body::-webkit-scrollbar{width:4px;}
-  .panel-body::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
 
   .hidden{display:none!important;}
 
@@ -203,29 +168,19 @@
   .process-icon{font-size:24px;margin-bottom:4px;}
   .process-step h3{font-size:17px;font-weight:600;letter-spacing:-0.03em;margin-bottom:6px;}
   .process-step p{color:#86868b;font-size:14px;line-height:1.72;}
-  .process-connector{
-    display:none;
-  }
-  @media(min-width:768px){
-    .process-grid{position:relative;}
-  }
 </style>
 </head>
 <body>
 
 <!-- ─── NAV ─── -->
 <nav id="main-nav">
-  <a href="#home" id="nav-logo" style="font-size:17px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">GENFRAME</a>
+  <a href="#home" id="nav-logo" style="font-size:17px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Synthly Studio</a>
   <div style="display:flex;gap:26px;align-items:center;">
     <a href="#about"     class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">About</a>
     <a href="#services"  class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Services</a>
     <a href="#portfolio" class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Portfolio</a>
     <a href="#process"   class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Process</a>
     <a href="#contact"   class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Contact</a>
-    <button id="admin-btn" onclick="openAdminPanel()" class="hidden"
-      style="background:#0071e3;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">Admin</button>
-    <button id="login-btn" onclick="openLogin()" class="nl"
-      style="background:transparent;color:#6e6e73;border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:color 0.2s;">Login</button>
     <button id="hamburger" onclick="toggleMenu()"
       style="background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:36px;height:36px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:5px;padding:8px;">
       <span id="hb1" style="display:block;width:16px;height:1.5px;background:#86868b;transition:all 0.22s;"></span>
@@ -243,15 +198,15 @@
   <a href="#process"   onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Process</a>
   <a href="#contact"   onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Contact</a>
   <div style="height:1px;width:48px;background:rgba(255,255,255,0.08);"></div>
-  <button id="mm-action-btn"
-    style="background:#0071e3;color:#fff;border:none;border-radius:980px;padding:13px 32px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;">Login Admin</button>
+  <a href="#contact" onclick="closeMenu()"
+    style="background:#0071e3;color:#fff;border-radius:980px;padding:13px 32px;font-size:16px;font-weight:500;">Get in Touch →</a>
 </div>
 
 <!-- ─── HERO ─── -->
 <section id="home" style="position:relative;height:100svh;min-height:600px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;">
   <video id="hero-video" autoplay muted loop playsinline
     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.36) saturate(1.1);">
-    <source id="hero-video-src" src="Valord_5AM_WM.mp4" type="video/mp4">
+    <source id="hero-video-src" src="Video_Intro_V2.mp4" type="video/mp4">
   </video>
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 30%,transparent 55%,rgba(0,0,0,0.95) 100%);"></div>
   <div style="position:relative;text-align:center;padding:0 32px;max-width:960px;width:100%;">
@@ -281,7 +236,7 @@
       <div>
         <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">About</p>
         <h2 id="about-title" style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;line-height:1.08;margin-bottom:18px;">AI Video, Human Vision</h2>
-        <p id="about-desc" style="color:#86868b;font-size:17px;line-height:1.82;margin-bottom:14px;">GENFRAME is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that's not just stunning — it converts.</p>
+        <p id="about-desc" style="color:#86868b;font-size:17px;line-height:1.82;margin-bottom:14px;">Synthly Studio is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that&#8217;s not just stunning &#8212; it converts.</p>
         <p id="about-location" style="color:#6e6e73;font-size:15px;line-height:1.7;margin-bottom:28px;">Based in Indonesia, serving clients worldwide.</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
           <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Ads</span>
@@ -296,11 +251,11 @@
       </div>
       <div style="position:relative;">
         <div style="border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:#141414;">
-          <img id="profile-img" src="place_person_in_scene_1f15a5bc-6c77-6440-920a-88b6349ca491_1_1.png" alt="Owner"
+          <img id="profile-img" src="kr9.jpg" alt="Owner"
             style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
         <div style="position:absolute;bottom:18px;left:18px;right:18px;background:rgba(10,10,10,0.78);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:14px;padding:15px 18px;border:1px solid rgba(255,255,255,0.08);">
-          <p id="owner-name" style="font-weight:600;font-size:15px;letter-spacing:-0.02em;margin-bottom:2px;">Your Name</p>
+          <p id="owner-name" style="font-weight:600;font-size:15px;letter-spacing:-0.02em;margin-bottom:2px;">Khalid Ridwan</p>
           <p id="owner-title" style="color:#86868b;font-size:13px;">AI Video Director &amp; Creative Technologist</p>
         </div>
       </div>
@@ -365,40 +320,33 @@
     <h2 style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;margin-bottom:12px;">How We Work</h2>
     <p style="color:#86868b;font-size:17px;margin-bottom:44px;">From brief to final delivery — a streamlined, transparent process.</p>
 
-    <!-- Steps grid -->
     <div class="process-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
-
       <div class="process-step">
         <span class="process-num">01</span>
         <div class="process-icon">💬</div>
         <h3>Brief</h3>
         <p>Share your vision, references, and goals. We align on the creative direction before a single frame is generated.</p>
       </div>
-
       <div class="process-step">
         <span class="process-num">02</span>
         <div class="process-icon">✦</div>
         <h3>Concept</h3>
         <p>We craft a visual concept and moodboard tailored to your brand — style, tone, pacing, and narrative arc.</p>
       </div>
-
       <div class="process-step">
         <span class="process-num">03</span>
         <div class="process-icon">⚡</div>
         <h3>Production</h3>
         <p>AI generation, shot composition, color grading, and sound design — all handled in our streamlined pipeline.</p>
       </div>
-
       <div class="process-step">
         <span class="process-num">04</span>
         <div class="process-icon">🎬</div>
         <h3>Delivery</h3>
         <p>Final file in your format of choice — 4K, multi-ratio, ready for any platform. Revisions included.</p>
       </div>
-
     </div>
 
-    <!-- CTA strip -->
     <div style="margin-top:32px;background:#141414;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
       <div>
         <p style="font-weight:600;font-size:16px;letter-spacing:-0.02em;margin-bottom:4px;">Ready to start your project?</p>
@@ -414,21 +362,22 @@
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%, rgba(0,113,227,0.07), transparent);pointer-events:none;"></div>
   <div style="max-width:760px;margin:0 auto;text-align:center;position:relative;">
     <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">Contact</p>
-    <h2 style="font-size:clamp(2rem,6vw,5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:18px;">Let's Create Something Cinematic.</h2>
-    <p id="contact-sub" style="color:#86868b;font-size:18px;margin-bottom:36px;line-height:1.65;">Cinematic AI-generated videos for brands, campaigns, and creators — reach out below.</p>
+    <h2 style="font-size:clamp(2rem,6vw,5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:18px;">Let&#8217;s Create Something Cinematic.</h2>
+    <p style="color:#86868b;font-size:18px;margin-bottom:36px;line-height:1.65;">Cinematic AI-generated videos for brands, campaigns, and creators — reach out below.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
-      <a id="btn-email" href="mailto:your@email.com" style="background:#0071e3;color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;">Send Email</a>
-      <a id="btn-wa" href="#" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">WhatsApp</a>
-      <a id="btn-upwork" href="https://upwork.com" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">Upwork</a>
+      <a id="btn-email" href="mailto:khldridwan@email.com" style="background:#0071e3;color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;">Send Email</a>
+      <a id="btn-wa" href="https://wa.me/6289532229859" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">WhatsApp</a>
+      <a id="btn-upwork" href="https://www.upwork.com/freelancers/~01e5682385430ca93a" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">Upwork</a>
+      <a href="https://www.linkedin.com/in/khalid-ridwan" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">LinkedIn</a>
     </div>
     <div class="cm" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:36px;">
       <div>
         <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">Email</p>
-        <p id="info-email" style="font-size:14px;">your@email.com</p>
+        <p id="info-email" style="font-size:14px;">khldridwan@email.com</p>
       </div>
       <div>
         <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">WhatsApp</p>
-        <p id="info-wa" style="font-size:14px;">+62 XXX XXXX XXXX</p>
+        <p id="info-wa" style="font-size:14px;">+62 895 3222 98559</p>
       </div>
       <div>
         <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">Based In</p>
@@ -444,7 +393,7 @@
 
 <!-- ─── FOOTER ─── -->
 <footer style="background:#0a0a0a;border-top:1px solid rgba(255,255,255,0.08);padding:20px 48px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
-  <span id="footer-copy" style="font-size:12px;color:#6e6e73;">© 2025 GENFRAME. All rights reserved.</span>
+  <span id="footer-copy" style="font-size:12px;color:#6e6e73;">© 2025 Synthly Studio. All rights reserved.</span>
   <span style="font-size:12px;color:#6e6e73;">AI-powered · Indonesia 🇮🇩</span>
 </footer>
 
@@ -457,187 +406,35 @@
     style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
 </div>
 
-<!-- ─── LOGIN MODAL ─── -->
-<div id="login-modal" class="hidden"
-  style="position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px;"
-  onclick="if(event.target===this)closeLogin();">
-  <div style="background:#1c1c1e;border-radius:22px;padding:34px 28px;width:100%;max-width:360px;border:1px solid rgba(255,255,255,0.14);">
-    <div style="font-size:28px;margin-bottom:12px;">🔐</div>
-    <h3 style="font-size:20px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px;">Admin Login</h3>
-    <p style="color:#86868b;font-size:14px;margin-bottom:22px;line-height:1.6;">Masukkan password untuk akses admin panel.</p>
-    <input id="pwd-input" class="ai field-input" type="password" placeholder="Password"
-      style="margin-bottom:8px;" onkeydown="if(event.key==='Enter')login()">
-    <p id="pwd-error" class="hidden" style="color:#ff453a;font-size:12px;margin-bottom:10px;">Password salah. Coba lagi.</p>
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button onclick="login()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">Masuk</button>
-      <button onclick="closeLogin()" style="background:#141414;color:#86868b;border:1px solid rgba(255,255,255,0.08);border-radius:11px;padding:13px 16px;font-size:15px;cursor:pointer;font-family:inherit;">Batal</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─── ADMIN PANEL ─── -->
-<div id="admin-overlay" class="hidden"
-  style="position:fixed;inset:0;z-index:300;display:flex;">
-  <div onclick="closeAdminPanel()" style="flex:1;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"></div>
-  <div class="adm-panel">
-    <!-- Header -->
-    <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#1c1c1e;z-index:10;flex-shrink:0;">
-      <div>
-        <h3 style="font-size:16px;font-weight:700;letter-spacing:-0.03em;margin-bottom:1px;">Admin Panel</h3>
-        <p style="font-size:11px;color:#86868b;">Edit konten portofolio kamu</p>
-      </div>
-      <div style="display:flex;gap:7px;align-items:center;">
-        <span id="save-msg" class="hidden" style="font-size:11px;font-weight:500;"></span>
-        <button onclick="saveAdmin()" style="background:#0071e3;color:#fff;border:none;border-radius:8px;padding:7px 15px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Simpan</button>
-        <button onclick="closeAdminPanel()" style="background:transparent;color:#86868b;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:7px 11px;font-size:14px;cursor:pointer;font-family:inherit;">✕</button>
-      </div>
-    </div>
-    <!-- Tabs -->
-    <div style="display:flex;padding:10px 20px;gap:5px;border-bottom:1px solid rgba(255,255,255,0.08);background:#1c1c1e;position:sticky;top:56px;z-index:9;flex-shrink:0;">
-      <button class="tab-btn active" data-tab="content"   onclick="switchTab(this,'content')">📝 Konten</button>
-      <button class="tab-btn"        data-tab="portfolio" onclick="switchTab(this,'portfolio')">🎬 Portfolio</button>
-      <button class="tab-btn"        data-tab="ticker"    onclick="switchTab(this,'ticker')">✦ Ticker</button>
-      <button class="tab-btn"        data-tab="media"     onclick="switchTab(this,'media')">🖼️ Media</button>
-      <button class="tab-btn"        data-tab="cloud"     onclick="switchTab(this,'cloud')">☁️ Cloud</button>
-    </div>
-    <!-- Body -->
-    <div class="panel-body" style="padding:20px;flex:1;overflow-y:auto;">
-
-      <!-- Content Tab -->
-      <div id="tab-content" style="display:flex;flex-direction:column;gap:15px;"></div>
-
-      <!-- Portfolio Tab -->
-      <div id="tab-portfolio" style="display:none;flex-direction:column;gap:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;">Portfolio Items</p>
-          <button onclick="addPortfolioItem()" style="background:#0071e3;color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">+ Tambah</button>
-        </div>
-        <div id="portfolio-edit-list"></div>
-      </div>
-
-      <!-- Ticker Tab -->
-      <div id="tab-ticker" style="display:none;flex-direction:column;gap:14px;"></div>
-
-      <!-- Media Tab -->
-      <div id="tab-media" style="display:none;flex-direction:column;gap:22px;">
-        <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Foto Profil</p>
-          <div style="border-radius:14px;overflow:hidden;aspect-ratio:4/5;margin-bottom:12px;background:#141414;">
-            <img id="edit-profile-preview" src="" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
-          </div>
-          <label class="field-label">Nama File / URL Foto Profil</label>
-          <input id="profile-src-input" class="ai field-input" type="text" placeholder="foto.jpg atau https://..." oninput="handleProfileInput(this.value)">
-          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">profile.jpg</code>) jika ada di folder yang sama, atau paste URL lengkap.</p>
-        </div>
-        <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Video Hero Background</p>
-          <div style="border-radius:14px;overflow:hidden;aspect-ratio:16/9;margin-bottom:12px;background:#141414;">
-            <video id="edit-hero-preview" muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
-          </div>
-          <label class="field-label">Nama File / URL Video Hero</label>
-          <input id="hero-src-input" class="ai field-input" type="text" placeholder="NamaFile.mp4 atau https://..." oninput="handleHeroInput(this.value)">
-          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">Valord_5AM.mp4</code>) jika video ada di folder yang sama, atau paste URL lengkap. Video ini loop otomatis di hero homepage.</p>
-        </div>
-        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:18px;">
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Session</p>
-          <button onclick="logoutAdmin()" style="background:transparent;color:#ff453a;border:1px solid rgba(255,69,58,0.25);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Logout dari Admin</button>
-        </div>
-      </div>
-
-      <!-- Cloud Tab -->
-      <div id="tab-cloud" style="display:none;flex-direction:column;gap:18px;">
-
-        <!-- Status bar -->
-        <div id="cloud-status-bar" style="border-radius:12px;padding:13px 16px;background:#141414;border:1px solid rgba(255,255,255,0.08);font-size:12px;display:flex;align-items:center;gap:10px;">
-          <span id="cloud-status-dot" style="width:8px;height:8px;border-radius:50%;background:#6e6e73;flex-shrink:0;"></span>
-          <span id="cloud-status-text" style="color:#86868b;">Belum terhubung ke cloud</span>
-        </div>
-
-        <!-- How it works -->
-        <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 18px;">
-          <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#0071e3;margin-bottom:10px;">Cara kerja</p>
-          <p style="font-size:12px;color:#86868b;line-height:1.7;">Settingan disimpan ke <strong style="color:#f5f5f7;">GitHub Gist</strong> (file JSON gratis di akun GitHub kamu). Saat halaman dibuka dari device/browser manapun, data otomatis di-load dari Gist.</p>
-        </div>
-
-        <!-- Step 1: Token -->
-        <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 1 — GitHub Token</p>
-          <input id="gist-token-input" class="ai field-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-            oninput="localStorage.setItem('gf_gh_token', this.value); updateCloudStatus()">
-          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
-            Buat token di <a href="https://github.com/settings/tokens/new" target="_blank" style="color:#0071e3;">github.com/settings/tokens/new</a> → pilih scope <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist</code> saja → Generate → paste di sini.<br>
-            <span style="color:#ff9f0a;">Token tersimpan hanya di browser ini (localStorage), tidak dikirim ke mana pun selain GitHub.</span>
-          </p>
-        </div>
-
-        <!-- Step 2: Gist ID -->
-        <div>
-          <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">Step 2 — Gist ID</p>
-          <div style="display:flex;gap:8px;">
-            <input id="gist-id-input" class="ai field-input" type="text" placeholder="abc123def456..."
-              style="flex:1;" oninput="localStorage.setItem('gf_gist_id', this.value); updateCloudStatus()">
-            <button onclick="createNewGist()" id="create-gist-btn"
-              style="background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:0 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
-              Buat Baru
-            </button>
-          </div>
-          <p style="font-size:11px;color:#6e6e73;margin-top:6px;line-height:1.65;">
-            Klik <strong style="color:#f5f5f7;">"Buat Baru"</strong> untuk auto-create Gist baru (butuh token di Step 1), atau isi manual dari URL gist kamu: <code style="background:#141414;padding:1px 5px;border-radius:4px;">gist.github.com/user/<strong>ID_INI</strong></code>
-          </p>
-        </div>
-
-        <!-- Action buttons -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="pushToGist()" style="flex:1;background:#0071e3;color:#fff;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
-            ↑ Push ke Gist
-          </button>
-          <button onclick="pullFromGist()" style="flex:1;background:#2c2c2e;color:#f5f5f7;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
-            ↓ Pull dari Gist
-          </button>
-        </div>
-        <p id="cloud-action-msg" class="hidden" style="font-size:12px;text-align:center;padding:8px;border-radius:8px;background:#141414;"></p>
-
-        <!-- Auto-load toggle -->
-        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <p style="font-size:13px;font-weight:500;margin-bottom:2px;">Auto-load saat halaman dibuka</p>
-            <p style="font-size:11px;color:#6e6e73;">Load data dari Gist otomatis setiap kali halaman dibuka</p>
-          </div>
-          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
-            <input type="checkbox" id="autoload-toggle" style="opacity:0;width:0;height:0;"
-              onchange="localStorage.setItem('gf_autoload', this.checked?'1':'0')">
-            <span onclick="document.getElementById('autoload-toggle').click()" style="position:absolute;cursor:pointer;inset:0;background:#3a3a3c;border-radius:13px;transition:0.3s;"
-              id="autoload-knob"></span>
-          </label>
-        </div>
-
-      </div>
-
-    </div><!-- end panel-body -->
-  </div><!-- end adm-panel -->
-</div><!-- end admin-overlay -->
-
 <script>
-/* ─── CONFIG ─── */
-const ADMIN_PASSWORD = "genframe2024";
-
-const DEFAULT_CONTENT = {
-  studioName:    "GENFRAME",
+/* ─── HARDCODED DATA ─── */
+const content = {
+  studioName:    "Synthly Studio",
   heroLine1:     "Visual Stories,",
   heroLine2:     "Crafted by AI.",
-  heroSub:       "Cinematic AI-generated videos for brands, campaigns, and creators — at the speed of imagination.",
+  heroSub:       "Cinematic AI-generated videos for brands, campaigns, and creators \u2014 at the speed of imagination.",
   aboutTitle:    "AI Video, Human Vision",
-  aboutDesc:     "GENFRAME is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that\u2019s not just stunning \u2014 it converts.",
+  aboutDesc:     "Synthly Studio is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that\u2019s not just stunning \u2014 it converts.",
   aboutLocation: "Based in Indonesia, serving clients worldwide.",
-  ownerName:     "Your Name",
+  ownerName:     "Khalid Ridwan",
   ownerTitle:    "AI Video Director & Creative Technologist",
-  email:         "your@email.com",
-  whatsapp:      "+62 XXX XXXX XXXX",
-  upworkUrl:     "https://upwork.com",
-  linkedinUrl:   "https://linkedin.com",
+  email:         "khldridwan@email.com",
+  whatsapp:      "+62 895 3222 98559",
+  upworkUrl:     "https://www.upwork.com/freelancers/~01e5682385430ca93a",
+  linkedinUrl:   "https://www.linkedin.com/in/khalid-ridwan",
 };
 
-const DEFAULT_MARQUEE = [
+const portfolio = [
+  { id:1, title:"DHI",                     tag:"Demo Project",                   src:"DHI_demo.mp4" },
+  { id:2, title:"Profil",                  tag:"AI Video Producer",              src:"Video_Intro_V2.mp4" },
+  { id:3, title:"Chuba",                   tag:"Brand Content \u00b7 AI Generated",  src:"Chuba_WM.mp4" },
+  { id:4, title:"Cat Choize",              tag:"Creative Ad \u00b7 Product Showcase", src:"Cat_Choize_WM.mp4" },
+  { id:5, title:"Raich",                   tag:"Beauty",                          src:"Raich_WM.mp4" },
+  { id:6, title:"Valord \u2014 5AM",       tag:"AI Cinematic",                   src:"Valord_5AM_WM.mp4" },
+  { id:7, title:"Valord \u2014 Imperium",  tag:"Brand Ad",                       src:"Valord_Imperium_WM.mp4" },
+];
+
+const marqueeItems = [
   { type:"text", value:"Seedance 2.0" },
   { type:"text", value:"Kling 3.0" },
   { type:"text", value:"Midjourney" },
@@ -648,37 +445,10 @@ const DEFAULT_MARQUEE = [
   { type:"text", value:"Claude AI" },
 ];
 
-const DEFAULT_PORTFOLIO = [
-  { id:1, title:"Valord \u2014 5AM",      tag:"Music Visual \u00b7 AI Cinematic",   src:"Valord_5AM_WM.mp4" },
-  { id:2, title:"Valord \u2014 Imperium", tag:"Music Visual \u00b7 Epic / Dark",     src:"Valord_Imperium_WM.mp4" },
-  { id:3, title:"Chuba",                  tag:"Brand Content \u00b7 AI Generated",   src:"Chuba__WM_.mp4" },
-  { id:4, title:"Cat Choize",             tag:"Creative Ad \u00b7 Product Showcase",  src:"Cat_Choize__WM_.mp4" },
-  { id:5, title:"Raich",                  tag:"Music Visual \u00b7 Atmospheric",     src:"Raich__WM_.mp4" },
-];
+const profileSrc = "kr9.jpg";
+const heroSrc    = "Video_Intro_V2.mp4";
 
-/* ─── STATE ─── */
-let content    = {...DEFAULT_CONTENT};
-let portfolio  = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
-let marqueeItems = JSON.parse(JSON.stringify(DEFAULT_MARQUEE));
-let profileSrc = "place_person_in_scene_1f15a5bc-6c77-6440-920a-88b6349ca491_1_1.png";
-let heroSrc    = "Valord_5AM_WM.mp4";
-let isAdmin    = false;
-let menuOpen   = false;
-
-let editC    = {...content};
-let editP    = JSON.parse(JSON.stringify(portfolio));
-let editM    = JSON.parse(JSON.stringify(DEFAULT_MARQUEE));
-let editPro  = profileSrc;
-let editHero = heroSrc;
-
-/* ─── STORAGE ─── */
-function loadStorage() {
-  try { const v = localStorage.getItem("gf_c"); if (v) { content = JSON.parse(v); editC = {...content}; } } catch {}
-  try { const v = localStorage.getItem("gf_p"); if (v) { portfolio = JSON.parse(v); editP = JSON.parse(v); } } catch {}
-  try { const v = localStorage.getItem("gf_img"); if (v) { profileSrc = v; editPro = v; } } catch {}
-  try { const v = localStorage.getItem("gf_mq"); if (v) { marqueeItems = JSON.parse(v); editM = JSON.parse(v); } } catch {}
-  try { const v = localStorage.getItem("gf_hero"); if (v) { heroSrc = v; editHero = v; } } catch {}
-}
+let menuOpen = false;
 
 /* ─── APPLY CONTENT TO DOM ─── */
 function applyContent() {
@@ -692,14 +462,13 @@ function applyContent() {
   setText("about-location", content.aboutLocation);
   setText("owner-name",     content.ownerName);
   setText("owner-title",    content.ownerTitle);
-  setText("footer-copy",    `\u00a9 2025 ${content.studioName}. All rights reserved.`);
+  setText("footer-copy",    "\u00a9 2025 " + content.studioName + ". All rights reserved.");
   setText("info-email",     content.email);
   setText("info-wa",        content.whatsapp);
-
-  setAttr("btn-email",  "href", `mailto:${content.email}`);
-  setAttr("btn-wa",     "href", `https://wa.me/${content.whatsapp.replace(/\D/g,"")}`);
-  setAttr("btn-upwork", "href", content.upworkUrl);
-  setAttr("profile-img","src",  profileSrc);
+  setAttr("btn-email",   "href", "mailto:" + content.email);
+  setAttr("btn-wa",      "href", "https://wa.me/" + content.whatsapp.replace(/\D/g,""));
+  setAttr("btn-upwork",  "href", content.upworkUrl);
+  setAttr("profile-img", "src",  profileSrc);
 }
 
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
@@ -752,64 +521,21 @@ function renderPortfolio() {
 function renderMarquee() {
   const track = document.getElementById("marquee-track");
   if (!track) return;
-  // Build one set, then duplicate for seamless loop
   function buildSet() {
-    return marqueeItems.map((item, i) => {
+    return marqueeItems.map(item => {
       let inner = "";
       if (item.type === "img" && item.value) {
         inner = `<img src="${escHtml(item.value)}" alt="tool">`;
       } else {
         inner = escHtml(item.value || "");
       }
-      const sep = `<span class="marquee-sep">✦</span>`;
-      return `<span class="marquee-item">${inner}</span>${sep}`;
+      return `<span class="marquee-item">${inner}</span><span class="marquee-sep">✦</span>`;
     }).join("");
   }
   const set = buildSet();
-  track.innerHTML = set + set; // duplicate for seamless loop
+  track.innerHTML = set + set;
 }
 
-/* ─── MARQUEE EDIT (admin tab) ─── */
-function renderMarqueeEdit() {
-  const cont = document.getElementById("tab-ticker");
-  if (!cont) return;
-  cont.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <p style="font-size:11px;color:#86868b;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;">Ticker Items</p>
-      <div style="display:flex;gap:7px;">
-        <button onclick="addMarqueeText()" style="background:#0071e3;color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">+ Teks</button>
-        <button onclick="addMarqueeLogo()" style="background:#2c2c2e;color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">+ Logo PNG</button>
-      </div>
-    </div>
-    <div id="marquee-edit-list">${editM.map((item,idx)=>`
-      <div style="background:#141414;border-radius:12px;padding:13px 14px;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:10px;color:#6e6e73;min-width:20px;text-align:center;">${idx+1}</span>
-        ${item.type==="img"
-          ? `<div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-               ${item.value ? `<img src="${escHtml(item.value)}" style="height:22px;opacity:0.6;filter:brightness(10);margin-bottom:2px;">` : ""}
-               <input class="ai field-input" style="padding:8px 12px;" type="text" placeholder="logo.png atau https://..." value="${escHtml(item.value||"")}" oninput="editM[${idx}].value=this.value; renderMarqueeEdit()">
-             </div>`
-          : `<input class="ai field-input" style="flex:1;padding:8px 12px;" type="text" placeholder="Nama tool..." value="${escHtml(item.value||"")}" onchange="editM[${idx}].value=this.value">`
-        }
-        <span style="font-size:9px;padding:3px 8px;border-radius:4px;background:${item.type==="img"?"#1c3a5e":"#1c2e1c"};color:${item.type==="img"?"#5ba3f5":"#4cd964"};font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">${item.type==="img"?"PNG":"TXT"}</span>
-        <button onclick="removeMarqueeItem(${idx})" style="background:transparent;color:#ff453a;border:none;font-size:14px;cursor:pointer;padding:0 2px;">✕</button>
-      </div>`).join("")}
-    </div>
-    <p style="font-size:11px;color:#6e6e73;margin-top:8px;line-height:1.6;">Teks atau logo PNG yang akan berjalan di ticker. Urutkan sesuai keinginan.</p>
-  `;
-}
-function addMarqueeText() {
-  editM.push({type:"text",value:"Tool Name"});
-  renderMarqueeEdit();
-}
-function addMarqueeLogo() {
-  editM.push({type:"img",value:""});
-  renderMarqueeEdit();
-}
-function removeMarqueeItem(idx) {
-  editM.splice(idx,1);
-  renderMarqueeEdit();
-}
 /* ─── NAV SCROLL ─── */
 window.addEventListener("scroll", () => {
   document.getElementById("main-nav").classList.toggle("scrolled", window.scrollY > 40);
@@ -846,18 +572,6 @@ function closeMenu() {
   });
 }
 
-/* ─── MOBILE MENU ACTION ─── */
-function updateMmBtn() {
-  const btn = document.getElementById("mm-action-btn");
-  if (isAdmin) {
-    btn.textContent = "Admin Panel";
-    btn.onclick = () => { closeMenu(); openAdminPanel(); };
-  } else {
-    btn.textContent = "Login Admin";
-    btn.onclick = () => { closeMenu(); openLogin(); };
-  }
-}
-
 /* ─── VIDEO MODAL ─── */
 function openModal(src) {
   const modal = document.getElementById("video-modal");
@@ -874,388 +588,19 @@ function closeModal() {
   modal.style.display = "";
 }
 
-/* ─── LOGIN ─── */
-function openLogin() {
-  const m = document.getElementById("login-modal");
-  m.classList.remove("hidden"); m.style.display = "flex";
-}
-function closeLogin() {
-  document.getElementById("login-modal").classList.add("hidden");
-  document.getElementById("login-modal").style.display = "";
-  document.getElementById("pwd-input").value = "";
-  document.getElementById("pwd-error").classList.add("hidden");
-  document.getElementById("pwd-input").style.borderColor = "";
-}
-function login() {
-  const pwd = document.getElementById("pwd-input").value;
-  if (pwd === ADMIN_PASSWORD) {
-    isAdmin = true;
-    closeLogin();
-    document.getElementById("admin-btn").classList.remove("hidden");
-    document.getElementById("login-btn").classList.add("hidden");
-    updateMmBtn();
-    openAdminPanel();
-  } else {
-    document.getElementById("pwd-error").classList.remove("hidden");
-    document.getElementById("pwd-input").value = "";
-    document.getElementById("pwd-input").style.borderColor = "#ff453a";
+/* ─── KEYBOARD: ESC to close modal ─── */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    const modal = document.getElementById("video-modal");
+    if (!modal.classList.contains("hidden")) closeModal();
+    if (menuOpen) closeMenu();
   }
-}
-
-/* ─── ADMIN PANEL ─── */
-function openAdminPanel() {
-  if (!isAdmin) return;
-  editC    = {...content};
-  editP    = JSON.parse(JSON.stringify(portfolio));
-  editM    = JSON.parse(JSON.stringify(marqueeItems));
-  editPro  = profileSrc;
-  editHero = heroSrc;
-
-  renderContentFields();
-  renderPortfolioEdit();
-  renderMarqueeEdit();
-  document.getElementById("edit-profile-preview").src = editPro;
-  const profileInput = document.getElementById("profile-src-input");
-  if (profileInput) profileInput.value = editPro;
-  const heroPreview = document.getElementById("edit-hero-preview");
-  heroPreview.src = editHero;
-  const heroInput = document.getElementById("hero-src-input");
-  if (heroInput) heroInput.value = editHero;
-
-  const o = document.getElementById("admin-overlay");
-  o.classList.remove("hidden"); o.style.display = "flex";
-  switchTab(document.querySelector('.tab-btn[data-tab="content"]'), "content");
-}
-function closeAdminPanel() {
-  const o = document.getElementById("admin-overlay");
-  o.classList.add("hidden"); o.style.display = "";
-}
-function logoutAdmin() {
-  isAdmin = false;
-  closeAdminPanel();
-  document.getElementById("admin-btn").classList.add("hidden");
-  document.getElementById("login-btn").classList.remove("hidden");
-  updateMmBtn();
-}
-function switchTab(btn, tab) {
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  ["content","portfolio","ticker","media","cloud"].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.style.display = t === tab ? "flex" : "none";
-  });
-  if (tab === "cloud") renderCloudTab();
-}
-
-/* ─── CONTENT FIELDS ─── */
-const CONTENT_FIELDS = [
-  ["Nama Studio",    "studioName",    "text"],
-  ["Hero Line 1",    "heroLine1",     "text"],
-  ["Hero Line 2",    "heroLine2",     "text"],
-  ["Hero Subtitle",  "heroSub",       "textarea"],
-  ["About Title",    "aboutTitle",    "text"],
-  ["About Deskripsi","aboutDesc",     "textarea"],
-  ["Lokasi",         "aboutLocation", "text"],
-  ["Nama Kamu",      "ownerName",     "text"],
-  ["Jabatan",        "ownerTitle",    "text"],
-  ["Email",          "email",         "text"],
-  ["WhatsApp",       "whatsapp",      "text"],
-  ["Upwork URL",     "upworkUrl",     "text"],
-  ["LinkedIn URL",   "linkedinUrl",   "text"],
-];
-function renderContentFields() {
-  const c = document.getElementById("tab-content");
-  c.innerHTML = CONTENT_FIELDS.map(([label,key,type]) => `
-    <div>
-      <label class="field-label">${label}</label>
-      ${type==="textarea"
-        ? `<textarea class="ai field-input" data-key="${key}" rows="3" style="resize:vertical;">${escHtml(editC[key]||"")}</textarea>`
-        : `<input class="ai field-input" type="text" data-key="${key}" value="${escHtml(editC[key]||"")}">`
-      }
-    </div>`).join("");
-  c.querySelectorAll("[data-key]").forEach(el => {
-    el.addEventListener("input", () => { editC[el.dataset.key] = el.value; });
-  });
-}
-
-/* ─── PORTFOLIO EDIT ─── */
-function renderPortfolioEdit() {
-  const list = document.getElementById("portfolio-edit-list");
-  list.innerHTML = editP.map((item,idx) => `
-    <div style="background:#141414;border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.08);margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <span style="font-size:11px;color:#86868b;font-weight:600;">ITEM ${idx+1}${idx===0?" — FEATURED":""}</span>
-        <button onclick="removePortfolioItem(${idx})" style="background:transparent;color:#ff453a;border:none;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500;">Hapus</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:9px;">
-        <div><label class="field-label">Judul</label><input class="ai field-input" data-pidx="${idx}" data-pkey="title" value="${escHtml(item.title)}"></div>
-        <div><label class="field-label">Tag / Kategori</label><input class="ai field-input" data-pidx="${idx}" data-pkey="tag" value="${escHtml(item.tag)}"></div>
-        <div>
-          <label class="field-label">Nama File / URL Video</label>
-          <input class="ai field-input" data-pidx="${idx}" data-pkey="src" placeholder="NamaFile.mp4 atau https://..." value="${escHtml(item.src||"")}">
-          <p style="font-size:11px;color:#6e6e73;margin-top:5px;line-height:1.5;">Ketik nama file (misal <code style="background:#0a0a0a;padding:1px 5px;border-radius:4px;">Valord_5AM.mp4</code>) jika video ada di folder yang sama, atau paste URL lengkap.</p>
-        </div>
-        ${item.src ? `<video src="${escHtml(item.src)}" muted playsinline style="width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;" onerror="this.style.display='none'"></video>` : ""}
-      </div>
-    </div>`).join("");
-  list.querySelectorAll("[data-pidx]").forEach(el => {
-    el.addEventListener("input", () => {
-      editP[parseInt(el.dataset.pidx)][el.dataset.pkey] = el.value;
-      // live preview update for src field
-      if (el.dataset.pkey === "src") {
-        const card = el.closest("div[style]");
-        let vid = card ? card.querySelector("video") : null;
-        if (el.value) {
-          if (!vid) {
-            const v = document.createElement("video");
-            v.muted = true; v.setAttribute("playsinline","");
-            v.style.cssText = "width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;";
-            v.onerror = function(){ this.style.display="none"; };
-            card.appendChild(v);
-            vid = v;
-          }
-          vid.src = el.value;
-          vid.style.display = "";
-        } else if (vid) {
-          vid.style.display = "none";
-        }
-      }
-    });
-  });
-}
-function addPortfolioItem() {
-  editP.push({id:Date.now(),title:"New Project",tag:"Category \u00b7 Type",src:""});
-  renderPortfolioEdit();
-}
-function removePortfolioItem(idx) {
-  editP.splice(idx,1);
-  renderPortfolioEdit();
-}
-function handleProfileInput(val) {
-  editPro = val.trim();
-  document.getElementById("edit-profile-preview").src = editPro;
-}
-function handleHeroInput(val) {
-  editHero = val.trim();
-  document.getElementById("edit-hero-preview").src = editHero;
-}
-
-/* ─── SAVE ─── */
-function trySave(key, value) {
-  try { localStorage.setItem(key, value); return true; } catch(e) { return false; }
-}
-
-function saveAdmin() {
-  const msg = document.getElementById("save-msg");
-  msg.classList.remove("hidden");
-  msg.style.color = "#86868b";
-  msg.textContent = "Saving…";
-
-  try {
-    trySave("gf_c",    JSON.stringify(editC));
-    trySave("gf_p",    JSON.stringify(editP));
-    trySave("gf_mq",   JSON.stringify(editM));
-    trySave("gf_hero", editHero);
-    trySave("gf_img",  editPro);
-
-    content      = {...editC};
-    portfolio    = JSON.parse(JSON.stringify(editP));
-    marqueeItems = JSON.parse(JSON.stringify(editM));
-    profileSrc   = editPro;
-    heroSrc      = editHero;
-
-    applyContent();
-    renderPortfolio();
-    renderMarquee();
-
-    const hv = document.getElementById("hero-video");
-    hv.src = heroSrc; hv.load();
-
-    // If Gist is configured, push to cloud too
-    if (getGistToken() && getGistId()) {
-      msg.textContent = "Saving & syncing to cloud…";
-      pushToGist().then(() => {
-        msg.style.color = "#30d158";
-        msg.textContent = "Saved & synced ✓";
-        setTimeout(() => msg.classList.add("hidden"), 3000);
-      });
-      return; // msg will be hidden by pushToGist callback
-    }
-
-    msg.style.color = "#30d158";
-    msg.textContent = "Saved ✓";
-  } catch(e) {
-    msg.style.color = "#ff453a";
-    msg.textContent = "Error: " + e.message;
-  }
-  setTimeout(() => msg.classList.add("hidden"), 3000);
-}
-
-/* ─── GITHUB GIST CLOUD SYNC ─── */
-const GIST_FILENAME = "genframe-settings.json";
-
-function getGistToken() { return localStorage.getItem("gf_gh_token") || ""; }
-function getGistId()    { return localStorage.getItem("gf_gist_id")  || ""; }
-
-function gistPayload() {
-  return {
-    c:    editC,
-    p:    editP,
-    mq:   editM,
-    img:  editPro,
-    hero: editHero,
-  };
-}
-
-function applyGistData(data) {
-  if (data.c)    { content = {...data.c};                     editC = {...content}; }
-  if (data.p)    { portfolio = JSON.parse(JSON.stringify(data.p)); editP = JSON.parse(JSON.stringify(data.p)); }
-  if (data.mq)   { marqueeItems = JSON.parse(JSON.stringify(data.mq)); editM = JSON.parse(JSON.stringify(data.mq)); }
-  if (data.img)  { profileSrc = data.img;  editPro  = data.img; }
-  if (data.hero) { heroSrc    = data.hero; editHero = data.hero; }
-  // also mirror to localStorage as cache
-  trySave("gf_c",    JSON.stringify(content));
-  trySave("gf_p",    JSON.stringify(portfolio));
-  trySave("gf_mq",   JSON.stringify(marqueeItems));
-  trySave("gf_img",  profileSrc);
-  trySave("gf_hero", heroSrc);
-  applyContent(); renderPortfolio(); renderMarquee();
-  const hv = document.getElementById("hero-video");
-  if (hv) { hv.src = heroSrc; hv.load(); }
-}
-
-function setCloudMsg(text, color) {
-  const el = document.getElementById("cloud-action-msg");
-  if (!el) return;
-  el.classList.remove("hidden");
-  el.style.color = color || "#86868b";
-  el.textContent = text;
-  setTimeout(() => el.classList.add("hidden"), 4000);
-}
-
-async function createNewGist() {
-  const token = getGistToken();
-  if (!token) { setCloudMsg("Isi GitHub Token dulu di Step 1.", "#ff453a"); return; }
-  const btn = document.getElementById("create-gist-btn");
-  btn.textContent = "Membuat…"; btn.disabled = true;
-  try {
-    const res = await fetch("https://api.github.com/gists", {
-      method: "POST",
-      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        description: "GenFrame Portfolio Settings",
-        public: false,
-        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
-      })
-    });
-    const json = await res.json();
-    if (json.id) {
-      localStorage.setItem("gf_gist_id", json.id);
-      document.getElementById("gist-id-input").value = json.id;
-      updateCloudStatus();
-      setCloudMsg("✓ Gist baru berhasil dibuat & data sudah di-push!", "#30d158");
-    } else {
-      setCloudMsg("Gagal buat Gist: " + (json.message||"unknown error"), "#ff453a");
-    }
-  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
-  btn.textContent = "Buat Baru"; btn.disabled = false;
-}
-
-async function pushToGist() {
-  const token = getGistToken(), id = getGistId();
-  if (!token || !id) { setCloudMsg("Lengkapi Token dan Gist ID dulu.", "#ff453a"); return; }
-  setCloudMsg("Menyimpan ke Gist…", "#86868b");
-  try {
-    const res = await fetch(`https://api.github.com/gists/${id}`, {
-      method: "PATCH",
-      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        files: { [GIST_FILENAME]: { content: JSON.stringify(gistPayload(), null, 2) } }
-      })
-    });
-    const json = await res.json();
-    if (json.id) {
-      setCloudMsg("✓ Tersimpan di Gist!", "#30d158");
-      updateCloudStatus();
-    } else {
-      setCloudMsg("Gagal: " + (json.message||"unknown error"), "#ff453a");
-    }
-  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
-}
-
-async function pullFromGist() {
-  const token = getGistToken(), id = getGistId();
-  if (!id) { setCloudMsg("Isi Gist ID dulu.", "#ff453a"); return; }
-  setCloudMsg("Mengambil data dari Gist…", "#86868b");
-  try {
-    const headers = token ? { "Authorization": `token ${token}` } : {};
-    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
-    const json = await res.json();
-    const file = json.files && json.files[GIST_FILENAME];
-    if (!file) { setCloudMsg("File tidak ditemukan di Gist.", "#ff453a"); return; }
-    const data = JSON.parse(file.content);
-    applyGistData(data);
-    setCloudMsg("✓ Data berhasil di-load dari Gist!", "#30d158");
-    // refresh admin panel inputs
-    openAdminPanel();
-  } catch(e) { setCloudMsg("Error: " + e.message, "#ff453a"); }
-}
-
-function updateCloudStatus() {
-  const token = getGistToken(), id = getGistId();
-  const dot  = document.getElementById("cloud-status-dot");
-  const text = document.getElementById("cloud-status-text");
-  if (!dot || !text) return;
-  if (token && id) {
-    dot.style.background  = "#30d158";
-    text.style.color      = "#30d158";
-    text.textContent      = `Terhubung — Gist ID: ${id.slice(0,8)}…`;
-  } else if (token) {
-    dot.style.background  = "#ff9f0a";
-    text.style.color      = "#ff9f0a";
-    text.textContent      = "Token ada, tapi Gist ID belum diisi";
-  } else {
-    dot.style.background  = "#6e6e73";
-    text.style.color      = "#86868b";
-    text.textContent      = "Belum terhubung ke cloud";
-  }
-}
-
-function renderCloudTab() {
-  const tokenInput = document.getElementById("gist-token-input");
-  const idInput    = document.getElementById("gist-id-input");
-  const autoToggle = document.getElementById("autoload-toggle");
-  const knob       = document.getElementById("autoload-knob");
-  if (tokenInput) tokenInput.value = getGistToken();
-  if (idInput)    idInput.value    = getGistId();
-  const autoOn = localStorage.getItem("gf_autoload") === "1";
-  if (autoToggle) autoToggle.checked = autoOn;
-  if (knob) knob.style.background = autoOn ? "#0071e3" : "#3a3a3c";
-  updateCloudStatus();
-}
-
-async function autoLoadFromGist() {
-  if (localStorage.getItem("gf_autoload") !== "1") return;
-  const id = getGistId(); if (!id) return;
-  const token = getGistToken();
-  try {
-    const headers = token ? { "Authorization": `token ${token}` } : {};
-    const res  = await fetch(`https://api.github.com/gists/${id}`, { headers });
-    const json = await res.json();
-    const file = json.files && json.files[GIST_FILENAME];
-    if (!file) return;
-    const data = JSON.parse(file.content);
-    applyGistData(data);
-  } catch(e) { /* silent fail on auto-load */ }
-}
+});
 
 /* ─── INIT ─── */
-loadStorage();
 applyContent();
 renderPortfolio();
 renderMarquee();
-updateMmBtn();
-autoLoadFromGist(); // silently sync from Gist on page load if configured
 </script>
 </body>
 </html>
