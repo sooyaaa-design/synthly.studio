@@ -557,17 +557,31 @@ function kirimWABlast(params) {
 function getGroupById_(idGroup) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
   if (!sh || sh.getLastRow() < 2) return null;
+  var isNewSchema = sh.getLastColumn() >= 20; // skema 23-kolom
   var rows = sh.getDataRange().getValues().slice(1);
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][0]) === String(idGroup)) {
+      var r = rows[i];
+      if (isNewSchema) {
+        return {
+          idGroup:       r[0],  namaGroup:     r[1],
+          tglBerangkat:  r[2],  tglPulang:     r[3],
+          maskapai:      r[4],  asal:          r[5],
+          noFlightPergi: r[7],  noFlightPulang:r[10],
+          hotelMadinah:  r[12], hotelMakkah:   r[13], hotelTransit: r[14],
+          kapasitas:     r[18], terisi:        r[19], statusGroup:  r[20],
+          pembimbing:    r[21], catatan:       r[22]
+        };
+      }
+      // backward compat: skema lama 14-kolom
       return {
-        idGroup:       rows[i][0],  namaGroup:    rows[i][1],
-        tglBerangkat:  rows[i][2],  tglPulang:    rows[i][3],
-        maskapai:      rows[i][4],  noFlightPergi:rows[i][5],
-        noFlightPulang:rows[i][6],  hotelMadinah: rows[i][7],
-        hotelMakkah:   rows[i][8],  kapasitas:    rows[i][9],
-        terisi:        rows[i][10], statusGroup:  rows[i][11],
-        pembimbing:    rows[i][12], catatan:      rows[i][13]
+        idGroup:       r[0],  namaGroup:     r[1],
+        tglBerangkat:  r[2],  tglPulang:     r[3],
+        maskapai:      r[4],  noFlightPergi: r[5],
+        noFlightPulang:r[6],  hotelMadinah:  r[7],
+        hotelMakkah:   r[8],  kapasitas:     r[9],
+        terisi:        r[10], statusGroup:   r[11],
+        pembimbing:    r[12], catatan:       r[13]
       };
     }
   }

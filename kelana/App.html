@@ -1552,7 +1552,8 @@ async function roomlistLoad(idGroup){
     roomlistState.assignments={};
     (d.rows||[]).forEach(r=>{
       const key=r.lokasi+'|||'+r.nomorKamar+'|||'+r.tipeKamar+'|||'+r.hotel;
-      if(!roomlistState.assignments[key]) roomlistState.assignments[key]={ kamar:r.nomorKamar, tipe:r.tipeKamar, hotel:r.hotel, lokasi:r.lokasi, occupants:[] };
+      if(!roomlistState.assignments[key]) roomlistState.assignments[key]={ kamar:r.nomorKamar, tipe:r.tipeKamar, hotel:r.hotel, lokasi:r.lokasi, occupants:[], placeholderIdRoom:'' };
+      if(!r.idJamaah){ roomlistState.assignments[key].placeholderIdRoom=r.idRoom; return; } // kamar kosong (template)
       const j=(cache.jamaah||[]).find(x=>x.idJamaah===r.idJamaah)||{};
       roomlistState.assignments[key].occupants.push({ idJamaah:r.idJamaah, namaJamaah:r.namaJamaah, idRoom:r.idRoom, jenisKelamin:j.jenisKelamin||'', idKeluarga:j.idKeluarga||'' });
     });
@@ -1579,6 +1580,7 @@ function renderRoomlistDD(){
     +'<div class="tab'+(lok==='Makkah'?' active':'')+'" onclick="rlSetLokasi(\'Makkah\')" style="padding:6px 12px;font-size:12px">Makkah</div>'
     +'</div>'
     +(canOps()?'<button class="btn sm" onclick="autoAssignRooms()">'+icon('check',13)+' Auto-Assign</button>':'')
+    +(canOps()?'<button class="btn sm" onclick="openSalinRoomlist()" title="Salin struktur kamar dari kloter lain">'+icon('doc',13)+' Salin dari Kloter</button>':'')
     +(canOps()?'<button class="btn sm" onclick="openRoomForm()">'+icon('plus',13)+' Tambah Kamar</button>':'')
     +((canOps()&&roomlistState.pendingChanges)?'<button class="btn sm primary" id="rlSaveBtn" onclick="saveRoomlistBatch()">&#128190; Simpan</button>':'')
     +'<button class="btn sm" onclick="exportRoomlist()">'+icon('doc',13)+' Export</button>';
@@ -1700,7 +1702,10 @@ function rlRemoveOccupant(key, idJamaah){
 function deleteRoomCard(key){
   if(!confirm('Hapus kamar ini beserta semua penghuninya?')) return;
   const rm=roomlistState.assignments[key];
-  if(rm){ rm.occupants.forEach(async o=>{ if(o.idRoom){ try{ await api('roomlist.delete',{idRoom:o.idRoom}); }catch(ex){} } }); }
+  if(rm){
+    rm.occupants.forEach(async o=>{ if(o.idRoom){ try{ await api('roomlist.delete',{idRoom:o.idRoom}); }catch(ex){} } });
+    if(rm.placeholderIdRoom){ api('roomlist.delete',{idRoom:rm.placeholderIdRoom}).catch(()=>{}); }
+  }
   delete roomlistState.assignments[key];
   roomlistState.pendingChanges=true;
   renderRoomlistDD();
@@ -1712,10 +1717,16 @@ async function saveRoomlistBatch(){
   const assignments=[];
   const keptIds=new Set();
   Object.values(roomlistState.assignments).forEach(rm=>{
-    rm.occupants.forEach(o=>{
-      if(o.idRoom) keptIds.add(o.idRoom);
-      assignments.push({ idGroup, idJamaah:o.idJamaah, namaJamaah:o.namaJamaah, hotel:rm.hotel||'', lokasi:rm.lokasi, nomorKamar:rm.kamar, tipeKamar:rm.tipe, idRoom:o.idRoom||'' });
-    });
+    if(rm.occupants.length){
+      rm.occupants.forEach(o=>{
+        if(o.idRoom) keptIds.add(o.idRoom);
+        assignments.push({ idGroup, idJamaah:o.idJamaah, namaJamaah:o.namaJamaah, hotel:rm.hotel||'', lokasi:rm.lokasi, nomorKamar:rm.kamar, tipeKamar:rm.tipe, idRoom:o.idRoom||'' });
+      });
+    } else {
+      // kamar kosong (template hasil salin) → simpan sebagai baris placeholder agar tidak hilang
+      if(rm.placeholderIdRoom) keptIds.add(rm.placeholderIdRoom);
+      assignments.push({ idGroup, idJamaah:'', namaJamaah:'', hotel:rm.hotel||'', lokasi:rm.lokasi, nomorKamar:rm.kamar, tipeKamar:rm.tipe, idRoom:rm.placeholderIdRoom||'' });
+    }
   });
   // Baris lama yang penghuninya sudah dikeluarkan/dipindah → hapus agar tidak muncul lagi.
   const orphans=((roomlistState.data&&roomlistState.data.rows)||[])
@@ -1751,6 +1762,42 @@ function submitRoomCard(){
   roomlistState.lokasi=lok;
   roomlistState.pendingChanges=true;
   closeModal(); renderRoomlistDD();
+}
+function openSalinRoomlist(){
+  const cur=roomlistState.idGroup;
+  if(!cur){ toast('Pilih kloter tujuan dulu.','error'); return; }
+  const others=(cache.groups||[]).filter(g=>g.idGroup!==cur);
+  if(!others.length){ toast('Belum ada kloter lain untuk disalin.','error'); return; }
+  const opts=others.map(g=>'<option value="'+esc(g.idGroup)+'">'+esc(g.namaGroup)+' ('+fmtDate(g.tglBerangkat)+')</option>').join('');
+  openModal('<div class="modal-head"><h3>Salin Struktur Kamar</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body"><p class="sm muted" style="margin-bottom:12px">Menyalin daftar kamar (hotel, nomor kamar, tipe) dari kloter lain ke kloter ini sebagai <b>kamar kosong</b>. Penempatan jamaah tidak ikut tersalin — Anda tinggal isi jamaah lalu Simpan.</p>'
+    +'<div class="form-grid">'
+    +field('Salin dari kloter',true,'<select id="sr_src">'+opts+'</select>')
+    +'</div></div>'
+    +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
+    +'<button class="btn primary" id="srBtn" onclick="salinRoomlistDari(fval(\'sr_src\'))">Salin Struktur</button></div>',
+    {size:'sm',persistent:true});
+}
+async function salinRoomlistDari(srcGroup){
+  if(!srcGroup){ toast('Pilih kloter sumber.','error'); return; }
+  const b=$('srBtn'); if(b){ b.disabled=true; b.textContent='Menyalin…'; }
+  try{
+    const d=await api('roomlist.list',{idGroup:srcGroup});
+    const seen={}; let added=0;
+    (d.rows||[]).forEach(r=>{
+      const key=r.lokasi+'|||'+r.nomorKamar+'|||'+r.tipeKamar+'|||'+r.hotel;
+      if(seen[key]) return; seen[key]=1;
+      if(roomlistState.assignments[key]) return; // sudah ada di kloter tujuan
+      roomlistState.assignments[key]={ kamar:r.nomorKamar, tipe:r.tipeKamar, hotel:r.hotel, lokasi:r.lokasi, occupants:[] };
+      added++;
+    });
+    closeModal();
+    if(!added){ toast('Tidak ada kamar baru untuk disalin (mungkin sudah ada).'); return; }
+    roomlistState.pendingChanges=true;
+    renderRoomlistDD();
+    toast(added+' kamar disalin. Isi jamaah lalu klik Simpan.');
+  }catch(e){ if(b){b.disabled=false;b.textContent='Salin Struktur';}
+    if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
 }
 async function deleteRoom(idRoom){
   if(!confirm('Hapus penempatan kamar ini?')) return;

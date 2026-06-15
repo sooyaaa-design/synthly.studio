@@ -90,15 +90,18 @@ function autoAssignRooms(idGroup, kapasitas) {
 
   if (!jamaah.length) return { success: false, error: 'Tidak ada jamaah di kloter ini.' };
 
-  // Ambil info hotel dari sheet Group
+  // Ambil info hotel dari sheet Group (schema-aware: 23-kolom vs 14-kolom lama)
   var shG = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
   var hotelMadinah = 'Hotel Madinah', hotelMakkah = 'Hotel Makkah';
   if (shG && shG.getLastRow() > 1) {
+    var isNewSchema = shG.getLastColumn() >= 20;
+    var madCol = isNewSchema ? 12 : 7;
+    var makCol = isNewSchema ? 13 : 8;
     var gRows = shG.getDataRange().getValues();
     for (var gi = 1; gi < gRows.length; gi++) {
       if (gRows[gi][0] === idGroup) {
-        hotelMadinah = gRows[gi][7] || hotelMadinah;
-        hotelMakkah  = gRows[gi][8] || hotelMakkah;
+        hotelMadinah = gRows[gi][madCol] || hotelMadinah;
+        hotelMakkah  = gRows[gi][makCol] || hotelMakkah;
         break;
       }
     }

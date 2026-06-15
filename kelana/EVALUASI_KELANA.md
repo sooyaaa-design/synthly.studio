@@ -205,6 +205,15 @@ ada di **keamanan input, skalabilitas (paginasi), dan otomasi onboarding tenant*
     di kartu Kloter, Keuangan, Jamaah Terbaru menuju halaman masing-masing.
 18. ✅ **[SELESAI]** **Badge status berwarna**: Berjalan (indigo), Selesai (gray), Draft (amber).
     Tab kloter menampilkan jumlah per tab.
+19. ✅ **[SELESAI]** **Salin roomlist dari kloter lain**: tombol "Salin dari Kloter" menyalin
+    struktur kamar (hotel/nomor/tipe) sebagai kamar kosong, lalu jamaah tinggal diisi. Kamar
+    kosong kini ikut tersimpan (baris placeholder) agar template tidak hilang saat Simpan.
+
+### P3 — Bug korektif lanjutan
+- **[DIPERBAIKI]** `getGroupById_()` (dipakai WA Blast & invoice) membaca **skema lama 14-kolom**
+  pada instalasi skema 23-kolom → `pembimbing`/`hotel`/`noFlight` salah kolom. Kini schema-aware.
+- **[DIPERBAIKI]** `autoAssignRooms()` membaca kolom hotel `Group[7]/[8]` (skema lama = nomor
+  penerbangan di skema baru) → label hotel salah. Kini schema-aware (`12/13`).
 
 ### Berikutnya (P4 — opsional)
 - Pisah read/write lebih halus untuk semua modul; tombol UI per-aksi.
