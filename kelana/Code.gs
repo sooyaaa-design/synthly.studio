@@ -86,7 +86,9 @@ function setupSheets_() {
     'Tempat Lahir','Nama Ayah','Status Perkawinan','Pekerjaan','Pendidikan',
     'Provinsi','Kabupaten/Kota','Kecamatan','Kelurahan','Kode Pos',
     'Kewarganegaraan','Nama Mahram','Hubungan Mahram','Embarkasi',
-    'Golongan Darah','Tempat Terbit Paspor'
+    'Golongan Darah','Tempat Terbit Paspor',
+    // ── index 42 ──
+    'Hubungan Keluarga'
   ]);
 
   // Group — kolom (0-indexed):
@@ -138,6 +140,12 @@ function setupSheets_() {
   createSheetIfNotExists_(ss, 'Roomlist', [
     'ID Room','ID Group','ID Jamaah','Nama Jamaah',
     'Hotel','Lokasi','Nomor Kamar','Tipe Kamar','Catatan'
+  ]);
+
+  // AddOn — item tambahan/upgrade berbayar per jamaah (0-indexed):
+  // 0:IDAddOn 1:IDJamaah 2:NamaItem 3:Kategori 4:Harga 5:Catatan 6:TglDibuat 7:DibuatOleh
+  createSheetIfNotExists_(ss, 'AddOn', [
+    'ID AddOn','ID Jamaah','Nama Item','Kategori','Harga','Catatan','Tgl Dibuat','Dibuat Oleh'
   ]);
 
   // Manifest — urutan kolom sinkron dengan generateManifest() di Manifest.gs
@@ -192,6 +200,21 @@ function setupSheets_() {
   try { migrateSiskopatuhSchema_(); } catch(e) {}
   try { migrateDokumenSchema_(); } catch(e) {}
   try { migratePetugasSchema_(); } catch(e) {}
+  try { migrateKeluargaSchema_(); } catch(e) {}
+}
+
+/**
+ * Tambahkan kolom "Hubungan Keluarga" (index 42 / kolom-sheet 43) ke sheet
+ * Jamaah lama (idempoten). Mengikuti pola migrateDokumenSchema_.
+ */
+function migrateKeluargaSchema_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jamaah');
+  if (!sh) return;
+  var endCol = 43; // 1-based kolom Hubungan Keluarga
+  if (sh.getMaxColumns() >= endCol && String(sh.getRange(1, endCol).getValue()) === 'Hubungan Keluarga') return;
+  if (sh.getMaxColumns() < endCol) sh.insertColumnsAfter(sh.getMaxColumns(), endCol - sh.getMaxColumns());
+  sh.getRange(1, endCol).setValue('Hubungan Keluarga')
+    .setFontWeight('bold').setBackground('#4f46e5').setFontColor('#ffffff');
 }
 
 /**
@@ -257,6 +280,9 @@ function simpanJamaah(data) {
     var shJ = ss.getSheetByName('Jamaah');
     if (!shJ) return { success: false, error: 'Sheet Jamaah tidak ditemukan. Jalankan Setup Awal.' };
 
+    // "Buat keluarga baru" dari form individual → generate ID keluarga baru.
+    if (data.idKeluarga === '__NEW__') data.idKeluarga = 'KLG-' + new Date().getTime();
+
     var idJamaah = 'JMH-' + new Date().getTime();
 
     shJ.appendRow([
@@ -302,7 +328,8 @@ function simpanJamaah(data) {
       data.hubunganMahram     || '',
       data.embarkasi          || '',
       data.golonganDarah      || '',
-      data.tempatTerbitPaspor || ''
+      data.tempatTerbitPaspor || '',
+      data.hubunganKeluarga   || ''
     ]);
 
     // Buat baris dokumen kosong otomatis
@@ -315,11 +342,16 @@ function simpanJamaah(data) {
       ]);
     }
 
+    // Bila ditandai PIC & menempel ke keluarga existing, pastikan PIC tunggal.
+    if (data.isPIC && data.idKeluarga) {
+      try { setPicKeluarga_(data.idKeluarga, idJamaah); } catch (e) {}
+    }
+
     // Generate invoice DP otomatis
     var paket = getPaketById_(data.paket);
     if (paket) generateInvoiceDP_(idJamaah, data, paket);
 
-    return { success: true, idJamaah: idJamaah };
+    return { success: true, idJamaah: idJamaah, idKeluarga: data.idKeluarga || '' };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -354,8 +386,23 @@ function jamaahRowToObj_(r) {
     kelurahan:          r[34] || '', kodePos:           r[35] || '',
     kewarganegaraan:    r[36] || '', namaMahram:        r[37] || '',
     hubunganMahram:     r[38] || '', embarkasi:         r[39] || '',
-    golonganDarah:      r[40] || '', tempatTerbitPaspor:r[41] || ''
+    golonganDarah:      r[40] || '', tempatTerbitPaspor:r[41] || '',
+    hubunganKeluarga:   r[42] || deriveHubunganKeluarga_(r),
+    // true bila nilai hubunganKeluarga berasal dari derivasi (placeholder), bukan input asli
+    hubunganKeluargaDerived: !r[42] && !!deriveHubunganKeluarga_(r)
   };
+}
+
+/**
+ * Tebak "Hubungan Keluarga" untuk baris jamaah lama yang kolomnya masih kosong.
+ * Read-only (tidak ditulis balik) — hanya jadi placeholder agar operator mengonfirmasi.
+ *   - PIC                         → "Kepala Keluarga"
+ *   - perempuan, mahram = Suami   → "Istri"
+ */
+function deriveHubunganKeluarga_(r) {
+  if (r[23] === 'Ya') return 'Kepala Keluarga';
+  if (r[5] === 'Perempuan' && String(r[38] || '') === 'Suami') return 'Istri';
+  return '';
 }
 
 /**
@@ -413,17 +460,40 @@ function simpanKeluarga(members) {
   if (!members || !members.length) return { success: false, error: 'Tidak ada data anggota keluarga.' };
   try {
     var idKeluarga = 'KLG-' + new Date().getTime();
+    // Tentukan indeks PIC: hormati flag isPIC bila ada, kalau tidak anggota pertama.
+    var picIdx = -1;
+    for (var k = 0; k < members.length; k++) { if (members[k] && members[k].isPIC) { picIdx = k; break; } }
+    if (picIdx === -1) picIdx = 0;
     var count = 0;
     for (var i = 0; i < members.length; i++) {
       var m = members[i];
       m.idKeluarga = idKeluarga;
-      m.isPIC = (i === 0);
+      m.isPIC = (i === picIdx);
+      if (m.isPIC && !m.hubunganKeluarga) m.hubunganKeluarga = 'Kepala Keluarga';
       var r = simpanJamaah(m);
       if (r && r.success) count++;
     }
+    logActivity_(getCurrentUser_(), 'Tambah Keluarga', 'Jamaah', idKeluarga, count + ' anggota');
     return { success: true, count: count, idKeluarga: idKeluarga };
   } catch (err) {
     return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Jadikan satu jamaah sebagai PIC keluarganya; kosongkan IsPIC anggota lain di
+ * keluarga yang sama agar PIC tetap tunggal. Dipanggil saat operator mencentang
+ * "Jadikan PIC" pada form jamaah.
+ */
+function setPicKeluarga_(idKeluarga, idJamaah) {
+  if (!idKeluarga || !idJamaah) return;
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jamaah');
+  if (!sh || sh.getLastRow() < 2) return;
+  var rows = sh.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][18] || '') !== String(idKeluarga)) continue;
+    var shouldBe = String(rows[i][0]) === String(idJamaah) ? 'Ya' : '';
+    if (String(rows[i][23] || '') !== shouldBe) sh.getRange(i + 1, 24).setValue(shouldBe);
   }
 }
 
@@ -437,13 +507,15 @@ function getKeluargaTagihan() {
     var jamaahRows = shJ.getLastRow() > 1 ? shJ.getDataRange().getValues().slice(1) : [];
     var pembayaranRows = shP && shP.getLastRow() > 1 ? shP.getDataRange().getValues().slice(1) : [];
 
-    // Build jamaah map: idJamaah → {namaLengkap, noHp, idKeluarga, isPIC}
+    // Build jamaah map: idJamaah → {namaLengkap, noHp, idKeluarga, isPIC, ...}
     var jamaahMap = {};
     jamaahRows.forEach(function(r) {
       if (!r[0]) return;
       jamaahMap[r[0]] = {
         idJamaah: r[0], namaLengkap: r[1], noHp: r[7],
-        idKeluarga: r[18] || '', isPIC: r[23] === 'Ya'
+        idKeluarga: r[18] || '', isPIC: r[23] === 'Ya',
+        tipeKamar: r[24] || 'Quad', idGroup: r[15] || '',
+        hubunganKeluarga: r[42] || deriveHubunganKeluarga_(r)
       };
     });
 
@@ -464,26 +536,177 @@ function getKeluargaTagihan() {
       var j = jamaahMap[idJ];
       if (!j.idKeluarga) return;
       if (!keluargaMap[j.idKeluarga]) {
-        keluargaMap[j.idKeluarga] = { idKeluarga: j.idKeluarga, picNama: '', picHp: '', anggota: [], totalTagihan: 0, totalLunas: 0 };
+        keluargaMap[j.idKeluarga] = { idKeluarga: j.idKeluarga, picIdJamaah: '', picNama: '', picHp: '', anggota: [], totalTagihan: 0, totalLunas: 0 };
       }
       var kg = keluargaMap[j.idKeluarga];
-      kg.anggota.push({ idJamaah: j.idJamaah, nama: j.namaLengkap });
       var t = tagihanMap[j.idJamaah] || { total: 0, lunas: 0 };
+      kg.anggota.push({
+        idJamaah: j.idJamaah, nama: j.namaLengkap, isPIC: j.isPIC,
+        tipeKamar: j.tipeKamar, idGroup: j.idGroup, hubunganKeluarga: j.hubunganKeluarga,
+        tagihan: t.total, lunas: t.lunas, sisa: t.total - t.lunas
+      });
       kg.totalTagihan += t.total;
       kg.totalLunas += t.lunas;
-      if (j.isPIC) { kg.picNama = j.namaLengkap; kg.picHp = j.noHp; }
+      if (j.isPIC) { kg.picIdJamaah = j.idJamaah; kg.picNama = j.namaLengkap; kg.picHp = j.noHp; }
     });
 
     return Object.values(keluargaMap).map(function(kg) {
       return {
-        idKeluarga: kg.idKeluarga, picNama: kg.picNama, picHp: kg.picHp,
+        idKeluarga: kg.idKeluarga, picIdJamaah: kg.picIdJamaah, picNama: kg.picNama, picHp: kg.picHp,
         anggota: kg.anggota, totalTagihan: kg.totalTagihan, totalLunas: kg.totalLunas,
         totalPending: kg.totalTagihan - kg.totalLunas
       };
     });
   } catch (err) {
+    return []; // selalu kembalikan array agar frontend aman
+  }
+}
+
+// ─── ADD-ON / UPGRADE ────────────────────────────────────────────────────────
+// Sheet AddOn (0-idx): 0:IDAddOn 1:IDJamaah 2:NamaItem 3:Kategori 4:Harga
+//                      5:Catatan 6:TglDibuat 7:DibuatOleh
+
+function ensureAddOnSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('AddOn');
+  if (sh) return sh;
+  sh = ss.insertSheet('AddOn');
+  var headers = ['ID AddOn','ID Jamaah','Nama Item','Kategori','Harga','Catatan','Tgl Dibuat','Dibuat Oleh'];
+  sh.appendRow(headers);
+  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#4f46e5').setFontColor('#fff');
+  sh.setFrozenRows(1);
+  return sh;
+}
+
+/** Daftar add-on milik satu jamaah. */
+function getAddOnList(idJamaah) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('AddOn');
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getDataRange().getValues().slice(1)
+    .filter(function(r) { return r[0] && (!idJamaah || String(r[1]) === String(idJamaah)); })
+    .map(function(r) {
+      return {
+        idAddOn: r[0], idJamaah: r[1], namaItem: r[2], kategori: r[3],
+        harga: parseFloat(r[4]) || 0, catatan: r[5] || '',
+        tglDibuat: r[6] ? formatTanggal_(r[6]) : '', dibuatOleh: r[7] || ''
+      };
+    });
+}
+
+/** Total nilai add-on satu jamaah (untuk integrasi harga booking). */
+function sumAddOn_(idJamaah) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('AddOn');
+  if (!sh || sh.getLastRow() < 2) return 0;
+  return sh.getDataRange().getValues().slice(1).reduce(function(sum, r) {
+    return (r[0] && String(r[1]) === String(idJamaah)) ? sum + (parseFloat(r[4]) || 0) : sum;
+  }, 0);
+}
+
+/** Simpan (create/update) satu item add-on. */
+function simpanAddOn(data) {
+  try {
+    if (!data || !data.idJamaah) return { success: false, error: 'ID jamaah wajib diisi.' };
+    if (!data.namaItem) return { success: false, error: 'Nama item wajib diisi.' };
+    var sh = ensureAddOnSheet_();
+    var harga = parseFloat(data.harga) || 0;
+    if (data.idAddOn) {
+      var rows = sh.getDataRange().getValues();
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0] === data.idAddOn) {
+          sh.getRange(i + 1, 3, 1, 3).setValues([[data.namaItem, data.kategori || 'Lainnya', harga]]);
+          sh.getRange(i + 1, 6).setValue(data.catatan || '');
+          logActivity_(getCurrentUser_(), 'Update AddOn', 'AddOn', data.idAddOn, data.namaItem + ' (' + harga + ')');
+          return { success: true, idAddOn: data.idAddOn };
+        }
+      }
+    }
+    var idAddOn = 'ADD-' + new Date().getTime();
+    sh.appendRow([idAddOn, data.idJamaah, data.namaItem, data.kategori || 'Lainnya',
+      harga, data.catatan || '', new Date(), getCurrentUser_()]);
+    logActivity_(getCurrentUser_(), 'Tambah AddOn', 'AddOn', idAddOn, data.namaItem + ' (' + harga + ')');
+    return { success: true, idAddOn: idAddOn };
+  } catch (err) {
     return { success: false, error: err.message };
   }
+}
+
+/** Hapus satu item add-on. */
+function hapusAddOn(idAddOn) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('AddOn');
+  if (!sh) return { success: false, error: 'Sheet AddOn tidak ditemukan.' };
+  var rows = sh.getDataRange().getValues();
+  for (var i = rows.length - 1; i >= 1; i--) {
+    if (rows[i][0] === idAddOn) {
+      var nama = rows[i][2];
+      sh.deleteRow(i + 1);
+      logActivity_(getCurrentUser_(), 'Hapus AddOn', 'AddOn', idAddOn, nama);
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'Item tidak ditemukan.' };
+}
+
+/**
+ * Total harga booking satu jamaah = harga kamar (sesuai tipe & kategori) + total add-on.
+ * Dipakai generateInvoicePelunasan agar add-on otomatis tertagih di pelunasan.
+ */
+function hitungTotalBookingJamaah_(idJamaah) {
+  var j = getJamaahById_(idJamaah);
+  if (!j) return 0;
+  var hargaKamar = hitungHargaJamaah_(j.idGroup || '', j.tipeKamar || 'Quad', j.kategoriJamaah || 'Dewasa');
+  if (hargaKamar <= 0) {
+    var paket = getPaketById_(j.idPaket || j.paket);
+    hargaKamar = paket ? (parseFloat(paket.harga) || 0) : 0;
+  }
+  return hargaKamar + sumAddOn_(idJamaah);
+}
+
+/**
+ * Ringkasan booking (per keluarga bila ada, kalau tidak per jamaah) untuk
+ * ditampilkan di drawer pembayaran & invoice HTML.
+ */
+function getBookingSummary_(idJamaah) {
+  var j = getJamaahById_(idJamaah);
+  if (!j) return null;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var shJ = ss.getSheetByName('Jamaah');
+  var shP = ss.getSheetByName('Pembayaran');
+  var jamaahRows = shJ && shJ.getLastRow() > 1 ? shJ.getDataRange().getValues().slice(1) : [];
+  var bayarRows  = shP && shP.getLastRow() > 1 ? shP.getDataRange().getValues().slice(1) : [];
+
+  // Anggota: satu keluarga bila idKeluarga ada, kalau tidak hanya jamaah ini.
+  var anggotaRows = j.idKeluarga
+    ? jamaahRows.filter(function(r) { return r[0] && String(r[18] || '') === String(j.idKeluarga); })
+    : jamaahRows.filter(function(r) { return String(r[0]) === String(idJamaah); });
+
+  var totalHarga = 0, totalDibayar = 0, picNama = '', picHp = '';
+  var anggota = anggotaRows.map(function(r) {
+    var aid = r[0];
+    var hargaKamar = hitungHargaJamaah_(r[15] || '', r[24] || 'Quad', r[25] || 'Dewasa');
+    var hargaBase  = hitungHargaJamaah_(r[15] || '', 'Quad', r[25] || 'Dewasa');
+    var addOns = getAddOnList(aid);
+    var addOnTotal = addOns.reduce(function(s, a) { return s + a.harga; }, 0);
+    var hargaUnit = hargaKamar + addOnTotal;
+    totalHarga += hargaUnit;
+    bayarRows.forEach(function(p) {
+      if (String(p[1]) === String(aid) && String(p[6]) === 'Lunas') totalDibayar += parseFloat(p[4]) || 0;
+    });
+    if (r[23] === 'Ya') { picNama = r[1]; picHp = r[7]; }
+    return {
+      idJamaah: aid, nama: r[1], jenisKelamin: r[5] || '',
+      relasi: r[42] || deriveHubunganKeluarga_(r), isPIC: r[23] === 'Ya',
+      paket: r[14] || '', tipeKamar: r[24] || 'Quad', kategori: r[25] || 'Dewasa',
+      hargaKamar: hargaKamar, upgradeDelta: Math.max(hargaKamar - hargaBase, 0),
+      addOns: addOns, hargaUnit: hargaUnit
+    };
+  });
+
+  return {
+    idKeluarga: j.idKeluarga || '', pax: anggota.length,
+    picNama: picNama, picHp: picHp,
+    anggota: anggota, totalHarga: totalHarga, totalDibayar: totalDibayar,
+    sisa: Math.max(totalHarga - totalDibayar, 0)
+  };
 }
 
 /**
@@ -745,10 +968,13 @@ function getJamaahById_(idJamaah) {
         noPaspor:         rows[i][3],
         noHp:             rows[i][7],
         email:            rows[i][8],
+        jenisKelamin:     rows[i][5],
         paket:            rows[i][14], idPaket: rows[i][14],
         idGroup:          rows[i][15],
         statusDokumen:    rows[i][16],
         statusPembayaran: rows[i][17],
+        idKeluarga:       rows[i][18] || '',
+        isPIC:            rows[i][23] === 'Ya',
         tipeKamar:        rows[i][24] || 'Quad',
         kategoriJamaah:   rows[i][25] || 'Dewasa',
         tempatLahir:        rows[i][26] || '', namaAyah:          rows[i][27] || '',
@@ -758,7 +984,8 @@ function getJamaahById_(idJamaah) {
         kelurahan:          rows[i][34] || '', kodePos:           rows[i][35] || '',
         kewarganegaraan:    rows[i][36] || '', namaMahram:        rows[i][37] || '',
         hubunganMahram:     rows[i][38] || '', embarkasi:         rows[i][39] || '',
-        golonganDarah:      rows[i][40] || '', tempatTerbitPaspor:rows[i][41] || ''
+        golonganDarah:      rows[i][40] || '', tempatTerbitPaspor:rows[i][41] || '',
+        hubunganKeluarga:   rows[i][42] || deriveHubunganKeluarga_(rows[i])
       };
     }
   }
@@ -1014,7 +1241,8 @@ function getInvoiceHtml(idInvoice) {
       inv = { idInvoice:rows[i][0], idJamaah:rows[i][1], namaJamaah:rows[i][2],
               jenisBayar:rows[i][3], nominal:rows[i][4], metode:rows[i][5],
               status:rows[i][6], tglInvoice:rows[i][7], tglBayar:rows[i][8],
-              tglJatuhTempo:rows[i][9] };
+              tglJatuhTempo:rows[i][9], buktiBayar:rows[i][12]||'',
+              dikonfirmasiOleh:rows[i][13]||'' };
       break;
     }
   }
@@ -1032,7 +1260,13 @@ function getInvoiceHtml(idInvoice) {
     try { return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}); }
     catch(e) { return String(d).substring(0,10); }
   }
+  function fmtDt(d) {
+    if (!d) return '-';
+    try { return new Date(d).toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    catch(e) { return String(d).substring(0,16); }
+  }
   var badgeClass = inv.status==='Lunas' ? 'lunas' : inv.status==='Jatuh Tempo' ? 'jatuh' : 'pending';
+  var booking = getBookingSummary_(inv.idJamaah);
 
   var html = '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">'
     + '<title>Invoice '+esc_(inv.idInvoice)+'</title>'
@@ -1070,8 +1304,25 @@ function getInvoiceHtml(idInvoice) {
     + '<div class="amount-box"><div class="lbl">Total '+esc_(inv.jenisBayar||'Pembayaran')+'</div>'
     + '<div class="amt">Rp '+formatRupiah_(inv.nominal||0)+'</div>'
     + (inv.metode?'<div style="font-size:11px;color:#6b7280;margin-top:6px">Metode: '+esc_(inv.metode)+'</div>':'')
-    + (inv.tglBayar?'<div style="font-size:11px;color:#16a34a;margin-top:2px;font-weight:700">Dibayar: '+fmt(inv.tglBayar)+'</div>':'')
+    + (inv.tglBayar?'<div style="font-size:11px;color:#16a34a;margin-top:2px;font-weight:700">Dibayar: '+fmtDt(inv.tglBayar)+'</div>':'')
+    + (inv.dikonfirmasiOleh?'<div style="font-size:11px;color:#6b7280;margin-top:2px">Dikonfirmasi oleh: '+esc_(inv.dikonfirmasiOleh)+'</div>':'')
+    + (inv.buktiBayar?'<div style="font-size:11px;margin-top:2px"><a href="'+esc_(inv.buktiBayar)+'" target="_blank">Lihat bukti pembayaran</a></div>':'')
     + '</div>';
+
+  // Detail pemesanan (pax, anggota, paket, kamar, add-on)
+  if (booking && booking.anggota && booking.anggota.length) {
+    html += '<div class="bank-box"><div class="bank-title">Detail Pemesanan ('+booking.pax+' pax)</div>';
+    booking.anggota.forEach(function(a) {
+      var extra = a.tipeKamar + (a.kategori && a.kategori!=='Dewasa' ? ' · '+a.kategori : '');
+      var addonStr = (a.addOns && a.addOns.length) ? ' · +'+a.addOns.length+' add-on' : '';
+      html += '<div class="brow"><span class="k">'+esc_(a.nama)+' <span style="color:#9ca3af">('+esc_(extra)+addonStr+')</span></span>'
+        + '<span class="v">Rp '+formatRupiah_(a.hargaUnit)+'</span></div>';
+    });
+    html += '<div class="brow"><span class="k"><b>Total Booking</b></span><span class="v">Rp '+formatRupiah_(booking.totalHarga)+'</span></div>'
+      + '<div class="brow"><span class="k">Sudah Dibayar</span><span class="v">Rp '+formatRupiah_(booking.totalDibayar)+'</span></div>'
+      + '<div class="brow"><span class="k">Sisa</span><span class="v">Rp '+formatRupiah_(booking.sisa)+'</span></div>'
+      + '</div>';
+  }
 
   if (inv.status !== 'Lunas' && noRek) {
     html += '<div class="bank-box"><div class="bank-title">Informasi Transfer</div>'
@@ -1170,6 +1421,33 @@ function uploadFotoJamaah(idJamaah, jenisFile, base64Data, mimeType, fileName) {
     updateDokumenField_(idJamaah, jenisFile, viewUrl);
     try { recomputeStatusDokumen_(idJamaah); } catch (e) {}
     logActivity_(getCurrentUser_(), 'Upload Foto', 'Dokumen', idJamaah, jenisFile + ': ' + fileName);
+    return { success: true, url: viewUrl };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Upload bukti pembayaran ke Google Drive (pola sama dengan uploadFotoJamaah).
+ * Disimpan di folder "Kelana — {travel}/Bukti Bayar". Mengembalikan URL /view.
+ */
+function uploadBuktiBayar(idInvoice, base64Data, mimeType, fileName) {
+  try {
+    var namaTravel = getConfig_('NAMA_TRAVEL') || 'Kelana';
+    var rootName = 'Kelana — ' + namaTravel;
+    var it = DriveApp.getFoldersByName(rootName);
+    var root = it.hasNext() ? it.next() : DriveApp.createFolder(rootName);
+    var sub = root.getFoldersByName('Bukti Bayar');
+    var folder = sub.hasNext() ? sub.next() : root.createFolder('Bukti Bayar');
+
+    var safeName = (idInvoice || 'INV') + '-' + fileName;
+    var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, safeName);
+    var ex = folder.getFilesByName(safeName);
+    if (ex.hasNext()) ex.next().setTrashed(true);
+    var file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    var viewUrl = 'https://drive.google.com/file/d/' + file.getId() + '/view';
+    logActivity_(getCurrentUser_(), 'Upload Bukti Bayar', 'Pembayaran', idInvoice, safeName);
     return { success: true, url: viewUrl };
   } catch (e) {
     return { success: false, error: e.message };

@@ -73,12 +73,13 @@ function getPembayaranList(filterStatus) {
     results.push({
       idInvoice:   r[0], idJamaah:    r[1],
       namaJamaah:  r[2], jenisBayar:  r[3],
-      nominal:     r[4], metode:      r[5],
+      nominal:     r[4], metode:      r[5] || '',
       status:      statusDisplay,
       tglInvoice:  formatTanggal_(r[7]),
-      tglBayar:    formatTanggal_(r[8]),
+      tglBayar:    r[8] ? new Date(r[8]).toISOString() : '',
       tglJatuhTempo: formatTanggal_(r[9]),
       linkBayar:   r[11] || '',
+      buktiBayar:  r[12] || '', dikonfirmasiOleh: r[13] || '',
       catatan:     r[14] || ''
     });
   });
@@ -115,9 +116,12 @@ function getPembayaranPage(opts) {
       if (status !== 'Lunas' && jt && jt < today) status = 'Jatuh Tempo';
       return {
         idInvoice: r[0], idJamaah: r[1], namaJamaah: r[2], jenisBayar: r[3],
-        nominal: r[4], metode: r[5], status: status,
-        tglInvoice: formatTanggal_(r[7]), tglBayar: formatTanggal_(r[8]),
-        tglJatuhTempo: formatTanggal_(r[9]), linkBayar: r[11] || '', catatan: r[14] || ''
+        nominal: r[4], metode: r[5] || '', status: status,
+        tglInvoice: formatTanggal_(r[7]),
+        // tglBayar dikirim ISO (mengandung jam) agar frontend bisa tampil tanggal + jam
+        tglBayar: r[8] ? new Date(r[8]).toISOString() : '',
+        tglJatuhTempo: formatTanggal_(r[9]), linkBayar: r[11] || '',
+        buktiBayar: r[12] || '', dikonfirmasiOleh: r[13] || '', catatan: r[14] || ''
       };
     })
     .filter(function(p) {
@@ -140,9 +144,53 @@ function getPembayaranPage(opts) {
 }
 
 /**
+ * Detail satu invoice: data lengkap + jamaah + ringkasan booking + riwayat
+ * pembayaran jamaah ybs (untuk drawer detail di halaman Pembayaran).
+ */
+function getPembayaranDetail(idInvoice) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var shP = ss.getSheetByName('Pembayaran');
+  if (!shP || shP.getLastRow() < 2) return null;
+  var rows = shP.getDataRange().getValues();
+  var inv = null, idJamaah = '';
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(idInvoice)) {
+      var r = rows[i];
+      idJamaah = r[1];
+      inv = {
+        idInvoice: r[0], idJamaah: r[1], namaJamaah: r[2], jenisBayar: r[3],
+        nominal: parseFloat(r[4]) || 0, metode: r[5] || '', status: r[6] || 'Pending',
+        tglInvoice: r[7] ? new Date(r[7]).toISOString() : '',
+        tglBayar: r[8] ? new Date(r[8]).toISOString() : '',
+        tglJatuhTempo: r[9] ? new Date(r[9]).toISOString() : '',
+        linkBayar: r[11] || '', buktiBayar: r[12] || '',
+        dikonfirmasiOleh: r[13] || '', catatan: r[14] || ''
+      };
+      break;
+    }
+  }
+  if (!inv) return null;
+
+  // Riwayat semua invoice jamaah ini (timeline pembayaran)
+  var riwayat = rows.slice(1).filter(function(x) { return x[0] && String(x[1]) === String(idJamaah); })
+    .map(function(x) {
+      var st = String(x[6] || 'Pending');
+      var jt = x[9] ? new Date(x[9]) : null;
+      if (st !== 'Lunas' && jt && jt < new Date()) st = 'Jatuh Tempo';
+      return {
+        idInvoice: x[0], jenisBayar: x[3], nominal: parseFloat(x[4]) || 0, status: st,
+        tglInvoice: x[7] ? new Date(x[7]).toISOString() : '',
+        tglBayar: x[8] ? new Date(x[8]).toISOString() : ''
+      };
+    });
+
+  return { invoice: inv, booking: getBookingSummary_(idJamaah), riwayat: riwayat };
+}
+
+/**
  * Konfirmasi pembayaran secara manual (untuk transfer bank / bukti manual).
  */
-function konfirmasiPembayaranManual(idInvoice, metodeBayar, catatan) {
+function konfirmasiPembayaranManual(idInvoice, metodeBayar, catatan, buktiBayarUrl) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName('Pembayaran');
@@ -152,10 +200,11 @@ function konfirmasiPembayaranManual(idInvoice, metodeBayar, catatan) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]) !== String(idInvoice)) continue;
 
-      // Kolom G (7) = Status, I (9) = TglBayar, F (6) = Metode, N (14) = Dikonfirmasi, O (15) = Catatan
+      // Kolom: G(7)=Status I(9)=TglBayar F(6)=Metode M(13)=Bukti N(14)=Dikonfirmasi O(15)=Catatan
       sh.getRange(i + 1, 7).setValue('Lunas');
       sh.getRange(i + 1, 9).setValue(new Date());
       if (metodeBayar) sh.getRange(i + 1, 6).setValue(metodeBayar);
+      if (buktiBayarUrl) sh.getRange(i + 1, 13).setValue(buktiBayarUrl);
       sh.getRange(i + 1, 14).setValue(Session.getActiveUser().getEmail() || 'Admin');
       if (catatan) sh.getRange(i + 1, 15).setValue(catatan);
 
@@ -214,10 +263,10 @@ function generateInvoicePelunasan(idJamaah) {
       }
     }
 
-    // Harga final mengikuti tipe kamar & kategori (sama seperti saat generate DP),
-    // bukan sekadar harga paket dasar.
-    var hargaKloter = hitungHargaJamaah_(jamaah.idGroup || '', jamaah.tipeKamar || 'Quad', jamaah.kategoriJamaah || 'Dewasa');
-    var totalHarga  = hargaKloter > 0 ? hargaKloter : parseFloat(paket.harga || 0);
+    // Total booking = harga kamar (tipe & kategori) + total add-on/upgrade, sehingga
+    // add-on otomatis ikut tertagih di pelunasan (sisa = total − total sudah dibayar).
+    var totalHarga = hitungTotalBookingJamaah_(idJamaah);
+    if (totalHarga <= 0) totalHarga = parseFloat(paket.harga || 0);
 
     // Sisa = total harga − total yang SUDAH dibayar (Lunas), bukan asumsi persentase DP.
     var totalSudahBayar = 0;
@@ -338,6 +387,9 @@ function updateJamaah(data) {
     var sh = ss.getSheetByName('Jamaah');
     if (!sh) return { success: false, error: 'Sheet Jamaah tidak ditemukan.' };
 
+    // "Buat keluarga baru" dari form individual → generate ID keluarga baru.
+    if (data.idKeluarga === '__NEW__') data.idKeluarga = 'KLG-' + new Date().getTime();
+
     var rows = sh.getDataRange().getValues();
     for (var i = 1; i < rows.length; i++) {
       if (String(rows[i][0]) !== String(data.idJamaah)) continue;
@@ -357,7 +409,7 @@ function updateJamaah(data) {
         kabupaten:       33, kecamatan:        34, kelurahan:       35,
         kodePos:         36, kewarganegaraan:  37, namaMahram:      38,
         hubunganMahram:  39, embarkasi:        40, golonganDarah:   41,
-        tempatTerbitPaspor: 42
+        tempatTerbitPaspor: 42, hubunganKeluarga: 43
       };
 
       Object.keys(cols).forEach(function(key) {
@@ -369,9 +421,14 @@ function updateJamaah(data) {
         }
       });
 
+      // PIC ditangani khusus agar tetap tunggal per keluarga.
+      if (data.isPIC === true && data.idKeluarga) {
+        setPicKeluarga_(data.idKeluarga, data.idJamaah);
+      }
+
       logActivity_('Admin', 'Update Jamaah', 'Jamaah', data.idJamaah,
         'Update data jamaah: ' + data.namaLengkap);
-      return { success: true };
+      return { success: true, idKeluarga: data.idKeluarga || '' };
     }
     return { success: false, error: 'Jamaah tidak ditemukan.' };
   } catch (err) {
@@ -426,7 +483,9 @@ function getLaporanKeuangan(idGroup) {
   }
 
   var today = new Date();
+  var bulanIni = today.getMonth(), tahunIni = today.getFullYear();
   var totalTagihan = 0, totalLunas = 0, totalPending = 0, totalJatuhTempo = 0;
+  var overdueCount = 0, bulanIniDiterima = 0;
   var rows = [];
 
   shP.getDataRange().getValues().slice(1).forEach(function(r) {
@@ -440,9 +499,15 @@ function getLaporanKeuangan(idGroup) {
     if (status !== 'Lunas' && jt && jt < today) status = 'Jatuh Tempo';
 
     totalTagihan += nominal;
-    if (status === 'Lunas')        totalLunas      += nominal;
-    else if (status === 'Jatuh Tempo') totalJatuhTempo += nominal;
-    else                           totalPending    += nominal;
+    if (status === 'Lunas') {
+      totalLunas += nominal;
+      var tb = r[8] ? new Date(r[8]) : null;
+      if (tb && tb.getMonth() === bulanIni && tb.getFullYear() === tahunIni) bulanIniDiterima += nominal;
+    } else if (status === 'Jatuh Tempo') {
+      totalJatuhTempo += nominal; overdueCount++;
+    } else {
+      totalPending += nominal;
+    }
 
     rows.push({
       idInvoice:   r[0], namaJamaah:  r[2], jenisBayar:  r[3],
@@ -456,6 +521,9 @@ function getLaporanKeuangan(idGroup) {
     totalLunas:     totalLunas,
     totalPending:   totalPending,
     totalJatuhTempo:totalJatuhTempo,
+    totalOutstanding: totalPending + totalJatuhTempo,
+    overdueCount:   overdueCount,
+    bulanIniDiterima: bulanIniDiterima,
     pctLunas:       totalTagihan > 0 ? Math.round(totalLunas / totalTagihan * 100) : 0,
     rows:           rows
   };

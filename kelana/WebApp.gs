@@ -247,7 +247,8 @@ var WRITE_ACTIONS = {
   'dokumen.uploadFoto': 1, 'dokumen.save': 1,
   'keluarga.tambah': 1, 'roomlist.saveBatch': 1,
   'group.save': 1, 'group.delete': 1,
-  'group.duplikasi': 1, 'petugas.save': 1, 'petugas.delete': 1
+  'group.duplikasi': 1, 'petugas.save': 1, 'petugas.delete': 1,
+  'pembayaran.uploadBukti': 1, 'addon.save': 1, 'addon.delete': 1
 };
 
 // Aksi → fitur (untuk cek PERMISSIONS di Roles.gs). null = boleh semua user login.
@@ -266,8 +267,13 @@ var ACTION_PERMISSION = {
   'lead.list':              'daftarJamaah',
   'pembayaran.list':        'pembayaran',
   'pembayaran.page':        'pembayaran',
+  'pembayaran.detail':      'pembayaran',
   'pembayaran.konfirmasi':  'konfirmasiPembayaran',
+  'pembayaran.uploadBukti': 'konfirmasiPembayaran',
   'pembayaran.pelunasan':   'konfirmasiPembayaran',
+  'addon.list':             'pembayaran',
+  'addon.save':             'konfirmasiPembayaran',
+  'addon.delete':           'konfirmasiPembayaran',
   'pembayaran.reminder':    'pembayaran',
   'pembayaran.reminderText':'pembayaran',
   'laporan':                'laporanKeuangan',
@@ -363,11 +369,17 @@ function dispatchAction_(action, p, sess) {
 
     case 'pembayaran.list':       return getPembayaranList(p.filterStatus);
     case 'pembayaran.page':       return getPembayaranPage(p);
-    case 'pembayaran.konfirmasi': return konfirmasiPembayaranManual(p.idInvoice, p.metode, p.catatan);
+    case 'pembayaran.detail':     return getPembayaranDetail(p.idInvoice);
+    case 'pembayaran.konfirmasi': return konfirmasiPembayaranManual(p.idInvoice, p.metode, p.catatan, p.buktiBayar);
+    case 'pembayaran.uploadBukti':return uploadBuktiBayar(p.idInvoice, p.base64, p.mimeType, p.fileName);
     case 'pembayaran.pelunasan':  return generateInvoicePelunasan(p.idJamaah);
     case 'pembayaran.reminder':     return kirimReminderWA(p.idInvoice, p.customMsg);
     case 'pembayaran.reminderText': return getReminderWAText(p.idInvoice);
     case 'laporan':               return getLaporanKeuangan(p.idGroup);
+
+    case 'addon.list':   return getAddOnList(p.idJamaah);
+    case 'addon.save':   return logKalauSukses_(simpanAddOn(p), 'Simpan AddOn', 'AddOn', p.namaItem);
+    case 'addon.delete': return hapusAddOn(p.idAddOn);
 
     case 'manifest.eligible': return getJamaahEligibleManifest(p.idGroup);
     case 'manifest.generate': return generateManifest(p);

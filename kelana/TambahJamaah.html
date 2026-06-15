@@ -210,6 +210,7 @@ select.fi option{background:#1a1730;color:#f0efff;}
       <div class="fg"><label>Hubungan Mahram</label><select class="fi" id="f-mahramHub"><option value="">—</option><option>Suami</option><option>Ayah</option><option>Anak Kandung</option><option>Saudara Kandung</option><option>Kakek</option><option>Paman</option><option>Lainnya</option></select></div>
     </div>
     <div class="fg"><label>Embarkasi</label><input type="text" class="fi" id="f-embarkasi" placeholder="Mis. Jakarta (CGK)"></div>
+    <div class="fg"><label>Hubungan dalam Keluarga</label><select class="fi" id="f-hubKeluarga"><option value="">—</option><option>Kepala Keluarga</option><option>Suami</option><option>Istri</option><option>Anak</option><option>Orang Tua</option><option>Saudara</option><option>Mertua</option><option>Cucu</option><option>Lainnya</option></select></div>
 
     <div class="sec-title">Kesehatan & Dokumen</div>
     <div class="fg">
@@ -369,7 +370,8 @@ function simpan() {
     kecamatan:          val('f-kec'),       kelurahan:          val('f-kel'),
     kodePos:            val('f-pos'),       tempatTerbitPaspor: val('f-tmpPaspor'),
     namaMahram:         val('f-mahram'),    hubunganMahram:     val('f-mahramHub'),
-    embarkasi:          val('f-embarkasi'), kewarganegaraan:    'WNI'
+    embarkasi:          val('f-embarkasi'), kewarganegaraan:    'WNI',
+    hubunganKeluarga:   val('f-hubKeluarga')
   };
 
   google.script.run

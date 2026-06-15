@@ -215,11 +215,43 @@ ada di **keamanan input, skalabilitas (paginasi), dan otomasi onboarding tenant*
 - **[DIPERBAIKI]** `autoAssignRooms()` membaca kolom hotel `Group[7]/[8]` (skema lama = nomor
   penerbangan di skema baru) → label hotel salah. Kini schema-aware (`12/13`).
 
-### Berikutnya (P4 — opsional)
+### P4 — Keluarga/PIC, Relasi, Finance Profesional, Konteks Booking
+20. ✅ **[SELESAI]** **Keluarga/PIC tampil di UI.** Backend `simpanKeluarga`/`getKeluargaTagihan`
+    yang sebelumnya *dead-wired* kini terhubung: form **"Tambah Rombongan"** (banyak anggota
+    sekaligus, pilih PIC), field **Keluarga + Hubungan + PIC** di form jamaah individual,
+    badge **fam-dot + PIC** di tabel jamaah, blok **Keluarga** di detail jamaah (anggota,
+    PIC, link WA), dan tab **"Per Keluarga"** di halaman Pembayaran (tagihan agregat keluarga
+    + tombol Hubungi PIC). `setPicKeluarga_` menjaga PIC tunggal per keluarga.
+21. ✅ **[SELESAI]** **Hubungan dalam Keluarga** — kolom baru Jamaah index 42 (`Hubungan
+    Keluarga`), migrasi idempoten `migrateKeluargaSchema_`. Nilai: Kepala Keluarga/Suami/
+    Istri/Anak/Orang Tua/Saudara/Mertua/Cucu/Lainnya. Derivasi read-only untuk data lama
+    (PIC→Kepala Keluarga; mahram Suami→Istri). Roomlist menampilkan petunjuk **💑 pasangan**
+    pada chip "Belum Ditempatkan" agar suami-istri mudah disekamarkan.
+22. ✅ **[SELESAI]** **Halaman Finance profesional.** KPI header (Total Tagihan, Diterima,
+    Outstanding, Jatuh Tempo + jumlah, Diterima Bulan Ini). Tabel diperkaya: **Metode**,
+    **Tgl & Jam Bayar** (timestamp, bukan tanggal saja), **Bukti** (link), klik baris →
+    **drawer detail** (timeline dibuat/jatuh tempo/dibayar, metode, bukti, dikonfirmasi oleh,
+    catatan, riwayat). Konfirmasi pembayaran kini bisa **upload bukti ke Google Drive**
+    (`uploadBuktiBayar`, pola `uploadFotoJamaah`). `konfirmasiPembayaranManual` menerima param
+    bukti; `getPembayaranList/Page` mengembalikan `buktiBayar`/`dikonfirmasiOleh` + tglBayar ISO.
+23. ✅ **[SELESAI]** **Konteks booking + sistem Add-on/Upgrade.** Sheet baru **`AddOn`**
+    (`ensureAddOnSheet_`) + CRUD (`getAddOnList`/`simpanAddOn`/`hapusAddOn`). Helper
+    `hitungTotalBookingJamaah_` = harga kamar + total add-on → dipakai
+    `generateInvoicePelunasan` sehingga **add-on otomatis tertagih di pelunasan**.
+    `getBookingSummary_` (pax, anggota+relasi, paket, tipe kamar, upgrade delta, add-on, total
+    vs dibayar vs sisa) tampil di drawer detail Finance & **invoice HTML cetak**. Manajemen
+    add-on lewat tombol "Kelola Add-on / Upgrade" di drawer.
+
+### Berikutnya (P5 — opsional)
 - Pisah read/write lebih halus untuk semua modul; tombol UI per-aksi.
 - Paginasi modul Dokumen & "Jamaah Terbaru" dashboard (saat ini masih muat semua).
 - Cron WA reminder otomatis ke jamaah (saat ini digest hanya ke owner, by design).
+- Embarkasi level kloter (saat ini per-jamaah).
+- Add-on yang ditambahkan setelah invoice pelunasan terbit perlu regenerasi/invoice tambahan.
 - Multi-tenant nyata (1 server, banyak travel) bila ingin lepas dari model 1-spreadsheet-1-travel.
+
+> ⚠️ **Aksi setelah deploy P4**: jalankan **Setup Awal** sekali agar sheet **AddOn** dibuat &
+> kolom **Hubungan Keluarga** (43) termigrasi ke sheet Jamaah lama.
 
 ---
 

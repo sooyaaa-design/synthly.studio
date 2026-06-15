@@ -428,6 +428,24 @@ function icon(n,sz){ return '<svg viewBox="0 0 24 24" width="'+(sz||17)+'" heigh
 let token = localStorage.getItem('kelana_token') || '';
 let currentUser = null;       // {email,nama,role}
 let cache = { groups:null, paket:null, jamaah:null };
+let familyIndex = {};  // idKeluarga → { pic, members:[...] }
+function buildFamilyIndex(){
+  familyIndex={};
+  (cache.jamaah||[]).forEach(j=>{
+    if(!j.idKeluarga) return;
+    if(!familyIndex[j.idKeluarga]) familyIndex[j.idKeluarga]={ idKeluarga:j.idKeluarga, pic:null, members:[] };
+    familyIndex[j.idKeluarga].members.push(j);
+    if(j.isPIC) familyIndex[j.idKeluarga].pic=j;
+  });
+  return familyIndex;
+}
+function famSpouse(j){ // cari pasangan suami/istri dalam keluarga
+  if(!j||!j.idKeluarga||!familyIndex[j.idKeluarga]) return null;
+  const want = j.hubunganKeluarga==='Suami'?'Istri':(j.hubunganKeluarga==='Istri'?'Suami':null);
+  if(!want) return null;
+  return familyIndex[j.idKeluarga].members.find(m=>m.idJamaah!==j.idJamaah && m.hubunganKeluarga===want)||null;
+}
+const HUB_KELUARGA=['Kepala Keluarga','Suami','Istri','Anak','Orang Tua','Saudara','Mertua','Cucu','Lainnya'];
 let view = 'overview';
 
 /* ---------- HELPERS ---------- */
@@ -808,11 +826,13 @@ let jamaahState={ search:'', kloter:'', dok:'', bayar:'', page:1, perPage:20, to
 LOADERS.jamaah=async function(c){
   let topH='<button class="btn sm" onclick="doExportCsv()" title="Export CSV">'+icon('doc',14)+'CSV</button>'
     +'<button class="btn sm" onclick="doExportPdf()" title="Cetak PDF">'+icon('list',14)+'Print</button>';
-  if(canAddJamaah()) topH='<button class="btn primary" onclick="openJamaahForm()">'+icon('plus',15)+'Tambah jamaah</button> '+topH;
+  if(canAddJamaah()) topH='<button class="btn primary" onclick="openJamaahForm()">'+icon('plus',15)+'Tambah jamaah</button> '
+    +'<button class="btn" onclick="openRombonganForm()">'+icon('users',15)+'Tambah rombongan</button> '+topH;
   setTopActions(topH);
   c.innerHTML=skelTable(6,6);
   try{
     await getGroups(); await getPaket();
+    try{ await getJamaah(); buildFamilyIndex(); }catch(e){}
     jamaahState.page=1;
     renderJamaahShell(c);
     await loadJamaahPage();
@@ -850,8 +870,11 @@ function renderJamaahTable(){
   let h='<div class="tbl-wrap"><table class="tbl"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:16%"><col style="width:13%"><col style="width:13%"><col style="width:13%"></colgroup>'
     +'<thead><tr><th>Nama</th><th>Kloter</th><th>Paket</th><th>Dokumen</th><th>Pembayaran</th><th>Tgl Daftar</th></tr></thead><tbody>';
   st.rows.forEach(j=>{
+    const fam=j.idKeluarga&&familyIndex[j.idKeluarga];
+    const dot=j.idKeluarga?'<span class="fam-dot" style="background:'+famColor(j.idKeluarga)+'" title="Keluarga '+esc(fam&&fam.pic?fam.pic.namaLengkap:j.idKeluarga)+(fam?' · '+fam.members.length+' anggota':'')+'"></span>':'';
+    const pic=j.isPIC?' <span class="badge indigo" style="font-size:9px;padding:1px 5px">PIC</span>':'';
     h+='<tr class="clickable'+(st.selected===j.idJamaah?' sel':'')+'" onclick="selectJamaah(\''+esc(j.idJamaah)+'\')">'
-      +'<td><div class="cell-name"><span class="av-init">'+esc(initials(j.namaLengkap))+'</span><span style="overflow:hidden;text-overflow:ellipsis">'+esc(j.namaLengkap)+'</span></div></td>'
+      +'<td><div class="cell-name"><span class="av-init">'+esc(initials(j.namaLengkap))+'</span><span style="overflow:hidden;text-overflow:ellipsis">'+dot+esc(j.namaLengkap)+pic+'</span></div></td>'
       +'<td>'+esc(groupName(j.idGroup))+'</td><td>'+esc(j.paket||'-')+'</td>'
       +'<td>'+badgeDok(j.statusDokumen)+'</td><td>'+badgeBayar(j.statusPembayaran)+'</td><td class="sm">'+fmtDate(j.tglDaftar)+'</td></tr>';
   });
@@ -895,6 +918,26 @@ function renderJamaahDetail(){
   if(j.pekerjaan) h+=f('Pekerjaan', esc(j.pekerjaan));
   if(j.kabupaten||j.provinsi) h+=f('Domisili', esc([j.kabupaten,j.provinsi].filter(Boolean).join(', ')));
   if(j.namaMahram) h+=f('Mahram', esc(j.namaMahram)+' ('+esc(j.hubunganMahram||'-')+')');
+  // Blok Keluarga
+  const fam=j.idKeluarga&&familyIndex[j.idKeluarga];
+  if(fam){
+    let famH='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="fam-dot" style="background:'+famColor(j.idKeluarga)+'"></span><b>'+fam.members.length+' anggota</b></div>';
+    fam.members.forEach(m=>{
+      const isMe=m.idJamaah===j.idJamaah;
+      famH+='<div style="font-size:12px;padding:1px 0">'+(m.isPIC?'⭐ ':'• ')+esc(m.namaLengkap)
+        +(m.hubunganKeluarga?' <span class="muted">('+esc(m.hubunganKeluarga)+')</span>':'')
+        +(isMe?' <span class="muted">— ini</span>':'')+'</div>';
+    });
+    if(fam.pic&&fam.pic.idJamaah!==j.idJamaah){
+      const picWa=String(fam.pic.noHp||'').replace(/[^0-9]/g,'').replace(/^0/,'62');
+      famH+='<div style="margin-top:5px;font-size:12px">PIC: <b>'+esc(fam.pic.namaLengkap)+'</b>'+(picWa?' · <a href="https://wa.me/'+esc(picWa)+'" target="_blank" rel="noopener">WA</a>':'')+'</div>';
+    }
+    h+=f('Keluarga / Rombongan', famH);
+    const sp=famSpouse(j);
+    if(sp) h+=f('Pasangan', esc(sp.namaLengkap)+' ('+esc(sp.hubunganKeluarga)+')');
+  } else if(j.hubunganKeluarga){
+    h+=f('Hubungan Keluarga', esc(j.hubunganKeluarga)+(j.hubunganKeluargaDerived?' <span class="muted">(perkiraan)</span>':''));
+  }
   h+='<div class="dp-actions">';
   if(canEditJamaah()) h+='<button class="btn primary" onclick="openJamaahForm(\''+esc(j.idJamaah)+'\')">'+icon('edit',15)+'Edit data jamaah</button>';
   if(canFinance()) h+='<button class="btn" onclick="jamaahReminder(\''+esc(j.idJamaah)+'\')">'+icon('wa',15)+'Kirim WA reminder</button>';
@@ -950,6 +993,14 @@ function openJamaahForm(id){
     +field('No HP',true,'<input id="f_hp" value="'+v('noHp')+'">')
     +field('Email',false,'<input type="email" id="f_email" value="'+v('email')+'">')
     +field('Alamat',false,'<textarea id="f_alamat">'+v('alamat')+'</textarea>','fg-full')
+    +'<div class="section-lbl">Keluarga / Rombongan</div>'
+    +field('Keluarga',false,'<select id="f_keluarga">'
+      +'<option value="">Perorangan (tanpa keluarga)</option>'
+      +'<option value="__NEW__"'+(j.idKeluarga&&!familyIndex[j.idKeluarga]?'':'')+'>+ Buat keluarga/rombongan baru</option>'
+      +Object.keys(familyIndex).map(k=>'<option value="'+esc(k)+'"'+(j.idKeluarga===k?' selected':'')+'>'+esc(familyIndex[k].pic?familyIndex[k].pic.namaLengkap:k)+' ('+familyIndex[k].members.length+' anggota)</option>').join('')
+      +'</select>','','Kelompokkan jamaah yang daftar bersama (suami-istri/keluarga)')
+    +field('Hubungan dalam Keluarga',false,'<select id="f_hubKeluarga"><option value="">—</option>'+opt(HUB_KELUARGA,j.hubunganKeluarga)+'</select>')
+    +field('PIC',false,'<label style="display:flex;align-items:center;gap:7px;font-weight:600;cursor:pointer"><input type="checkbox" id="f_pic" '+(j.isPIC?'checked':'')+' style="width:auto">Jadikan penanggung jawab (PIC) keluarga ini</label>','','PIC menerima tagihan & dihubungi untuk pelunasan keluarga')
     +'<div class="section-lbl">Data SISKOPATUH (Kemenag)</div>'
     +'<div class="field fg-full"><div class="hint">Wajib untuk pelaporan ke SISKOPATUH. Lengkapi agar jamaah berstatus <b>Siap</b> diekspor.</div></div>'
     +field('Tempat Lahir',false,'<input id="f_tmpLahir" value="'+v('tempatLahir')+'">')
@@ -1020,7 +1071,10 @@ async function submitJamaah(id){
     kewarganegaraan:fval('f_kwn')||'WNI', provinsi:fval('f_prov'), kabupaten:fval('f_kab'),
     kecamatan:fval('f_kec'), kelurahan:fval('f_kel'), kodePos:fval('f_pos'),
     golonganDarah:fval('f_goldar'), tempatTerbitPaspor:fval('f_tmpPaspor'),
-    embarkasi:fval('f_embarkasi'), namaMahram:fval('f_mahram'), hubunganMahram:fval('f_mahramHub')
+    embarkasi:fval('f_embarkasi'), namaMahram:fval('f_mahram'), hubunganMahram:fval('f_mahramHub'),
+    // ── Keluarga / Rombongan ──
+    idKeluarga:fval('f_keluarga'), hubunganKeluarga:fval('f_hubKeluarga'),
+    isPIC:$('f_pic')?$('f_pic').checked:false
   };
   // validation
   document.querySelectorAll('#jForm .field').forEach(f=>f.classList.remove('err'));
@@ -1036,9 +1090,78 @@ async function submitJamaah(id){
     else { await api('jamaah.create',p); toast('Jamaah baru ditambahkan.'); }
     closeModal();
     cache.jamaah=null;                 // invalidate cache untuk view lain
+    try{ await getJamaah(true); buildFamilyIndex(); }catch(e){}
     if(!id) jamaahState.page=1;        // jamaah baru tampil di halaman pertama
     if($('jTableWrap')) await loadJamaahPage();
   }catch(e){ if(b){b.disabled=false;b.textContent=id?'Simpan Perubahan':'Tambah Jamaah';}
+    if(e.message!=='LISENSI'&&e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
+}
+
+/* ---------- ROMBONGAN / KELUARGA (batch) ---------- */
+let _rombRow=0;
+function openRombonganForm(){
+  const paketOpts='<option value="">— Pilih paket —</option>'+(cache.paket||[]).map(p=>'<option value="'+esc(p.namaPaket)+'">'+esc(p.namaPaket)+' — '+rupiah(p.harga)+'</option>').join('');
+  const groupOpts='<option value="">— Pilih kloter —</option>'+(cache.groups||[]).map(g=>'<option value="'+esc(g.idGroup)+'">'+esc(g.namaGroup)+'</option>').join('');
+  const html='<div class="modal-head"><h3>Tambah Rombongan / Keluarga</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body"><div class="hint" style="margin-bottom:10px">Daftarkan beberapa jamaah sekaligus. Paket & kloter berlaku untuk semua anggota. Pilih satu anggota sebagai <b>PIC</b> (penanggung jawab).</div>'
+    +'<div class="form-grid"><div class="section-lbl">Paket & Kloter (untuk semua anggota)</div>'
+    +field('Paket',true,'<select id="rb_paket">'+paketOpts+'</select>')
+    +field('Kloter',false,'<select id="rb_group">'+groupOpts+'</select>')
+    +field('Tipe Kamar',false,'<select id="rb_tipe"><option>Quad</option><option>Triple</option><option>Double</option></select>')
+    +'</div>'
+    +'<div class="section-lbl" style="margin-top:12px">Anggota</div>'
+    +'<div id="rbRows"></div>'
+    +'<button class="btn sm" onclick="addRombonganRow()" style="margin-top:8px">'+icon('plus',13)+'Tambah anggota</button>'
+    +'</div>'
+    +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
+    +'<button class="btn primary" id="rbSubmit" onclick="submitRombongan()">Simpan Rombongan</button></div>';
+  openModal(html,{size:'lg',persistent:true});
+  _rombRow=0; addRombonganRow(); addRombonganRow();
+}
+function addRombonganRow(){
+  const i=_rombRow++;
+  const wrap=$('rbRows'); if(!wrap) return;
+  const div=document.createElement('div');
+  div.className='rb-member'; div.id='rbm_'+i;
+  div.style.cssText='display:grid;grid-template-columns:1.4fr 1fr .8fr 1fr 1fr auto auto;gap:6px;align-items:center;margin-bottom:6px';
+  div.innerHTML='<input class="inp" id="rb_nama_'+i+'" placeholder="Nama lengkap">'
+    +'<input class="inp" id="rb_nik_'+i+'" maxlength="16" placeholder="NIK (16 digit)">'
+    +'<select class="inp" id="rb_jk_'+i+'"><option value="">JK</option><option>Laki-laki</option><option>Perempuan</option></select>'
+    +'<input class="inp" id="rb_hp_'+i+'" placeholder="No HP">'
+    +'<select class="inp" id="rb_hub_'+i+'"><option value="">Hubungan</option>'+HUB_KELUARGA.map(o=>'<option>'+o+'</option>').join('')+'</select>'
+    +'<label style="font-size:11px;white-space:nowrap;cursor:pointer"><input type="radio" name="rbPic" value="'+i+'"'+(i===0?' checked':'')+'> PIC</label>'
+    +'<button class="btn sm danger" onclick="removeRombonganRow('+i+')" title="Hapus">&times;</button>';
+  wrap.appendChild(div);
+}
+function removeRombonganRow(i){ const el=$('rbm_'+i); if(el) el.remove(); }
+async function submitRombongan(){
+  const paket=fval('rb_paket'), idGroup=fval('rb_group'), tipe=fval('rb_tipe')||'Quad';
+  if(!paket){ toast('Paket wajib dipilih.','error'); return; }
+  const rows=document.querySelectorAll('#rbRows .rb-member');
+  const picVal=(document.querySelector('input[name=rbPic]:checked')||{}).value;
+  const members=[];
+  let err='';
+  rows.forEach(r=>{
+    const i=r.id.replace('rbm_','');
+    const nama=fval('rb_nama_'+i), nik=fval('rb_nik_'+i), hp=fval('rb_hp_'+i);
+    if(!nama&&!nik&&!hp) return; // baris kosong dilewati
+    if(!nama){ err='Setiap anggota wajib punya nama.'; return; }
+    if(!/^\d{16}$/.test(nik)){ err='NIK '+nama+' harus 16 digit angka.'; return; }
+    if(!hp){ err='No HP '+nama+' wajib diisi.'; return; }
+    members.push({ namaLengkap:nama, nik:nik, noHp:hp, jenisKelamin:fval('rb_jk_'+i),
+      hubunganKeluarga:fval('rb_hub_'+i), paket:paket, idGroup:idGroup, tipeKamar:tipe,
+      isPIC:String(i)===String(picVal) });
+  });
+  if(err){ toast(err,'error'); return; }
+  if(!members.length){ toast('Isi minimal satu anggota.','error'); return; }
+  const b=$('rbSubmit'); b.disabled=true; b.textContent='Menyimpan…';
+  try{
+    const r=await api('keluarga.tambah',{members});
+    closeModal(); toast('Rombongan ditambahkan ('+(r.count||members.length)+' anggota).');
+    cache.jamaah=null; jamaahState.page=1;
+    try{ await getJamaah(true); buildFamilyIndex(); }catch(e){}
+    if($('jTableWrap')) await loadJamaahPage();
+  }catch(e){ if(b){b.disabled=false;b.textContent='Simpan Rombongan';}
     if(e.message!=='LISENSI'&&e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
 }
 
@@ -1528,7 +1651,7 @@ LOADERS.roomlist=async function(c){
   c.innerHTML='<div class="spinner"></div>';
   try{
     const groups=await getGroups();
-    await getJamaah();
+    await getJamaah(); buildFamilyIndex();
     let h='<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
       +'<select class="inp" id="rlGroup" style="min-width:260px" onchange="roomlistLoad(this.value)"><option value="">— Pilih kloter —</option>'
       +groups.map(g=>'<option value="'+esc(g.idGroup)+'"'+(roomlistState.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+' ('+fmtDate(g.tglBerangkat)+')</option>').join('')
@@ -1597,8 +1720,10 @@ function renderRoomlistDD(){
     unassigned.forEach(j=>{
       const dot=j.idKeluarga?'<span class="fam-dot" style="background:'+famColor(j.idKeluarga)+'" title="'+esc(j.idKeluarga)+'"></span>':'';
       const gIc=j.jenisKelamin==='Perempuan'?'&#9792;':'&#9794;';
+      const sp=famSpouse(j);
+      const spIc=sp?'<span title="Pasangan: '+esc(sp.namaLengkap)+' — tempatkan sekamar" style="font-size:11px">💑</span>':'';
       h+='<div class="jamaah-chip" draggable="true" data-id="'+esc(j.idJamaah)+'" data-jk="'+esc(j.jenisKelamin||'')+'" data-klg="'+esc(j.idKeluarga||'')+'" data-nama="'+esc((j.namaLengkap||'').replace(/"/g,'&quot;'))+'" ondragstart="rlDragStart(event)" ondragend="rlDragEnd(event)">'
-        +dot+'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(j.namaLengkap)+'</span><span style="font-size:11px;color:var(--text-sub)">'+gIc+'</span></div>';
+        +dot+'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(j.namaLengkap)+'</span>'+spIc+'<span style="font-size:11px;color:var(--text-sub)">'+gIc+'</span></div>';
     });
   }
   h+='</div></div></div>';
@@ -2006,32 +2131,80 @@ async function siskoCetak(){
 /* =================================================================
    VIEW: PEMBAYARAN
    ================================================================= */
-let bayarState={ search:'', status:'', page:1, perPage:20, total:0, pages:1, rows:[], searchTimer:null };
+let bayarState={ search:'', status:'', page:1, perPage:20, total:0, pages:1, rows:[], searchTimer:null, view:'invoice', keluarga:null };
 LOADERS.pembayaran=async function(c){
   setTopActions('<button class="btn primary" onclick="openPelunasan()">'+icon('money',15)+'Generate Pelunasan</button>');
-  c.innerHTML='<div class="stat-pills">'+Array(4).fill('<div class="stat-pill"><div class="skel" style="width:60%"></div><div class="skel" style="width:80%;height:20px;margin-top:8px"></div></div>').join('')+'</div>'+skelTable(5,6);
+  c.innerHTML='<div class="stat-pills">'+Array(5).fill('<div class="stat-pill"><div class="skel" style="width:60%"></div><div class="skel" style="width:80%;height:20px;margin-top:8px"></div></div>').join('')+'</div>'+skelTable(7,6);
   try{
-    await getJamaah();
+    await getJamaah(); buildFamilyIndex();
     const lap=await api('laporan',{});
     bayarState.page=1;
     renderPembayaranShell(c,lap);
-    await loadBayarPage();
+    if(bayarState.view==='keluarga') renderKeluargaView(); else await loadBayarPage();
   }catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') c.innerHTML=emptyState('⚠️','Gagal memuat pembayaran',e.message); }
 };
 function renderPembayaranShell(c,lap){
   const st=bayarState;
   let h='<div class="stat-pills">'
     +statPill('Total Tagihan',rupiah(lap.totalTagihan))
-    +statPill('Lunas',rupiah(lap.totalLunas))
-    +statPill('Pending',rupiah(lap.totalPending))
-    +statPill('Jatuh Tempo',rupiah(lap.totalJatuhTempo))
+    +statPill('Diterima',rupiah(lap.totalLunas))
+    +statPill('Outstanding',rupiah(lap.totalOutstanding!=null?lap.totalOutstanding:(lap.totalPending+lap.totalJatuhTempo)))
+    +statPill('Jatuh Tempo',(lap.overdueCount||0)+' tagihan · '+rupiah(lap.totalJatuhTempo))
+    +statPill('Diterima Bln Ini',rupiah(lap.bulanIniDiterima||0))
     +'</div>';
-  h+='<div class="card"><div class="filterbar">'
+  // Tab toggle
+  h+='<div class="seg" style="display:inline-flex;gap:4px;background:var(--k-surface);padding:4px;border-radius:10px;margin-bottom:12px">'
+    +'<button class="btn sm'+(st.view==='invoice'?' primary':'')+'" onclick="switchBayarView(\'invoice\')">Per Invoice</button>'
+    +'<button class="btn sm'+(st.view==='keluarga'?' primary':'')+'" onclick="switchBayarView(\'keluarga\')">Per Keluarga</button>'
+    +'</div>';
+  h+='<div id="bayarInvoiceView"'+(st.view==='keluarga'?' style="display:none"':'')+'><div class="card"><div class="filterbar">'
     +'<div class="search-wrap">'+icon('search',16)+'<input class="inp" id="bSearch" placeholder="Cari nama / no. invoice…" value="'+esc(st.search)+'" oninput="bayarSearchInput()"></div>'
     +'<select class="inp" id="bStatus" onchange="bayarFilterChange()">'
     +['','Pending','Lunas','Jatuh Tempo'].map(s=>'<option value="'+s+'"'+(st.status===s?' selected':'')+'>'+(s||'Semua Status')+'</option>').join('')+'</select>'
-    +'</div><div id="bayarTableWrap"><div class="spinner"></div></div></div>';
+    +'</div><div id="bayarTableWrap"><div class="spinner"></div></div></div></div>';
+  h+='<div id="bayarKeluargaView"'+(st.view==='invoice'?' style="display:none"':'')+'><div class="spinner"></div></div>';
   c.innerHTML=h;
+}
+function switchBayarView(v){
+  bayarState.view=v;
+  const iv=$('bayarInvoiceView'), kv=$('bayarKeluargaView');
+  document.querySelectorAll('.seg .btn').forEach(b=>b.classList.remove('primary'));
+  if(iv) iv.style.display=(v==='invoice'?'':'none');
+  if(kv) kv.style.display=(v==='keluarga'?'':'none');
+  // refresh tombol aktif
+  const segBtns=document.querySelectorAll('.seg .btn');
+  if(segBtns[0]&&v==='invoice') segBtns[0].classList.add('primary');
+  if(segBtns[1]&&v==='keluarga') segBtns[1].classList.add('primary');
+  if(v==='keluarga') renderKeluargaView(); else if(!bayarState.rows.length) loadBayarPage();
+}
+async function renderKeluargaView(){
+  const wrap=$('bayarKeluargaView'); if(!wrap) return;
+  wrap.innerHTML='<div class="spinner"></div>';
+  try{
+    const fams=await api('keluarga.tagihan',{});
+    const list=Array.isArray(fams)?fams:[];
+    if(!list.length){ wrap.innerHTML=emptyState('👨‍👩‍👧','Belum ada keluarga','Kelompokkan jamaah lewat "Tambah rombongan" atau field Keluarga di form jamaah.'); return; }
+    list.sort((a,b)=>(b.totalPending||0)-(a.totalPending||0));
+    let h='<div class="kg-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">';
+    list.forEach(k=>{
+      const picWa=String(k.picHp||'').replace(/[^0-9]/g,'').replace(/^0/,'62');
+      const anggotaH=(k.anggota||[]).map(a=>'<div style="font-size:12px;padding:1px 0">'+(a.isPIC?'⭐ ':'• ')+esc(a.nama)
+        +(a.hubunganKeluarga?' <span class="muted">('+esc(a.hubunganKeluarga)+')</span>':'')+'</div>').join('');
+      h+='<div class="card" style="padding:14px">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="fam-dot" style="background:'+famColor(k.idKeluarga)+'"></span>'
+        +'<b>'+esc(k.picNama||'(PIC belum ditentukan)')+'</b><span class="badge gray" style="font-size:9px">'+(k.anggota?k.anggota.length:0)+' pax</span></div>'
+        +anggotaH
+        +'<div style="margin-top:8px;border-top:1px solid var(--border-soft);padding-top:8px;font-size:12px">'
+        +'<div style="display:flex;justify-content:space-between"><span class="muted">Tagihan</span><b>'+rupiah(k.totalTagihan)+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between"><span class="muted">Lunas</span><b style="color:#16a34a">'+rupiah(k.totalLunas)+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between"><span class="muted">Sisa</span><b style="color:'+(k.totalPending>0?'#dc2626':'#16a34a')+'">'+rupiah(k.totalPending)+'</b></div>'
+        +'</div>';
+      if(picWa) h+='<a href="https://wa.me/'+esc(picWa)+'?text='+encodeURIComponent('Assalamualaikum '+(k.picNama||'')+', berikut info pembayaran rombongan. Sisa tagihan: '+rupiah(k.totalPending))+'" target="_blank" rel="noopener" class="btn sm" style="margin-top:8px;width:100%;background:#25D366;color:#fff;border-color:#25D366">'+icon('wa',14)+'Hubungi PIC</a>';
+      h+='</div>';
+    });
+    h+='</div>';
+    wrap.innerHTML=h;
+  }catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') wrap.innerHTML=emptyState('⚠️','Gagal memuat',e.message); }
 }
 async function loadBayarPage(){
   const st=bayarState; const wrap=$('bayarTableWrap'); if(wrap) wrap.innerHTML='<div class="spinner"></div>';
@@ -2045,17 +2218,23 @@ function renderBayarTable(){
   const st=bayarState; const wrap=$('bayarTableWrap'); if(!wrap) return;
   if(!st.rows.length){ wrap.innerHTML=emptyState('🧾','Belum ada invoice','Invoice akan muncul saat ada tagihan.'); return; }
   const start=(st.page-1)*st.perPage;
-  let h='<div class="tbl-wrap"><table class="tbl"><colgroup><col style="width:13%"><col style="width:20%"><col style="width:12%"><col style="width:15%"><col style="width:13%"><col style="width:13%"><col style="width:14%"></colgroup>'
-    +'<thead><tr><th>Invoice</th><th>Jamaah</th><th>Jenis</th><th>Nominal</th><th>Status</th><th>Jatuh Tempo</th><th></th></tr></thead><tbody>';
+  let h='<div class="tbl-wrap"><table class="tbl"><colgroup><col style="width:11%"><col style="width:16%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:6%"><col style="width:13%"></colgroup>'
+    +'<thead><tr><th>Invoice</th><th>Jamaah</th><th>Jenis</th><th>Nominal</th><th>Status</th><th>Metode</th><th>Tgl Bayar</th><th>Bukti</th><th></th></tr></thead><tbody>';
   st.rows.forEach(p=>{
-    let act='<button class="btn sm" title="Preview invoice" onclick="openInvoicePreview(\''+esc(p.idInvoice)+'\')">'+icon('doc',13)+'</button> ';
+    const idJs=esc(p.idInvoice);
+    let act='<button class="btn sm" title="Detail" onclick="event.stopPropagation();openBayarDetail(\''+idJs+'\')">'+icon('list',13)+'</button> '
+      +'<button class="btn sm" title="Preview invoice" onclick="event.stopPropagation();openInvoicePreview(\''+idJs+'\')">'+icon('doc',13)+'</button> ';
     if(canFinance()){
-      if(p.status!=='Lunas') act+='<button class="btn sm primary" onclick="openKonfirm(\''+esc(p.idInvoice)+'\',\''+esc((p.namaJamaah||'').replace(/'/g,''))+'\')">Konfirm</button> ';
-      act+='<button class="btn sm" title="Kirim reminder WA" onclick="bayarReminder(\''+esc(p.idInvoice)+'\')">'+icon('wa',14)+'</button>';
+      if(p.status!=='Lunas') act+='<button class="btn sm primary" onclick="event.stopPropagation();openKonfirm(\''+idJs+'\',\''+esc((p.namaJamaah||'').replace(/'/g,''))+'\')">Konfirm</button> ';
+      act+='<button class="btn sm" title="Kirim reminder WA" onclick="event.stopPropagation();bayarReminder(\''+idJs+'\')">'+icon('wa',14)+'</button>';
     }
-    h+='<tr><td class="sm mono">'+esc(p.idInvoice)+'</td><td>'+esc(p.namaJamaah||'-')+'</td><td class="sm">'+esc(p.jenisBayar||'-')+'</td>'
-      +'<td class="mono">'+rupiah(p.nominal)+'</td><td>'+badgeInvoice(p.status)+'</td><td class="sm">'+fmtDate(p.tglJatuhTempo)+'</td>'
-      +'<td style="white-space:nowrap">'+act+'</td></tr>';
+    const bukti=p.buktiBayar?'<a href="'+esc(p.buktiBayar)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Lihat bukti">🧾</a>':'<span class="muted">—</span>';
+    h+='<tr class="clickable" onclick="openBayarDetail(\''+idJs+'\')"><td class="sm mono">'+esc(p.idInvoice)+'</td><td>'+esc(p.namaJamaah||'-')+'</td><td class="sm">'+esc(p.jenisBayar||'-')+'</td>'
+      +'<td class="mono">'+rupiah(p.nominal)+'</td><td>'+badgeInvoice(p.status)+'</td>'
+      +'<td class="sm">'+esc(p.metode||'-')+'</td>'
+      +'<td class="sm">'+(p.tglBayar?fmtDateTime(p.tglBayar):'<span class="muted">—</span>')+'</td>'
+      +'<td style="text-align:center">'+bukti+'</td>'
+      +'<td style="white-space:nowrap" onclick="event.stopPropagation()">'+act+'</td></tr>';
   });
   h+='</tbody></table></div>';
   h+='<div class="pager"><span>Menampilkan '+(st.total?start+1:0)+'–'+Math.min(start+st.perPage,st.total)+' dari '+st.total+'</span>'
@@ -2073,6 +2252,7 @@ function openKonfirm(idInvoice,nama){
     +'<div class="modal-body"><p class="muted sm" style="margin-bottom:14px">Konfirmasi pembayaran untuk <b>'+esc(nama)+'</b> (Invoice '+esc(idInvoice)+').</p>'
     +'<div class="form-grid">'
     +field('Metode Pembayaran',true,'<select id="k_metode"><option>Transfer Bank</option><option>QRIS</option><option>Tunai</option><option>Xendit</option></select>','fg-full')
+    +field('Bukti Pembayaran',false,'<input type="file" id="k_bukti" accept="image/*,application/pdf"><div id="k_buktiInfo" class="sm muted"></div>','fg-full','Foto/scan bukti transfer (maks 5MB, opsional tapi dianjurkan)')
     +field('Catatan',false,'<textarea id="k_catatan" placeholder="Opsional"></textarea>','fg-full')
     +'</div></div>'
     +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button><button class="btn primary" id="kBtn" onclick="submitKonfirm(\''+esc(idInvoice)+'\')">Konfirmasi</button></div>',{size:'sm',persistent:true});
@@ -2080,10 +2260,118 @@ function openKonfirm(idInvoice,nama){
 async function submitKonfirm(idInvoice){
   const b=$('kBtn'); b.disabled=true; b.textContent='Memproses…';
   try{
-    const r=await api('pembayaran.konfirmasi',{idInvoice,metode:fval('k_metode'),catatan:fval('k_catatan')});
+    let buktiUrl='';
+    const fi=$('k_bukti');
+    if(fi&&fi.files&&fi.files[0]){
+      const file=fi.files[0];
+      if(file.size>5*1024*1024){ toast('Bukti terlalu besar (maks 5MB).','error'); b.disabled=false; b.textContent='Konfirmasi'; return; }
+      if($('k_buktiInfo')) $('k_buktiInfo').textContent='Mengupload bukti…';
+      const base64=await new Promise((res,rej)=>{ const rd=new FileReader(); rd.onload=e=>res(e.target.result.split(',')[1]); rd.onerror=rej; rd.readAsDataURL(file); });
+      const up=await api('pembayaran.uploadBukti',{idInvoice,base64,mimeType:file.type,fileName:file.name});
+      buktiUrl=(up&&up.url)||'';
+    }
+    const r=await api('pembayaran.konfirmasi',{idInvoice,metode:fval('k_metode'),catatan:fval('k_catatan'),buktiBayar:buktiUrl});
     closeModal(); toast('Pembayaran '+(r.namaJamaah||'')+' dikonfirmasi.');
     LOADERS.pembayaran($('content'));
   }catch(e){ if(b){b.disabled=false;b.textContent='Konfirmasi';} if(e.message!=='LISENSI'&&e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
+}
+async function openBayarDetail(idInvoice){
+  openModal('<div class="modal-head"><h3>Detail Pembayaran</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body" id="bdBody"><div class="spinner"></div></div>'
+    +'<div class="modal-foot"><button class="btn" onclick="openInvoicePreview(\''+esc(idInvoice)+'\')">'+icon('doc',14)+'Cetak Invoice</button><button class="btn primary" onclick="closeModal()">Tutup</button></div>',{size:'',persistent:true});
+  try{
+    const d=await api('pembayaran.detail',{idInvoice});
+    const body=$('bdBody'); if(!body) return;
+    if(!d||!d.invoice){ body.innerHTML=emptyState('⚠️','Tidak ditemukan',''); return; }
+    const inv=d.invoice, bk=d.booking;
+    function row(k,v){ return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-soft);font-size:13px"><span class="muted">'+esc(k)+'</span><span style="font-weight:600;text-align:right">'+v+'</span></div>'; }
+    let h='<div class="card" style="padding:14px;margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b class="mono">'+esc(inv.idInvoice)+'</b>'+badgeInvoice(inv.status)+'</div>'
+      +row('Jamaah',esc(inv.namaJamaah))
+      +row('Jenis',esc(inv.jenisBayar))
+      +row('Nominal',rupiah(inv.nominal))
+      +row('Metode',esc(inv.metode||'-'))
+      +row('Dibuat',fmtDateTime(inv.tglInvoice))
+      +row('Jatuh Tempo',fmtDate(inv.tglJatuhTempo))
+      +row('Dibayar',inv.tglBayar?fmtDateTime(inv.tglBayar):'<span class="muted">Belum</span>')
+      +row('Dikonfirmasi oleh',esc(inv.dikonfirmasiOleh||'-'))
+      +(inv.buktiBayar?row('Bukti','<a href="'+esc(inv.buktiBayar)+'" target="_blank" rel="noopener">Lihat bukti</a>'):'')
+      +(inv.catatan?row('Catatan',esc(inv.catatan)):'')
+      +'</div>';
+    // Booking summary
+    if(bk&&bk.anggota&&bk.anggota.length){
+      h+='<div class="card" style="padding:14px;margin-bottom:12px"><div class="section-lbl" style="margin:0 0 8px">Pemesanan ('+bk.pax+' pax)</div>';
+      bk.anggota.forEach(a=>{
+        const dot=bk.idKeluarga?'<span class="fam-dot" style="background:'+famColor(bk.idKeluarga)+'"></span>':'';
+        const addonStr=(a.addOns&&a.addOns.length)?' · '+a.addOns.length+' add-on':'';
+        h+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span>'+dot+esc(a.nama)+' <span class="muted">('+esc(a.tipeKamar)+(a.kategori&&a.kategori!=='Dewasa'?' · '+esc(a.kategori):'')+(a.relasi?' · '+esc(a.relasi):'')+addonStr+')</span></span><b>'+rupiah(a.hargaUnit)+'</b></div>';
+      });
+      h+='<div style="margin-top:8px;border-top:1px solid var(--border-soft);padding-top:8px">'
+        +row('Total Booking',rupiah(bk.totalHarga))
+        +row('Sudah Dibayar','<span style="color:#16a34a">'+rupiah(bk.totalDibayar)+'</span>')
+        +row('Sisa','<span style="color:'+(bk.sisa>0?'#dc2626':'#16a34a')+'">'+rupiah(bk.sisa)+'</span>')
+        +'</div>';
+      // Add-on management
+      h+='<div style="margin-top:10px"><button class="btn sm" onclick="openAddOnMgr(\''+esc(inv.idJamaah)+'\')">'+icon('plus',13)+'Kelola Add-on / Upgrade</button></div>';
+      h+='</div>';
+    }
+    // Riwayat
+    if(d.riwayat&&d.riwayat.length>1){
+      h+='<div class="card" style="padding:14px"><div class="section-lbl" style="margin:0 0 8px">Riwayat Pembayaran Jamaah</div>';
+      d.riwayat.forEach(x=>{ h+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px"><span>'+esc(x.jenisBayar)+' '+badgeInvoice(x.status)+'</span><span>'+rupiah(x.nominal)+(x.tglBayar?' · '+fmtDateTime(x.tglBayar):'')+'</span></div>'; });
+      h+='</div>';
+    }
+    body.innerHTML=h;
+  }catch(e){ const body=$('bdBody'); if(body) body.innerHTML=emptyState('⚠️','Gagal memuat',e.message); }
+}
+const ADDON_KATEGORI=['Kamar','Hotel','Bagasi','Maskapai','Layanan','Lainnya'];
+async function openAddOnMgr(idJamaah){
+  openModal('<div class="modal-head"><h3>Add-on / Upgrade</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body" id="aoBody"><div class="spinner"></div></div>'
+    +'<div class="modal-foot"><button class="btn primary" onclick="closeModal()">Selesai</button></div>',{size:'',persistent:true});
+  window._aoJamaah=idJamaah;
+  await renderAddOnMgr();
+}
+async function renderAddOnMgr(){
+  const idJamaah=window._aoJamaah; const body=$('aoBody'); if(!body) return;
+  body.innerHTML='<div class="spinner"></div>';
+  try{
+    const list=await api('addon.list',{idJamaah});
+    const items=Array.isArray(list)?list:[];
+    let total=items.reduce((s,a)=>s+(a.harga||0),0);
+    let h='<div class="hint" style="margin-bottom:10px">Item tambahan berbayar otomatis ikut tertagih di invoice pelunasan jamaah.</div>';
+    if(items.length){
+      h+='<div class="card" style="padding:10px;margin-bottom:12px">';
+      items.forEach(a=>{
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px solid var(--border-soft)">'
+          +'<span><b>'+esc(a.namaItem)+'</b> <span class="muted">('+esc(a.kategori)+')</span>'+(a.catatan?'<br><span class="sm muted">'+esc(a.catatan)+'</span>':'')+'</span>'
+          +'<span style="white-space:nowrap"><b>'+rupiah(a.harga)+'</b> <button class="btn sm danger" onclick="deleteAddOn(\''+esc(a.idAddOn)+'\')">&times;</button></span></div>';
+      });
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0 0;font-weight:800"><span>Total Add-on</span><span>'+rupiah(total)+'</span></div></div>';
+    } else { h+='<div class="empty" style="padding:14px"><div class="sm muted">Belum ada add-on.</div></div>'; }
+    h+='<div class="form-grid"><div class="section-lbl">Tambah Item</div>'
+      +field('Nama Item',true,'<input id="ao_nama" placeholder="Mis. Extra bagasi 10kg">')
+      +field('Kategori',false,'<select id="ao_kat">'+ADDON_KATEGORI.map(o=>'<option>'+o+'</option>').join('')+'</select>')
+      +field('Harga (Rp)',true,'<input id="ao_harga" type="number" min="0" placeholder="0">')
+      +field('Catatan',false,'<input id="ao_catatan" placeholder="Opsional">','fg-full')
+      +'</div><button class="btn primary sm" id="aoAdd" onclick="saveAddOn()" style="margin-top:8px">'+icon('plus',13)+'Tambah Add-on</button>';
+    body.innerHTML=h;
+  }catch(e){ body.innerHTML=emptyState('⚠️','Gagal memuat',e.message); }
+}
+async function saveAddOn(){
+  const nama=fval('ao_nama'), harga=fval('ao_harga');
+  if(!nama){ toast('Nama item wajib diisi.','error'); return; }
+  if(!harga||isNaN(Number(harga))){ toast('Harga harus berupa angka.','error'); return; }
+  const b=$('aoAdd'); if(b){ b.disabled=true; b.textContent='Menyimpan…'; }
+  try{
+    await api('addon.save',{idJamaah:window._aoJamaah,namaItem:nama,kategori:fval('ao_kat'),harga:Number(harga),catatan:fval('ao_catatan')});
+    toast('Add-on ditambahkan.');
+    await renderAddOnMgr();
+  }catch(e){ if(b){ b.disabled=false; b.textContent='Tambah Add-on'; } if(e.message!=='LISENSI'&&e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
+}
+async function deleteAddOn(idAddOn){
+  try{ await api('addon.delete',{idAddOn}); toast('Add-on dihapus.'); await renderAddOnMgr(); }
+  catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
 }
 async function bayarReminder(idInvoice){
   try{

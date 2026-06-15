@@ -200,6 +200,32 @@ Setiap perubahan data dicatat otomatis: siapa yang input, jam berapa, apa yang d
 
 ---
 
+## Mendaftarkan Keluarga / Rombongan & Menentukan PIC
+
+Banyak jamaah mendaftar bersama (suami-istri, satu keluarga, rombongan). Agar mudah
+ditagih dan disusun roomlist-nya, kelompokkan mereka:
+
+**Cara cepat — Tambah Rombongan (banyak sekaligus):**
+1. Di halaman **Jamaah** klik **Tambah rombongan**
+2. Pilih **Paket, Kloter, Tipe Kamar** (berlaku untuk semua anggota)
+3. Isi tiap anggota: Nama, NIK, JK, No HP, dan **Hubungan** (Suami/Istri/Anak/…)
+4. Pilih satu anggota sebagai **PIC** (penanggung jawab — yang dihubungi untuk pembayaran)
+5. Klik **Simpan Rombongan**
+
+**Cara per orang — lewat form jamaah:**
+- Pada form Tambah/Edit Jamaah ada bagian **Keluarga / Rombongan**:
+  - **Keluarga**: pilih keluarga yang sudah ada, atau "+ Buat keluarga/rombongan baru"
+  - **Hubungan dalam Keluarga**
+  - Centang **PIC** bila orang ini penanggung jawab (otomatis PIC lama digeser)
+
+**Hasilnya:**
+- Di tabel jamaah muncul **titik warna** (satu warna = satu keluarga) & label **PIC**
+- Detail jamaah menampilkan anggota keluarga, PIC + tombol WA, dan **Pasangan** (suami/istri)
+- Di **Roomlist**, pasangan suami-istri ditandai **💑** agar mudah ditempatkan sekamar
+- Di **Pembayaran → Per Keluarga**, tagihan seluruh anggota dijumlahkan per keluarga
+
+---
+
 ## Melihat dan Mencari Daftar Jamaah
 
 1. Menu 🕌 Kelana → **Daftar Jamaah**
@@ -333,20 +359,28 @@ Fitur ini membuat data jamaah **siap diunggah ke SISKOPATUH (Kemenag)** tanpa in
 
 ---
 
-## Melihat Daftar Invoice
+## Halaman Pembayaran (tampilan keuangan)
 
-1. Menu 🕌 Kelana → **Pembayaran**
-2. Tampil semua invoice dengan status:
-   - 🟡 **Pending** — belum bayar
-   - 🔴 **Jatuh Tempo** — sudah lewat tanggal jatuh tempo
-   - 🟢 **Lunas** — sudah bayar dan dikonfirmasi
-3. Filter tersedia:
-   - Filter by **Status** (Pending/Lunas/Jatuh Tempo)
-   - Filter by **Jenis** (DP/Pelunasan)
+Di bagian atas ada **ringkasan KPI**: Total Tagihan, Diterima, Outstanding (belum lunas),
+Jatuh Tempo (jumlah tagihan + nominal), dan Diterima Bulan Ini.
+
+Ada dua tab:
+- **Per Invoice** — daftar semua invoice. Kolom: Invoice, Jamaah, Jenis, Nominal, Status,
+  **Metode**, **Tgl & Jam Bayar**, **Bukti**. Klik baris mana pun untuk membuka **detail**.
+- **Per Keluarga** — tagihan dijumlahkan per keluarga/rombongan, lengkap dengan PIC dan
+  tombol **Hubungi PIC** (WA berisi sisa tagihan keluarga).
+
+Status invoice:
+- 🟡 **Pending** — belum bayar · 🔴 **Jatuh Tempo** — lewat tanggal · 🟢 **Lunas** — sudah dikonfirmasi
+
+**Detail pembayaran (klik baris):** menampilkan timeline (dibuat → jatuh tempo → dibayar
+dengan jam), metode, **bukti pembayaran**, siapa yang mengonfirmasi, catatan, **rincian
+pemesanan** (pax, anggota, paket, tipe kamar, add-on, total vs dibayar vs sisa), dan riwayat
+pembayaran jamaah tersebut.
 
 ---
 
-## Konfirmasi Pembayaran Manual
+## Konfirmasi Pembayaran Manual (dengan bukti)
 
 Ketika jamaah sudah transfer dan kirim bukti ke WA/email:
 
@@ -354,12 +388,30 @@ Ketika jamaah sudah transfer dan kirim bukti ke WA/email:
 2. Klik tombol **Konfirm** (hijau) di baris invoice tersebut
 3. Isi form konfirmasi:
    - **Metode Bayar**: Transfer Bank / QRIS / Tunai / Xendit
+   - **Bukti Pembayaran**: unggah foto/scan bukti transfer (maks 5MB) — opsional tapi sangat
+     dianjurkan; tersimpan aman di Google Drive dan bisa dibuka kembali dari detail/invoice
    - **Catatan** (opsional): nomor referensi transfer, dsb.
-4. Klik **Konfirmasi Pembayaran**
+4. Klik **Konfirmasi**
 5. Sistem otomatis:
    - Update status invoice menjadi **Lunas**
-   - Catat tanggal konfirmasi + nama Finance yang konfirmasi
+   - Catat **tanggal + jam** konfirmasi & nama Finance yang konfirmasi
+   - Simpan tautan bukti
    - Kirim notifikasi WA ke jamaah
+
+---
+
+## Add-on / Upgrade (biaya tambahan)
+
+Untuk biaya tambahan di luar paket (tambah malam hotel, extra bagasi, kursi roda, upgrade
+maskapai, dll):
+
+1. Buka **detail pembayaran** salah satu invoice jamaah ybs → klik **Kelola Add-on / Upgrade**
+2. Tambah item: Nama, Kategori, Harga, Catatan
+3. Add-on akan **otomatis ikut tertagih saat Generate Pelunasan** (total = harga kamar +
+   semua add-on − yang sudah dibayar)
+
+> Catatan: tambahkan add-on **sebelum** membuat invoice pelunasan. Bila pelunasan sudah dibuat,
+> regenerasi invoice atau buat tagihan tambahan terpisah.
 
 ---
 
