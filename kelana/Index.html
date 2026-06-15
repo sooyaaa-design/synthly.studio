@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+/* ─── RESET ─── */
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ─── TOKENS ─── */
+:root{--primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;}
+
+body.dark{
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,0.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+}
+body.light{
+  --bg:#f8f7ff;--card:#ffffff;--card2:#ede9fe;
+  --border:rgba(79,70,229,0.16);--text:#1e1b4b;
+  --sub:#6b68a0;--hover:#e8e4ff;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  width:280px;min-height:100vh;font-size:13px;
+  line-height:1.5;overflow-x:hidden;
+  transition:background .2s,color .2s;
+}
+
+/* ─── HEADER ─── */
+.hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px 10px;
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-icon{
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg,var(--primary),var(--mid));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;color:#fff;
+  letter-spacing:-2px;flex-shrink:0;line-height:1;
+}
+.logo-name{font-size:14px;font-weight:700;letter-spacing:-0.03em;}
+.logo-tagline{font-size:10px;color:var(--sub);letter-spacing:.02em;margin-top:1px;}
+.theme-btn{
+  width:30px;height:30px;border-radius:8px;
+  border:1px solid var(--border);background:var(--card);
+  cursor:pointer;color:var(--sub);font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;flex-shrink:0;
+}
+.theme-btn:hover{background:var(--hover);}
+
+/* ─── STATS ─── */
+.stats{padding:12px 13px;display:flex;flex-direction:column;gap:8px;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
+}
+.stat-val{
+  font-size:21px;font-weight:700;letter-spacing:-.04em;
+  color:var(--primary);line-height:1;
+}
+.stat-val.accent{color:#34d399;}
+.stat-lbl{
+  font-size:10px;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.08em;margin-top:3px;
+}
+.stat-wide{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 13px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.stat-wide-right{text-align:right;}
+.prog-track{
+  height:4px;border-radius:4px;
+  background:var(--card2);overflow:hidden;
+  width:118px;margin-top:6px;
+}
+.prog-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(to right,var(--primary),var(--mid));
+  width:0%;transition:width .7s cubic-bezier(.25,.46,.45,.94);
+}
+
+/* skeleton */
+.sk{
+  display:inline-block;height:21px;width:38px;
+  background:var(--card2);border-radius:5px;
+  animation:sk 1.3s ease-in-out infinite;
+}
+@keyframes sk{0%,100%{opacity:.45}50%{opacity:.9}}
+
+/* ─── DIVIDER ─── */
+.div{
+  display:flex;align-items:center;gap:7px;
+  padding:2px 14px 0;
+}
+.div-line{flex:1;height:1px;background:var(--border);}
+.div-lbl{
+  font-size:10px;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.1em;
+}
+
+/* ─── NAV ─── */
+.nav{padding:8px 13px 14px;display:flex;flex-direction:column;gap:3px;}
+.nb{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:9px;
+  background:transparent;border:none;cursor:pointer;
+  width:100%;text-align:left;color:var(--text);
+  font-size:13px;font-weight:500;
+  transition:background .12s,color .12s;
+}
+.nb:hover{background:var(--hover);}
+.nb:active{transform:scale(.985);}
+.nb.loading .ni{animation:sk .7s ease-in-out infinite;}
+.ni{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--card2);display:flex;
+  align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;transition:background .12s;
+}
+.nb:hover .ni{background:rgba(79,70,229,.18);}
+.nlbl{flex:1;}
+.narr{
+  font-size:11px;color:var(--sub);
+  opacity:0;transform:translateX(-3px);
+  transition:opacity .15s,transform .15s;
+}
+.nb:hover .narr{opacity:1;transform:translateX(0);}
+
+/* ─── FOOTER ─── */
+.ft{
+  padding:9px 14px 13px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ft-txt{font-size:10px;color:var(--sub);}
+.ref-btn{
+  font-size:11px;color:var(--mid);
+  background:none;border:none;cursor:pointer;
+  padding:3px 7px;border-radius:5px;
+  transition:background .12s;
+}
+.ref-btn:hover{background:var(--hover);}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="dark">
+
+<!-- HEADER -->
+<div class="hd">
+  <div class="logo">
+    <div class="logo-icon">~</div>
+    <div>
+      <div class="logo-name">Kelana</div>
+      <div class="logo-tagline">Manajemen Umroh</div>
+    </div>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()" title="Ganti tema" id="theme-btn">☀</button>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-val" id="s-jamaah"><span class="sk"></span></div>
+      <div class="stat-lbl">Total Jamaah</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="s-kloter"><span class="sk"></span></div>
+      <div class="stat-lbl">Kloter Aktif</div>
+    </div>
+  </div>
+  <div class="stat-wide">
+    <div>
+      <div class="stat-lbl">Dokumen Lengkap</div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog"></div>
+      </div>
+    </div>
+    <div class="stat-wide-right">
+      <div class="stat-val accent" id="s-dok"><span class="sk" style="width:46px;"></span></div>
+      <div class="stat-lbl">Selesai</div>
+    </div>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="div">
+  <div class="div-line"></div>
+  <div class="div-lbl">Modul</div>
+  <div class="div-line"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nb" id="nb-dashboard"    onclick="go('showDashboard')">
+    <div class="ni">📊</div><span class="nlbl">Dashboard</span><span class="narr">›</span>
+  </button>
+  <button class="nb" id="nb-tambah"       onclick="go('showTambahJamaah')">
+    <div class="ni">👤</div><span class="nlbl">Tambah Jamaah</span><span class="narr">›</span>
+  </button>
+  <button class="nb" id="nb-daftar"       onclick="go('showDaftarJamaah')">
+    <div class="ni">📋</div><span class="nlbl">Daftar Jamaah</span><span class="narr">›</span>
+  </button>
+  <button class="nb" id="nb-pembayaran"   onclick="go('showPembayaran')">
+    <div class="ni">💳</div><span class="nlbl">Pembayaran</span><span class="narr">›</span>
+  </button>
+  <button class="nb" id="nb-roomlist"     onclick="go('showRoomlist')">
+    <div class="ni">🏨</div><span class="nlbl">Roomlist</span><span class="narr">›</span>
+  </button>
+  <button class="nb" id="nb-manifest"     onclick="go('showManifest')">
+    <div class="ni">✈</div><span class="nlbl">Manifest</span><span class="narr">›</span>
+  </button>
+</nav>
+
+<!-- FOOTER -->
+<div class="ft">
+  <span class="ft-txt" id="ft-time">Memuat…</span>
+  <button class="ref-btn" onclick="loadStats()" title="Refresh stats">↻ Refresh</button>
+</div>
+
+<script>
+/* ─── THEME ─── */
+var _dark = true;
+function toggleTheme() {
+  _dark = !_dark;
+  document.body.className = _dark ? 'dark' : 'light';
+  document.getElementById('theme-btn').textContent = _dark ? '☀' : '🌙';
+}
+
+/* ─── NAVIGATE ─── */
+function go(fn) {
+  var btn = document.querySelector('[onclick="go(\'' + fn + '\')"]');
+  if (btn) btn.classList.add('loading');
+  google.script.run
+    .withSuccessHandler(function() { if (btn) btn.classList.remove('loading'); })
+    .withFailureHandler(function(e) {
+      if (btn) btn.classList.remove('loading');
+      alert('Gagal membuka modul: ' + e.message);
+    })
+    [fn]();
+}
+
+/* ─── STATS ─── */
+function loadStats() {
+  var ft = document.getElementById('ft-time');
+  ft.innerHTML = '<span class="spin">⟳</span>';
+  google.script.run
+    .withSuccessHandler(function(d) {
+      setText('s-jamaah', d.totalJamaah != null ? d.totalJamaah : '—');
+      setText('s-kloter', d.kloterAktif  != null ? d.kloterAktif  : '—');
+      var pct = d.dokumenOkPersen != null ? d.dokumenOkPersen : 0;
+      setText('s-dok', pct + '%');
+      document.getElementById('prog').style.width = Math.min(pct, 100) + '%';
+      var now = new Date();
+      ft.textContent = 'Update ' + now.getHours() + ':' + pad(now.getMinutes());
+    })
+    .withFailureHandler(function() {
+      setText('s-jamaah', '—'); setText('s-kloter', '—'); setText('s-dok', '—');
+      ft.textContent = 'Gagal refresh';
+    })
+    .getDashboardStats();
+}
+
+function setText(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+function pad(n)          { return n < 10 ? '0' + n : n; }
+
+loadStats();
+</script>
+</body>
+</html>

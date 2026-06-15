@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+  --green:#34d399;--yellow:#fbbf24;--red:#f87171;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.topbar{padding:12px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.03em;}
+.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4338ca;}
+.main{flex:1;overflow-y:auto;padding:18px 20px;}
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;}
+.stat-icon{font-size:20px;margin-bottom:8px;}
+.stat-val{font-size:26px;font-weight:700;letter-spacing:-.04em;line-height:1;}
+.stat-lbl{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+.sv-blue{color:var(--primary);}
+.sv-green{color:var(--green);}
+.sv-yellow{color:var(--yellow);}
+.sv-red{color:var(--red);}
+/* Revenue bar */
+.rev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;margin-bottom:20px;}
+.rev-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:14px;}
+.rev-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rev-lbl{font-size:12px;width:120px;flex-shrink:0;}
+.rev-track{flex:1;height:8px;border-radius:4px;background:var(--card2);overflow:hidden;}
+.rev-fill{height:100%;border-radius:4px;transition:width .8s ease;}
+.rf-green{background:var(--green);}
+.rf-yellow{background:var(--yellow);}
+.rf-red{background:var(--red);}
+.rev-amt{font-size:12px;font-weight:600;min-width:100px;text-align:right;}
+/* Two-col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.panel-hd{padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;}
+.panel-hd-title{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);}
+.panel-body{padding:0;}
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{padding:8px 14px;text-align:left;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--border);}
+.tbl td{padding:9px 14px;border-bottom:1px solid rgba(79,70,229,.07);}
+.tbl tr:last-child td{border-bottom:none;}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:6px;
+  font-size:10px;font-weight:600;letter-spacing:.04em;}
+.b-ok{background:rgba(52,211,153,.14);color:var(--green);}
+.b-pend{background:rgba(251,191,36,.14);color:var(--yellow);}
+.b-act{background:rgba(79,70,229,.18);color:var(--mid);}
+/* Group card */
+.gc{padding:12px 16px;border-bottom:1px solid rgba(79,70,229,.07);
+  display:flex;align-items:center;gap:12px;}
+.gc:last-child{border-bottom:none;}
+.gc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.gc-info{flex:1;}
+.gc-name{font-size:13px;font-weight:500;}
+.gc-sub{font-size:11px;color:var(--sub);}
+.gc-right{text-align:right;font-size:11px;color:var(--sub);}
+/* Skeleton */
+.sk{display:inline-block;background:var(--card2);border-radius:4px;
+  animation:sk 1.3s ease-in-out infinite;height:24px;width:60px;}
+@keyframes sk{0%,100%{opacity:.45}50%{opacity:.9}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,.3);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 Dashboard Kelana</h1>
+  <button class="btn btn-primary" onclick="google.script.host.close()">✕ Tutup</button>
+</div>
+
+<div class="main" id="main">
+
+  <!-- Stats Cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-val sv-blue" id="s-jamaah"><span class="sk"></span></div>
+      <div class="stat-lbl">Total Jamaah</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✈</div>
+      <div class="stat-val sv-blue" id="s-kloter"><span class="sk"></span></div>
+      <div class="stat-lbl">Kloter Aktif</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📄</div>
+      <div class="stat-val sv-green" id="s-dok"><span class="sk"></span></div>
+      <div class="stat-lbl">Dokumen Lengkap</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-val sv-yellow" id="s-pending"><span class="sk"></span></div>
+      <div class="stat-lbl">Tagihan Pending</div>
+    </div>
+  </div>
+
+  <!-- Revenue Summary -->
+  <div class="rev-card">
+    <div class="rev-title">Ringkasan Keuangan (Semua Kloter)</div>
+    <div id="rev-content">
+      <div style="color:var(--sub);font-size:12px;padding:8px 0;">Memuat data keuangan…</div>
+    </div>
+  </div>
+
+  <!-- Two Column: Groups + Recent Activity -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-hd">
+        <span class="panel-hd-title">Group Aktif</span>
+      </div>
+      <div class="panel-body" id="groups-list">
+        <div style="padding:20px;color:var(--sub);font-size:12px;text-align:center;">Memuat…</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">
+        <span class="panel-hd-title">Invoice Mendesak</span>
+        <span style="font-size:10px;color:var(--sub);">Pending & Jatuh Tempo</span>
+      </div>
+      <div class="panel-body">
+        <table class="tbl" id="invoice-tbl">
+          <thead><tr>
+            <th>Jamaah</th><th>Jenis</th><th>Nominal</th><th>Status</th>
+          </tr></thead>
+          <tbody id="invoice-body">
+            <tr><td colspan="4" style="text-align:center;color:var(--sub);padding:20px;">Memuat…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmt(n) {
+  return 'Rp ' + Number(n||0).toLocaleString('id-ID');
+}
+
+function loadDashboard() {
+  google.script.run
+    .withSuccessHandler(function(d) {
+      // Stats
+      setText('s-jamaah', d.stats.totalJamaah || 0);
+      setText('s-kloter', d.stats.kloterAktif  || 0);
+      setText('s-dok',    (d.stats.dokumenOkPersen || 0) + '%');
+
+      var lap = d.laporan;
+      setText('s-pending', fmt(lap.totalPending + lap.totalJatuhTempo));
+
+      // Revenue bar
+      var total = lap.totalTagihan || 1;
+      document.getElementById('rev-content').innerHTML =
+        revRow('Lunas',       lap.totalLunas,       lap.totalLunas/total*100, 'rf-green') +
+        revRow('Pending',     lap.totalPending,     lap.totalPending/total*100, 'rf-yellow') +
+        revRow('Jatuh Tempo', lap.totalJatuhTempo,  lap.totalJatuhTempo/total*100, 'rf-red') +
+        '<div style="margin-top:10px;font-size:11px;color:var(--sub);">Total Tagihan: ' +
+        '<strong style="color:var(--text)">' + fmt(lap.totalTagihan) + '</strong>' +
+        ' &nbsp;|&nbsp; ' + lap.pctLunas + '% sudah lunas</div>';
+
+      // Groups
+      var gl = document.getElementById('groups-list');
+      if (!d.groups || !d.groups.length) {
+        gl.innerHTML = '<div style="padding:20px;color:var(--sub);font-size:12px;text-align:center;">Belum ada group</div>';
+      } else {
+        gl.innerHTML = d.groups.map(function(g) {
+          var pct = g.kapasitas > 0 ? Math.round(g.terisi/g.kapasitas*100) : 0;
+          return '<div class="gc">' +
+            '<div class="gc-dot" style="background:' + (g.statusGroup==='Aktif'?'var(--green)':'var(--sub)') + '"></div>' +
+            '<div class="gc-info">' +
+              '<div class="gc-name">' + esc(g.namaGroup) + '</div>' +
+              '<div class="gc-sub">' + (g.tglBerangkat||'—') + ' · ' + g.maskapai + '</div>' +
+            '</div>' +
+            '<div class="gc-right">' + (g.terisi||0) + '/' + (g.kapasitas||0) + '<br>' + pct + '%</div>' +
+          '</div>';
+        }).join('');
+      }
+    })
+    .withFailureHandler(function(e) {
+      console.error(e);
+    })
+    .getDashboardFull();
+
+  // Load urgent invoices
+  google.script.run
+    .withSuccessHandler(function(rows) {
+      var body = document.getElementById('invoice-body');
+      var urgent = rows.filter(function(r){ return r.status !== 'Lunas'; }).slice(0,8);
+      if (!urgent.length) {
+        body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--green);padding:20px;">✅ Semua invoice sudah lunas</td></tr>';
+        return;
+      }
+      body.innerHTML = urgent.map(function(r) {
+        var cls = r.status === 'Jatuh Tempo' ? 'b-pend' : 'b-pend';
+        if (r.status === 'Lunas') cls = 'b-ok';
+        return '<tr>' +
+          '<td style="font-weight:500;">' + esc(r.namaJamaah) + '</td>' +
+          '<td>' + esc(r.jenisBayar) + '</td>' +
+          '<td style="font-weight:600;">' + fmt(r.nominal) + '</td>' +
+          '<td><span class="badge ' + cls + '">' + r.status + '</span></td>' +
+        '</tr>';
+      }).join('');
+    })
+    .getPembayaranList('Semua');
+}
+
+function revRow(lbl, amt, pct, cls) {
+  return '<div class="rev-row">' +
+    '<span class="rev-lbl">' + lbl + '</span>' +
+    '<div class="rev-track"><div class="rev-fill ' + cls + '" style="width:' + Math.max(pct,0).toFixed(1) + '%"></div></div>' +
+    '<span class="rev-amt">' + fmt(amt) + '</span>' +
+  '</div>';
+}
+
+function setText(id, v) { var e = document.getElementById(id); if(e) e.textContent = v; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadDashboard();
+</script>
+</body>
+</html>

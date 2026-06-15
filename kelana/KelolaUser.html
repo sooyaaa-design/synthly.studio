@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--primary-h:#4338ca;--primary-soft:#eef2ff;
+  --bg:#f8f9fb;--card:#ffffff;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --text:#111827;--sub:#6b7280;--sub2:#9ca3af;
+  --green:#059669;--green-bg:#d1fae5;
+  --red:#dc2626;--red-bg:#fee2e2;
+  --blue:#2563eb;--blue-bg:#dbeafe;
+  --orange:#d97706;--orange-bg:#fef3c7;
+  --owner-bg:#fee2e2;--owner-color:#b91c1c;
+  --admin-bg:#dbeafe;--admin-color:#1d4ed8;
+  --finance-bg:#d1fae5;--finance-color:#065f46;
+  --mktg-bg:#fef3c7;--mktg-color:#92400e;
+  --radius:10px;--radius-sm:6px;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;
+}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  padding:12px 22px;border-bottom:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar h1{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text);}
+.btn-close{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:6px 14px;font-size:12px;font-weight:500;color:var(--sub);cursor:pointer;
+  transition:all .15s;
+}
+.btn-close:hover{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+
+/* ─── MAIN SCROLL ─── */
+.main{flex:1;overflow-y:auto;padding:18px 22px;}
+
+/* ─── STATS ROW ─── */
+.stats-row{
+  display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+}
+.stat-pill{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 14px;border-radius:999px;border:1px solid;
+  font-size:12px;font-weight:600;cursor:default;
+  transition:transform .1s;
+}
+.stat-pill:hover{transform:scale(1.04);}
+.pill-owner  {background:var(--owner-bg);border-color:#fca5a5;color:var(--owner-color);}
+.pill-admin  {background:var(--admin-bg);border-color:#93c5fd;color:var(--admin-color);}
+.pill-finance{background:var(--finance-bg);border-color:#6ee7b7;color:var(--finance-color);}
+.pill-mktg   {background:var(--mktg-bg);border-color:#fcd34d;color:var(--mktg-color);}
+.stat-pill .cnt{
+  background:rgba(0,0,0,.12);border-radius:999px;
+  min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;padding:0 5px;
+}
+
+/* ─── CARD ─── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:16px;
+}
+.card-header{
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:13px;font-weight:700;color:var(--text);}
+.card-sub{font-size:11px;color:var(--sub);margin-top:2px;}
+
+/* ─── BUTTON ─── */
+.btn{
+  padding:8px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover:not(:disabled){background:var(--primary-h);}
+.btn-ghost{background:transparent;color:var(--sub);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);color:var(--text);}
+.btn-danger{
+  background:transparent;color:var(--red);
+  border:1px solid #fca5a5;font-size:11px;padding:5px 10px;
+}
+.btn-danger:hover{background:var(--red-bg);}
+.btn-toggle{
+  font-size:11px;padding:4px 10px;border-radius:999px;border:none;cursor:pointer;
+  font-weight:600;transition:all .15s;
+}
+.btn-toggle.aktif   {background:var(--green-bg);color:var(--green);}
+.btn-toggle.aktif:hover{background:#a7f3d0;}
+.btn-toggle.nonaktif{background:#f3f4f6;color:var(--sub);}
+.btn-toggle.nonaktif:hover{background:#e5e7eb;color:var(--text);}
+
+/* ─── TABLE ─── */
+.tbl-wrap{overflow-x:auto;}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{
+  padding:9px 16px;text-align:left;font-size:10px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--sub2);
+  background:#f9fafb;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.tbl td{
+  padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:middle;
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:#fafafa;}
+
+/* ─── ROLE BADGE ─── */
+.role-badge{
+  display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;
+  font-size:10px;font-weight:700;letter-spacing:.04em;white-space:nowrap;
+}
+.rb-owner    {background:var(--owner-bg);color:var(--owner-color);}
+.rb-admin    {background:var(--admin-bg);color:var(--admin-color);}
+.rb-finance  {background:var(--finance-bg);color:var(--finance-color);}
+.rb-marketing{background:var(--mktg-bg);color:var(--mktg-color);}
+
+/* ─── USER INFO ─── */
+.user-info  {display:flex;flex-direction:column;gap:2px;}
+.user-name  {font-weight:600;color:var(--text);font-size:13px;}
+.user-email {font-size:11px;color:var(--sub);}
+
+/* ─── SKELETON ─── */
+.sk{
+  display:inline-block;background:#e5e7eb;border-radius:4px;
+  animation:sk 1.3s ease-in-out infinite;height:14px;
+}
+@keyframes sk{0%,100%{opacity:.5}50%{opacity:1}}
+.sk-row td{padding:10px 16px;}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{padding:48px 24px;text-align:center;}
+.empty-icon {font-size:40px;margin-bottom:12px;}
+.empty-msg  {font-size:14px;font-weight:500;color:var(--sub);margin-bottom:6px;}
+.empty-sub  {font-size:12px;color:var(--sub2);}
+
+/* ─── ADD FORM ─── */
+#add-form-section{display:none;}
+#add-form-section.visible{display:block;}
+.form-card{
+  background:var(--primary-soft);border:1px dashed #a5b4fc;
+  border-radius:var(--radius);padding:18px 20px;margin-top:0;margin-bottom:0;
+  border-top:none;border-top-left-radius:0;border-top-right-radius:0;
+}
+.form-card-title{
+  font-size:12px;font-weight:700;color:var(--primary);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:11px;font-weight:600;color:var(--sub);}
+.fg label .req{color:var(--red);}
+.fi{
+  width:100%;padding:8px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);
+  font-size:13px;color:var(--text);background:var(--card);outline:none;
+  transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none;
+}
+.fi:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12);}
+.fi.err  {border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.08);}
+select.fi{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:32px;
+}
+.form-actions{display:flex;gap:8px;margin-top:14px;}
+.role-desc{font-size:10px;color:var(--sub);margin-top:3px;min-height:13px;line-height:1.4;}
+
+/* ─── TOAST ─── */
+#toast{
+  position:fixed;bottom:20px;right:20px;
+  padding:11px 18px;border-radius:var(--radius);
+  font-size:12px;font-weight:500;color:#fff;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .25s,transform .25s;
+  pointer-events:none;z-index:9999;max-width:320px;
+}
+#toast.show {opacity:1;transform:translateY(0);}
+#toast.t-ok {background:#059669;}
+#toast.t-err{background:#dc2626;}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:#9ca3af;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:780px){.form-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <h1>👥 Kelola Pengguna</h1>
+  <button class="btn-close" onclick="google.script.host.close()">✕ Tutup</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS PILLS -->
+  <div class="stats-row" id="stats-row">
+    <span class="stat-pill pill-owner">🔑 Owner <span class="cnt sk" style="width:22px;">&nbsp;</span></span>
+    <span class="stat-pill pill-admin">🛡 Admin <span class="cnt sk" style="width:22px;">&nbsp;</span></span>
+    <span class="stat-pill pill-finance">💰 Finance <span class="cnt sk" style="width:22px;">&nbsp;</span></span>
+    <span class="stat-pill pill-mktg">📣 Marketing <span class="cnt sk" style="width:22px;">&nbsp;</span></span>
+  </div>
+
+  <!-- USER TABLE CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Daftar Pengguna Terdaftar</div>
+        <div class="card-sub" id="user-count-sub">Memuat data pengguna…</div>
+      </div>
+      <button class="btn btn-primary" id="btn-tambah" onclick="showForm()">
+        ＋ Tambah Pengguna
+      </button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Tgl Dibuat</th>
+            <th style="text-align:right;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody">
+          <!-- skeleton rows -->
+          <tr class="sk-row">
+            <td><div class="sk" style="width:140px;"></div></td>
+            <td><div class="sk" style="width:180px;"></div></td>
+            <td><div class="sk" style="width:70px;"></div></td>
+            <td><div class="sk" style="width:60px;"></div></td>
+            <td><div class="sk" style="width:80px;"></div></td>
+            <td><div class="sk" style="width:50px;float:right;"></div></td>
+          </tr>
+          <tr class="sk-row">
+            <td><div class="sk" style="width:160px;"></div></td>
+            <td><div class="sk" style="width:200px;"></div></td>
+            <td><div class="sk" style="width:60px;"></div></td>
+            <td><div class="sk" style="width:65px;"></div></td>
+            <td><div class="sk" style="width:80px;"></div></td>
+            <td><div class="sk" style="width:50px;float:right;"></div></td>
+          </tr>
+          <tr class="sk-row">
+            <td><div class="sk" style="width:130px;"></div></td>
+            <td><div class="sk" style="width:170px;"></div></td>
+            <td><div class="sk" style="width:75px;"></div></td>
+            <td><div class="sk" style="width:60px;"></div></td>
+            <td><div class="sk" style="width:80px;"></div></td>
+            <td><div class="sk" style="width:50px;float:right;"></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ADD FORM — inline below table, inside the card -->
+    <div id="add-form-section">
+      <div class="form-card">
+        <div class="form-card-title">
+          <span>✚ Tambah Pengguna Baru</span>
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="hideForm()">✕ Batal</button>
+        </div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Email <span class="req">*</span></label>
+            <input id="f-email" class="fi" type="email" placeholder="user@gmail.com" autocomplete="off">
+          </div>
+          <div class="fg">
+            <label>Nama Lengkap <span class="req">*</span></label>
+            <input id="f-nama" class="fi" type="text" placeholder="Nama pengguna" autocomplete="off">
+          </div>
+          <div class="fg">
+            <label>Role <span class="req">*</span></label>
+            <select id="f-role" class="fi" onchange="updateRoleDesc()">
+              <option value="">— Pilih Role —</option>
+              <option value="Owner">Owner — Akses penuh ke semua fitur</option>
+              <option value="Admin">Admin — Kelola jamaah &amp; manifest</option>
+              <option value="Finance">Finance — Pembayaran &amp; laporan keuangan</option>
+              <option value="Marketing">Marketing — Tambah jamaah &amp; WA blast</option>
+            </select>
+            <div class="role-desc" id="role-desc"></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-save" onclick="simpanPenggunaForm()">
+            💾 Simpan Pengguna
+          </button>
+          <button class="btn btn-ghost" onclick="hideForm()">Batal</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.card -->
+
+</div><!-- /.main -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ─── ROLE METADATA ───────────────────────────────────────────────────── */
+var ROLE_DESC = {
+  'Owner':     'Akses penuh ke semua fitur termasuk keuangan dan kelola pengguna',
+  'Admin':     'Kelola jamaah, roomlist, manifest. Tidak bisa lihat keuangan',
+  'Finance':   'Kelola pembayaran dan laporan keuangan. Tidak bisa hapus jamaah',
+  'Marketing': 'Tambah jamaah baru dan WA blast saja'
+};
+
+var ROLE_BADGE_CLASS = {
+  'Owner':     'rb-owner',
+  'Admin':     'rb-admin',
+  'Finance':   'rb-finance',
+  'Marketing': 'rb-marketing'
+};
+
+/* ─── STATE ───────────────────────────────────────────────────────────── */
+var _users  = [];
+var _saving = false;
+
+/* ─── INIT ────────────────────────────────────────────────────────────── */
+loadUsers();
+
+/* ─── LOAD USERS ──────────────────────────────────────────────────────── */
+function loadUsers() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        showToast('Gagal memuat pengguna: ' + (res && res.error ? res.error : 'Error tidak diketahui'), 'err');
+        setErrorState('Gagal memuat data. Silakan coba lagi.');
+        return;
+      }
+      _users = res.data || [];
+      renderStats(_users);
+      renderTable(_users);
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + (err && err.message ? err.message : String(err)), 'err');
+      setErrorState('Terjadi kesalahan saat memuat data.');
+    })
+    .getDaftarPengguna();
+}
+
+/* ─── RENDER STATS PILLS ──────────────────────────────────────────────── */
+function renderStats(users) {
+  var counts = { Owner: 0, Admin: 0, Finance: 0, Marketing: 0 };
+  users.forEach(function(u) {
+    if (counts.hasOwnProperty(u.role)) counts[u.role]++;
+  });
+  document.getElementById('stats-row').innerHTML =
+    pill('pill-owner',   '🔑', 'Owner',     counts.Owner)     +
+    pill('pill-admin',   '🛡', 'Admin',     counts.Admin)     +
+    pill('pill-finance', '💰', 'Finance',   counts.Finance)   +
+    pill('pill-mktg',    '📣', 'Marketing', counts.Marketing);
+}
+
+function pill(cls, icon, label, count) {
+  return '<span class="stat-pill ' + cls + '">' +
+    icon + ' ' + label +
+    ' <span class="cnt">' + count + '</span>' +
+    '</span>';
+}
+
+/* ─── RENDER TABLE ────────────────────────────────────────────────────── */
+function renderTable(users) {
+  var tbody = document.getElementById('user-tbody');
+  var sub   = document.getElementById('user-count-sub');
+
+  if (!users || !users.length) {
+    tbody.innerHTML =
+      '<tr><td colspan="6">' +
+        '<div class="empty-state">' +
+          '<div class="empty-icon">👤</div>' +
+          '<div class="empty-msg">Belum ada pengguna.</div>' +
+          '<div class="empty-sub">Tambah pengguna pertama dengan klik tombol di atas.</div>' +
+        '</div>' +
+      '</td></tr>';
+    sub.textContent = '0 pengguna';
+    return;
+  }
+
+  sub.textContent = users.length + ' pengguna terdaftar';
+
+  tbody.innerHTML = users.map(function(u) {
+    var badgeCls  = ROLE_BADGE_CLASS[u.role] || 'rb-admin';
+    var isAktif   = String(u.status || u.aktif || 'Aktif').toLowerCase() === 'aktif';
+    var toggleCls = isAktif ? 'aktif' : 'nonaktif';
+    var toggleTxt = isAktif ? 'Aktif' : 'Nonaktif';
+    var tgl = u.tglDibuat ? String(u.tglDibuat).substring(0, 10) : '—';
+
+    return '<tr>' +
+      '<td><span class="user-name">' + esc(u.nama || '—') + '</span></td>' +
+      '<td><span class="user-email">' + esc(u.email) + '</span></td>' +
+      '<td><span class="role-badge ' + badgeCls + '">' + esc(u.role) + '</span></td>' +
+      '<td>' +
+        '<button class="btn-toggle ' + toggleCls + '" ' +
+          'onclick="toggleStatus(\'' + escAttr(u.email) + '\',\'' + escAttr(u.nama || '') + '\',\'' + escAttr(u.role) + '\',\'' + (isAktif ? 'Nonaktif' : 'Aktif') + '\')" ' +
+          'title="Klik untuk ' + (isAktif ? 'nonaktifkan' : 'aktifkan') + '">' +
+          toggleTxt +
+        '</button>' +
+      '</td>' +
+      '<td style="color:var(--sub);font-size:11px;">' + esc(tgl) + '</td>' +
+      '<td style="text-align:right;">' +
+        '<button class="btn btn-danger" onclick="konfirmasiHapus(\'' + escAttr(u.email) + '\',\'' + escAttr(u.nama || u.email) + '\')">🗑 Hapus</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function setErrorState(msg) {
+  document.getElementById('user-tbody').innerHTML =
+    '<tr><td colspan="6">' +
+      '<div class="empty-state">' +
+        '<div class="empty-icon">⚠️</div>' +
+        '<div class="empty-msg">' + esc(msg) + '</div>' +
+      '</div>' +
+    '</td></tr>';
+  document.getElementById('user-count-sub').textContent = '—';
+}
+
+/* ─── ADD FORM ────────────────────────────────────────────────────────── */
+function showForm() {
+  document.getElementById('add-form-section').classList.add('visible');
+  document.getElementById('btn-tambah').style.display = 'none';
+  setTimeout(function(){ document.getElementById('f-email').focus(); }, 50);
+}
+
+function hideForm() {
+  document.getElementById('add-form-section').classList.remove('visible');
+  document.getElementById('btn-tambah').style.display = '';
+  clearForm();
+}
+
+function clearForm() {
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-nama').value  = '';
+  document.getElementById('f-role').value  = '';
+  document.getElementById('role-desc').textContent = '';
+  ['f-email','f-nama','f-role'].forEach(function(id){
+    document.getElementById(id).classList.remove('err');
+  });
+}
+
+function updateRoleDesc() {
+  var role = document.getElementById('f-role').value;
+  document.getElementById('role-desc').textContent = role ? (ROLE_DESC[role] || '') : '';
+}
+
+/* ─── SAVE PENGGUNA ───────────────────────────────────────────────────── */
+function simpanPenggunaForm() {
+  if (_saving) return;
+
+  var emailEl = document.getElementById('f-email');
+  var namaEl  = document.getElementById('f-nama');
+  var roleEl  = document.getElementById('f-role');
+
+  var email = emailEl.value.trim();
+  var nama  = namaEl.value.trim();
+  var role  = roleEl.value;
+
+  // Validate
+  var valid = true;
+  [emailEl, namaEl, roleEl].forEach(function(el){ el.classList.remove('err'); });
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    emailEl.classList.add('err'); valid = false;
+  }
+  if (!nama) {
+    namaEl.classList.add('err'); valid = false;
+  }
+  if (!role) {
+    roleEl.classList.add('err'); valid = false;
+  }
+  if (!valid) {
+    showToast('Lengkapi semua field yang wajib diisi.', 'err');
+    return;
+  }
+
+  _saving = true;
+  var btnSave = document.getElementById('btn-save');
+  btnSave.disabled  = true;
+  btnSave.textContent = '⏳ Menyimpan…';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      _saving = false;
+      btnSave.disabled = false;
+      btnSave.innerHTML = '💾 Simpan Pengguna';
+
+      if (!res || !res.success) {
+        showToast('Gagal: ' + (res && res.error ? res.error : 'Error tidak diketahui'), 'err');
+        return;
+      }
+      var verb = (res.action === 'updated') ? 'diperbarui' : 'ditambahkan';
+      showToast('✅ Pengguna berhasil ' + verb + '!', 'ok');
+      hideForm();
+      loadUsers();
+    })
+    .withFailureHandler(function(err) {
+      _saving = false;
+      btnSave.disabled = false;
+      btnSave.innerHTML = '💾 Simpan Pengguna';
+      showToast('Error: ' + (err && err.message ? err.message : String(err)), 'err');
+    })
+    .simpanPengguna({ email: email, nama: nama, role: role });
+}
+
+/* ─── TOGGLE STATUS ───────────────────────────────────────────────────── */
+function toggleStatus(email, nama, role, newStatus) {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        showToast('Gagal mengubah status: ' + (res && res.error ? res.error : ''), 'err');
+        return;
+      }
+      showToast('Status pengguna diubah ke ' + newStatus + '.', 'ok');
+      loadUsers();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + (err && err.message ? err.message : String(err)), 'err');
+    })
+    .simpanPengguna({ email: email, nama: nama, role: role, status: newStatus });
+}
+
+/* ─── HAPUS PENGGUNA ──────────────────────────────────────────────────── */
+function konfirmasiHapus(email, nama) {
+  var ok = confirm(
+    'Hapus pengguna?\n\n' +
+    'Nama : ' + nama + '\n' +
+    'Email: ' + email + '\n\n' +
+    'Pengguna ini tidak akan bisa mengakses sistem lagi.'
+  );
+  if (!ok) return;
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        showToast('Gagal menghapus: ' + (res && res.error ? res.error : ''), 'err');
+        return;
+      }
+      showToast('🗑 Pengguna ' + nama + ' berhasil dihapus.', 'ok');
+      loadUsers();
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + (err && err.message ? err.message : String(err)), 'err');
+    })
+    .hapusPengguna(email);
+}
+
+/* ─── TOAST ───────────────────────────────────────────────────────────── */
+var _toastTimer = null;
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show t-' + (type === 'err' ? 'err' : 'ok');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() {
+    el.classList.remove('show');
+  }, 3000);
+}
+
+/* ─── HELPERS ─────────────────────────────────────────────────────────── */
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+function escAttr(s) {
+  return String(s || '')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,'&#39;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

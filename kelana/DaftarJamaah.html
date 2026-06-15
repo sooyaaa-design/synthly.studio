@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+  --green:#34d399;--yellow:#fbbf24;--red:#f87171;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+/* Top bar */
+.topbar{padding:10px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.topbar h1{font-size:14px;font-weight:700;letter-spacing:-.03em;margin-right:auto;}
+.search{
+  background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;color:var(--text);font-size:13px;outline:none;
+  transition:border-color .15s;width:220px;
+}
+.search:focus{border-color:var(--primary);}
+.fi{background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:7px 11px;color:var(--text);font-size:12px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;}
+.fi:focus{border-color:var(--primary);}
+select.fi option{background:#1a1730;}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4338ca;}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover{background:var(--hover);}
+.btn-ghost{background:transparent;color:var(--sub);padding:6px 10px;}
+.btn-ghost:hover{color:var(--red);}
+/* Table */
+.table-wrap{flex:1;overflow:auto;padding:0;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px;}
+thead th{
+  padding:9px 14px;text-align:left;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--sub);
+  background:var(--card);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+tbody td{padding:10px 14px;border-bottom:1px solid rgba(79,70,229,.07);}
+tbody tr:hover td{background:var(--hover);}
+.td-nama{font-weight:500;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;
+  font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.b-ok{background:rgba(52,211,153,.14);color:var(--green);}
+.b-warn{background:rgba(251,191,36,.14);color:var(--yellow);}
+.b-pend{background:rgba(79,70,229,.15);color:var(--mid);}
+.b-lunas{background:rgba(52,211,153,.14);color:var(--green);}
+/* Empty */
+.empty{text-align:center;padding:48px;color:var(--sub);}
+.empty-ico{font-size:32px;margin-bottom:10px;}
+/* Modal overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:640px;max-height:90vh;overflow-y:auto;}
+.modal-hd{padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;}
+.modal-hd h2{font-size:15px;font-weight:700;letter-spacing:-.02em;}
+.modal-body{padding:20px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;}
+.detail-item label{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;}
+.detail-item .val{font-size:13px;}
+/* Botbar */
+.botbar{padding:10px 18px;border-top:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;gap:10px;}
+.info-txt{font-size:11px;color:var(--sub);}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,.3);border-radius:4px;}
+.toast{position:fixed;bottom:18px;right:16px;padding:10px 16px;border-radius:10px;
+  font-size:13px;font-weight:500;display:none;z-index:999;}
+.toast.ok{background:#166534;color:#dcfce7;border:1px solid #22c55e;}
+.toast.err{background:#7f1d1d;color:#fee2e2;border:1px solid #f87171;}
+.toast.show{display:block;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span style="font-size:16px;">📋</span>
+  <h1>Daftar Jamaah</h1>
+  <input type="text" class="search" id="search" placeholder="🔍  Cari nama, NIK, HP…" oninput="filterTable()">
+  <select class="fi" id="f-group" onchange="filterTable()">
+    <option value="">Semua Group</option>
+  </select>
+  <select class="fi" id="f-dok" onchange="filterTable()">
+    <option value="">Semua Dokumen</option>
+    <option value="Lengkap">Dokumen Lengkap</option>
+    <option value="Belum">Dokumen Belum</option>
+  </select>
+  <select class="fi" id="f-bayar" onchange="filterTable()">
+    <option value="">Semua Pembayaran</option>
+    <option value="Lunas">Lunas</option>
+    <option value="Pending">Pending</option>
+  </select>
+  <button class="btn btn-primary" onclick="tambah()">+ Tambah Jamaah</button>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>ID</th>
+        <th>Nama Lengkap</th>
+        <th>No. HP</th>
+        <th>Group</th>
+        <th>Paket</th>
+        <th>Dok.</th>
+        <th>Pembayaran</th>
+        <th>Tgl Daftar</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="10" class="empty">
+        <div class="empty-ico">⏳</div>
+        <div>Memuat data jamaah…</div>
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- BOTBAR -->
+<div class="botbar">
+  <span class="info-txt" id="info-txt">Memuat…</span>
+  <button class="btn btn-outline" onclick="loadData()">↻ Refresh</button>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="modal" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hd">
+      <h2>👤 Detail Jamaah</h2>
+      <button class="btn btn-ghost" onclick="closeModal()" style="font-size:15px;padding:4px 8px;">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var _all = [], _groups = [];
+
+function init() {
+  google.script.run
+    .withSuccessHandler(function(list) {
+      _groups = list || [];
+      var sel = document.getElementById('f-group');
+      list.forEach(function(g) {
+        var o = document.createElement('option');
+        o.value = g.idGroup;
+        o.textContent = g.namaGroup;
+        sel.appendChild(o);
+      });
+    }).getGroupList();
+  loadData();
+}
+
+function loadData() {
+  document.getElementById('info-txt').innerHTML = '<span class="spin">⟳</span> Memuat…';
+  document.getElementById('tbody').innerHTML =
+    '<tr><td colspan="10" class="empty"><div>⏳</div><div>Memuat data…</div></td></tr>';
+
+  google.script.run
+    .withSuccessHandler(function(list) {
+      _all = list || [];
+      filterTable();
+    })
+    .withFailureHandler(function(e) {
+      document.getElementById('info-txt').textContent = 'Gagal memuat data';
+      toast('Error: ' + e.message, 'err');
+    })
+    .getJamaahList();
+}
+
+function filterTable() {
+  var q      = document.getElementById('search').value.toLowerCase();
+  var grp    = document.getElementById('f-group').value;
+  var dok    = document.getElementById('f-dok').value;
+  var bayar  = document.getElementById('f-bayar').value;
+
+  var filtered = _all.filter(function(j) {
+    if (q && (
+      (j.namaLengkap||j.nama||'').toLowerCase().indexOf(q) === -1 &&
+      (j.nik||'').indexOf(q) === -1 &&
+      (j.noHp||'').indexOf(q) === -1 &&
+      (j.idJamaah||'').toLowerCase().indexOf(q) === -1
+    )) return false;
+    if (grp   && String(j.idGroup) !== grp)  return false;
+    if (dok   === 'Lengkap' && j.statusDokumen !== 'Lengkap')  return false;
+    if (dok   === 'Belum'   && j.statusDokumen === 'Lengkap')  return false;
+    if (bayar && (j.statusPembayaran||'') !== bayar)           return false;
+    return true;
+  });
+
+  renderTable(filtered);
+  document.getElementById('info-txt').textContent =
+    'Menampilkan ' + filtered.length + ' dari ' + _all.length + ' jamaah';
+}
+
+function renderTable(list) {
+  var body = document.getElementById('tbody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="10" class="empty">' +
+      '<div class="empty-ico">🔍</div><div>Tidak ada jamaah ditemukan</div></td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(function(j, i) {
+    var nama = j.namaLengkap || j.nama || '—';
+    var dok  = j.statusDokumen === 'Lengkap'
+      ? '<span class="badge b-ok">Lengkap</span>'
+      : '<span class="badge b-warn">Belum</span>';
+    var bayar = j.statusPembayaran === 'Lunas'
+      ? '<span class="badge b-lunas">Lunas</span>'
+      : '<span class="badge b-pend">' + (j.statusPembayaran||'Pending') + '</span>';
+    var grpName = _groups.find(function(g){ return String(g.idGroup)===String(j.idGroup); });
+    return '<tr>' +
+      '<td style="color:var(--sub);">' + (i+1) + '</td>' +
+      '<td style="color:var(--mid);font-size:11px;">' + esc(j.idJamaah) + '</td>' +
+      '<td class="td-nama">' + esc(nama) + '</td>' +
+      '<td>' + esc(j.noHp||'—') + '</td>' +
+      '<td>' + esc(grpName ? grpName.namaGroup : (j.idGroup||'—')) + '</td>' +
+      '<td style="font-size:11px;">' + esc(j.paket||'—') + '</td>' +
+      '<td>' + dok + '</td>' +
+      '<td>' + bayar + '</td>' +
+      '<td style="font-size:11px;color:var(--sub);">' + esc(j.tglDaftar||'—') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-outline" style="padding:4px 9px;font-size:11px;" ' +
+          'onclick="lihat(\'' + j.idJamaah + '\')">👁 Lihat</button> ' +
+        '<button class="btn btn-ghost" style="font-size:12px;color:var(--red);" ' +
+          'onclick="hapus(\'' + j.idJamaah + '\',\'' + esc(nama) + '\')" title="Hapus">✕</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function lihat(id) {
+  var j = _all.find(function(x){ return x.idJamaah === id; });
+  if (!j) return;
+  var grpName = _groups.find(function(g){ return String(g.idGroup)===String(j.idGroup); });
+  var nama = j.namaLengkap || j.nama || '—';
+  document.getElementById('modal-body').innerHTML =
+    '<div class="detail-grid">' +
+    det('ID Jamaah',     j.idJamaah) +
+    det('Nama Lengkap',  nama) +
+    det('NIK',           j.nik) +
+    det('No. Paspor',    j.noPaspor) +
+    det('Tanggal Lahir', j.tglLahir) +
+    det('Jenis Kelamin', j.jenisKelamin) +
+    det('No. HP/WA',     j.noHp) +
+    det('Email',         j.email) +
+    det('Alamat',        j.alamat) +
+    det('Group / Kloter',grpName ? grpName.namaGroup : j.idGroup) +
+    det('Paket',         j.paket) +
+    det('Status Dokumen',j.statusDokumen) +
+    det('Status Pembayaran', j.statusPembayaran) +
+    det('Sumber Lead',   j.sumberLead) +
+    det('Kontak Darurat',j.kontakDarurat + ' (' + (j.hubunganDarurat||'—') + ')') +
+    det('HP Darurat',    j.hpDarurat) +
+    det('Kondisi Kesehatan', j.kondisiKesehatan||'—') +
+    det('Status Vaksin', j.statusVaksin||'—') +
+    det('Tgl Daftar',    j.tglDaftar) +
+    det('Catatan',       j.catatan||'—') +
+    '</div>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+function tambah() {
+  google.script.run.withSuccessHandler(function(){}).showTambahJamaah();
+  google.script.host.close();
+}
+
+function hapus(id, nama) {
+  if (!confirm('Hapus jamaah "' + nama + '"?\n\nTindakan ini tidak bisa dibatalkan.')) return;
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.success) {
+        _all = _all.filter(function(j){ return j.idJamaah !== id; });
+        filterTable();
+        toast('Jamaah "' + res.nama + '" berhasil dihapus', 'ok');
+      } else {
+        toast('❌ ' + (res.error || 'Gagal menghapus'), 'err');
+      }
+    })
+    .withFailureHandler(function(e){ toast('Error: ' + e.message, 'err'); })
+    .hapusJamaahSecure(id);
+}
+
+function det(lbl, val) {
+  return '<div class="detail-item"><label>' + lbl + '</label><div class="val">' +
+    esc(String(val||'—')) + '</div></div>';
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
+}
+var _toastT;
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast ' + type + ' show';
+  clearTimeout(_toastT);
+  _toastT = setTimeout(function(){ t.className='toast'; }, 4000);
+}
+
+init();
+</script>
+</body>
+</html>

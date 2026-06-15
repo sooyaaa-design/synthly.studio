@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+  --green:#34d399;--yellow:#fbbf24;--red:#f87171;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+/* Topbar */
+.topbar{padding:10px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.topbar h1{font-size:14px;font-weight:700;letter-spacing:-.03em;margin-right:auto;}
+.fi{background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:7px 11px;color:var(--text);font-size:12px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;}
+.fi:focus{border-color:var(--primary);}
+select.fi option{background:#1a1730;}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover:not(:disabled){background:#4338ca;}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover:not(:disabled){background:var(--hover);}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{color:var(--text);background:var(--hover);}
+.btn-yellow{background:rgba(251,191,36,.15);color:var(--yellow);border:1px solid rgba(251,191,36,.2);}
+.btn-yellow:hover:not(:disabled){background:rgba(251,191,36,.25);}
+.btn-green{background:rgba(52,211,153,.13);color:var(--green);border:1px solid rgba(52,211,153,.2);}
+.btn-green:hover:not(:disabled){background:rgba(52,211,153,.23);}
+/* Stats row */
+.stats-row{display:flex;gap:10px;padding:12px 18px;flex-shrink:0;flex-wrap:wrap;}
+.stat-pill{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.sp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sp-val{font-size:16px;font-weight:700;letter-spacing:-.03em;}
+.sp-lbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;}
+/* Table */
+.table-wrap{flex:1;overflow:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px;}
+thead th{padding:9px 14px;text-align:left;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--sub);background:var(--card);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;white-space:nowrap;}
+tbody td{padding:9px 14px;border-bottom:1px solid rgba(79,70,229,.07);}
+tbody tr:hover td{background:var(--hover);}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:5px;
+  font-size:10px;font-weight:600;letter-spacing:.04em;}
+.b-ok{background:rgba(52,211,153,.14);color:var(--green);}
+.b-warn{background:rgba(251,191,36,.14);color:var(--yellow);}
+.b-pend{background:rgba(79,70,229,.15);color:var(--mid);}
+.b-red{background:rgba(248,113,113,.14);color:var(--red);}
+/* Botbar */
+.botbar{padding:10px 18px;border-top:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;}
+/* Modal overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:480px;}
+.modal-hd{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;}
+.modal-hd h2{font-size:14px;font-weight:700;}
+.modal-body{padding:18px;}
+.fg{margin-bottom:11px;}
+.fg:last-child{margin-bottom:0;}
+label{font-size:11px;color:var(--sub);display:block;margin-bottom:5px;}
+/* Pelunasan modal */
+.pelunasan-modal{max-width:520px;}
+.pf-fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 11px;color:var(--text);font-size:13px;outline:none;-webkit-appearance:none;}
+.pf-fi:focus{border-color:var(--primary);}
+.detail-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+.db-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;}
+.db-row .lbl{color:var(--sub);}
+.toast{position:fixed;bottom:18px;right:16px;padding:10px 16px;border-radius:10px;
+  font-size:13px;font-weight:500;display:none;z-index:999;}
+.toast.ok{background:#166534;color:#dcfce7;border:1px solid #22c55e;}
+.toast.err{background:#7f1d1d;color:#fee2e2;border:1px solid #f87171;}
+.toast.show{display:block;}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,.3);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span style="font-size:16px;">💳</span>
+  <h1>Manajemen Pembayaran</h1>
+  <select class="fi" id="f-status" onchange="filterTable()">
+    <option value="Semua">Semua Status</option>
+    <option value="Pending">Pending</option>
+    <option value="Jatuh Tempo">Jatuh Tempo</option>
+    <option value="Lunas">Lunas</option>
+  </select>
+  <select class="fi" id="f-jenis" onchange="filterTable()">
+    <option value="">Semua Jenis</option>
+    <option value="DP">DP</option>
+    <option value="Pelunasan">Pelunasan</option>
+  </select>
+  <button class="btn btn-primary" onclick="openPelunasan()">+ Invoice Pelunasan</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row" id="stats-row">
+  <div class="stat-pill"><div class="sp-dot" style="background:var(--primary)"></div>
+    <div><div class="sp-val" id="sp-total">—</div><div class="sp-lbl">Total Tagihan</div></div></div>
+  <div class="stat-pill"><div class="sp-dot" style="background:var(--green)"></div>
+    <div><div class="sp-val" id="sp-lunas">—</div><div class="sp-lbl">Sudah Lunas</div></div></div>
+  <div class="stat-pill"><div class="sp-dot" style="background:var(--yellow)"></div>
+    <div><div class="sp-val" id="sp-pend">—</div><div class="sp-lbl">Pending</div></div></div>
+  <div class="stat-pill"><div class="sp-dot" style="background:var(--red)"></div>
+    <div><div class="sp-val" id="sp-jt">—</div><div class="sp-lbl">Jatuh Tempo</div></div></div>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Invoice</th><th>Jamaah</th><th>Jenis</th>
+        <th>Nominal</th><th>Metode</th><th>Status</th>
+        <th>Jatuh Tempo</th><th>Tgl Bayar</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--sub);">
+        ⏳ Memuat data pembayaran…
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- BOTBAR -->
+<div class="botbar">
+  <span style="font-size:11px;color:var(--sub);" id="info-txt">Memuat…</span>
+  <button class="btn btn-outline" onclick="loadData()">↻ Refresh</button>
+</div>
+
+<!-- MODAL: Konfirmasi Manual -->
+<div class="overlay" id="modal-konfirm" style="display:none;" onclick="if(event.target===this)closeKonfirm()">
+  <div class="modal">
+    <div class="modal-hd">
+      <h2>✅ Konfirmasi Pembayaran Manual</h2>
+      <button class="btn btn-ghost" onclick="closeKonfirm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-box" id="konfirm-detail"></div>
+      <div class="fg">
+        <label>Metode Pembayaran</label>
+        <select class="pf-fi" id="konfirm-metode">
+          <option value="Transfer Bank">Transfer Bank</option>
+          <option value="QRIS">QRIS</option>
+          <option value="Cash">Cash</option>
+          <option value="Virtual Account">Virtual Account</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Catatan (opsional)</label>
+        <input type="text" class="pf-fi" id="konfirm-catatan" placeholder="Nomor referensi, nama pengirim, dll">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeKonfirm()">Batal</button>
+        <button class="btn btn-green" id="btn-konfirm-ok" onclick="doKonfirm()">
+          ✓ Konfirmasi Lunas
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Generate Pelunasan -->
+<div class="overlay" id="modal-pelunasan" style="display:none;" onclick="if(event.target===this)closePelunasan()">
+  <div class="modal pelunasan-modal">
+    <div class="modal-hd">
+      <h2>📄 Generate Invoice Pelunasan</h2>
+      <button class="btn btn-ghost" onclick="closePelunasan()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Cari Jamaah (nama atau ID)</label>
+        <input type="text" class="pf-fi" id="pl-search" placeholder="Ketik nama jamaah…" oninput="searchJamaahPelunasan()">
+      </div>
+      <div id="pl-results" style="max-height:220px;overflow-y:auto;margin-top:2px;"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closePelunasan()">Batal</button>
+        <button class="btn btn-primary" id="btn-pl-ok" disabled onclick="doGenPelunasan()">
+          📄 Generate Invoice
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var _all = [], _jamaahAll = [], _selKonfirmId = null, _selPelunasanId = null;
+
+function init() {
+  loadData();
+  google.script.run
+    .withSuccessHandler(function(list){ _jamaahAll = list || []; })
+    .getJamaahList();
+}
+
+function loadData() {
+  document.getElementById('info-txt').innerHTML = '<span class="spin">⟳</span> Memuat…';
+  document.getElementById('tbody').innerHTML =
+    '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--sub);">⏳ Memuat…</td></tr>';
+
+  google.script.run
+    .withSuccessHandler(function(list) {
+      _all = list || [];
+      renderStats(list);
+      filterTable();
+    })
+    .withFailureHandler(function(e){ toast('Error memuat data: ' + e.message, 'err'); })
+    .getPembayaranList('Semua');
+}
+
+function renderStats(list) {
+  var t = 0, l = 0, p = 0, jt = 0;
+  list.forEach(function(r){
+    t += r.nominal || 0;
+    if (r.status==='Lunas')        l  += r.nominal||0;
+    else if (r.status==='Jatuh Tempo') jt += r.nominal||0;
+    else                           p  += r.nominal||0;
+  });
+  setText('sp-total', fmt(t));
+  setText('sp-lunas', fmt(l));
+  setText('sp-pend',  fmt(p));
+  setText('sp-jt',    fmt(jt));
+}
+
+function filterTable() {
+  var st    = document.getElementById('f-status').value;
+  var jenis = document.getElementById('f-jenis').value;
+  var list  = _all.filter(function(r) {
+    if (st && st !== 'Semua' && r.status !== st) return false;
+    if (jenis && (r.jenisBayar||'').indexOf(jenis) === -1) return false;
+    return true;
+  });
+  renderTable(list);
+  document.getElementById('info-txt').textContent =
+    'Menampilkan ' + list.length + ' dari ' + _all.length + ' invoice';
+}
+
+function renderTable(list) {
+  var body = document.getElementById('tbody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--sub);">Tidak ada data</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(function(r, i) {
+    var badgeCls = r.status==='Lunas' ? 'b-ok' : r.status==='Jatuh Tempo' ? 'b-red' : 'b-warn';
+    var aksi = r.status === 'Lunas'
+      ? '<span style="color:var(--sub);font-size:11px;">Lunas ✓</span>'
+      : '<button class="btn btn-green" style="padding:4px 9px;font-size:11px;" ' +
+          'onclick="openKonfirm(\'' + r.idInvoice + '\')">✓ Konfirm</button> ' +
+        '<button class="btn btn-yellow" style="padding:4px 9px;font-size:11px;" ' +
+          'onclick="reminder(\'' + r.idInvoice + '\')">📲 WA</button>';
+    return '<tr>' +
+      '<td style="color:var(--sub);">' + (i+1) + '</td>' +
+      '<td style="color:var(--mid);font-size:11px;">' + esc(r.idInvoice) + '</td>' +
+      '<td style="font-weight:500;">' + esc(r.namaJamaah) + '</td>' +
+      '<td style="font-size:11px;">' + esc(r.jenisBayar) + '</td>' +
+      '<td style="font-weight:600;">' + fmt(r.nominal) + '</td>' +
+      '<td style="font-size:11px;">' + esc(r.metode||'—') + '</td>' +
+      '<td><span class="badge ' + badgeCls + '">' + r.status + '</span></td>' +
+      '<td style="font-size:11px;' + (r.status==='Jatuh Tempo'?'color:var(--red)':'') + '">' +
+        esc(r.tglJatuhTempo||'—') + '</td>' +
+      '<td style="font-size:11px;">' + esc(r.tglBayar||'—') + '</td>' +
+      '<td>' + aksi + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+/* ─── KONFIRMASI MANUAL ─── */
+function openKonfirm(id) {
+  var r = _all.find(function(x){ return x.idInvoice === id; });
+  if (!r) return;
+  _selKonfirmId = id;
+  document.getElementById('konfirm-detail').innerHTML =
+    dbRow('Invoice', r.idInvoice) + dbRow('Jamaah', r.namaJamaah) +
+    dbRow('Jenis', r.jenisBayar) + dbRow('Nominal', fmt(r.nominal)) +
+    dbRow('Jatuh Tempo', r.tglJatuhTempo||'—');
+  document.getElementById('konfirm-catatan').value = '';
+  document.getElementById('modal-konfirm').style.display = 'flex';
+}
+function closeKonfirm() { document.getElementById('modal-konfirm').style.display = 'none'; }
+function doKonfirm() {
+  var metode  = document.getElementById('konfirm-metode').value;
+  var catatan = document.getElementById('konfirm-catatan').value.trim();
+  var btn     = document.getElementById('btn-konfirm-ok');
+  btn.disabled = true; btn.innerHTML = '<span class="spin">⟳</span>';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false; btn.innerHTML = '✓ Konfirmasi Lunas';
+      closeKonfirm();
+      if (res.success) {
+        toast('✅ Pembayaran ' + _selKonfirmId + ' dikonfirmasi. WA sudah dikirim ke jamaah.', 'ok');
+        loadData();
+      } else { toast('❌ ' + (res.error||'Gagal'), 'err'); }
+    })
+    .withFailureHandler(function(e){ btn.disabled=false; btn.innerHTML='✓ Konfirmasi Lunas'; toast('Error: '+e.message,'err'); })
+    .konfirmasiPembayaranSecure(_selKonfirmId, metode, catatan);
+}
+
+/* ─── WA REMINDER ─── */
+function reminder(id) {
+  var btn = event.target;
+  btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false;
+      if (res.success) toast('📲 Reminder WA terkirim ke ' + res.noHp, 'ok');
+      else toast('❌ ' + (res.error||'Gagal kirim WA'), 'err');
+    })
+    .withFailureHandler(function(e){ btn.disabled=false; toast('Error: '+e.message,'err'); })
+    .kirimReminderWA(id);
+}
+
+/* ─── GENERATE PELUNASAN ─── */
+function openPelunasan() {
+  _selPelunasanId = null;
+  document.getElementById('pl-search').value = '';
+  document.getElementById('pl-results').innerHTML = '';
+  document.getElementById('btn-pl-ok').disabled = true;
+  document.getElementById('modal-pelunasan').style.display = 'flex';
+}
+function closePelunasan() { document.getElementById('modal-pelunasan').style.display = 'none'; }
+function searchJamaahPelunasan() {
+  var q = document.getElementById('pl-search').value.toLowerCase();
+  var res = document.getElementById('pl-results');
+  if (q.length < 2) { res.innerHTML = ''; return; }
+  var matches = _jamaahAll.filter(function(j){
+    return (j.namaLengkap||j.nama||'').toLowerCase().indexOf(q) !== -1 ||
+           (j.idJamaah||'').toLowerCase().indexOf(q) !== -1;
+  }).slice(0, 6);
+  if (!matches.length) { res.innerHTML = '<div style="padding:10px;color:var(--sub);font-size:12px;">Tidak ditemukan</div>'; return; }
+  res.innerHTML = matches.map(function(j) {
+    return '<div style="padding:9px 12px;cursor:pointer;border-radius:8px;margin-bottom:2px;transition:background .1s;" ' +
+      'onmouseover="this.style.background=\'var(--hover)\'" onmouseout="this.style.background=\'\'" ' +
+      'onclick="selectJamaahPelunasan(\'' + j.idJamaah + '\',\'' + esc(j.namaLengkap||j.nama) + '\')">' +
+      '<div style="font-weight:500;font-size:13px;">' + esc(j.namaLengkap||j.nama) + '</div>' +
+      '<div style="font-size:11px;color:var(--sub);">' + j.idJamaah + ' · ' + (j.idGroup||'—') + '</div>' +
+    '</div>';
+  }).join('');
+}
+function selectJamaahPelunasan(id, nama) {
+  _selPelunasanId = id;
+  document.getElementById('pl-search').value = nama;
+  document.getElementById('pl-results').innerHTML = '';
+  document.getElementById('btn-pl-ok').disabled = false;
+}
+function doGenPelunasan() {
+  if (!_selPelunasanId) return;
+  var btn = document.getElementById('btn-pl-ok');
+  btn.disabled = true; btn.innerHTML = '<span class="spin">⟳</span> Generating…';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false; btn.innerHTML = '📄 Generate Invoice';
+      closePelunasan();
+      if (res.success) {
+        toast('✅ Invoice Pelunasan ' + res.idInvoice + ' berhasil dibuat — ' + fmt(res.nominal), 'ok');
+        loadData();
+      } else { toast('❌ ' + (res.error||'Gagal'), 'err'); }
+    })
+    .withFailureHandler(function(e){ btn.disabled=false; btn.innerHTML='📄 Generate Invoice'; toast('Error: '+e.message,'err'); })
+    .generateInvoicePelunasan(_selPelunasanId);
+}
+
+/* ─── HELPERS ─── */
+function fmt(n){ return 'Rp ' + Number(n||0).toLocaleString('id-ID'); }
+function setText(id, v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+function dbRow(l,v){ return '<div class="db-row"><span class="lbl">'+l+'</span><strong>'+esc(v)+'</strong></div>'; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); }
+var _toastT;
+function toast(msg,type){ var t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type+' show'; clearTimeout(_toastT); _toastT=setTimeout(function(){t.className='toast';},4500); }
+
+init();
+</script>
+</body>
+</html>

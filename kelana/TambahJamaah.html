@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+  --green:#34d399;--red:#f87171;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.topbar{padding:11px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.03em;flex:1;}
+.topbar-sub{font-size:11px;color:var(--sub);}
+.layout{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;}
+.col{overflow-y:auto;padding:16px 18px;}
+.col:first-child{border-right:1px solid var(--border);}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:10px;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--border);}
+.sec-title:first-child{margin-top:0;padding-top:0;border-top:none;}
+.fg{margin-bottom:11px;}
+.fg:last-child{margin-bottom:0;}
+label{font-size:11px;color:var(--sub);display:block;margin-bottom:5px;}
+label .req{color:var(--red);margin-left:2px;}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;}
+.fi:focus{border-color:var(--primary);}
+.fi.err{border-color:var(--red);}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+textarea.fi{resize:none;height:70px;}
+select.fi option{background:#1a1730;color:#f0efff;}
+.fi-hint{font-size:10px;color:var(--sub);margin-top:4px;}
+/* Radio group */
+.radio-group{display:flex;gap:10px;}
+.radio-opt{
+  flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:border-color .15s,background .15s;font-size:13px;
+}
+.radio-opt input[type=radio]{accent-color:var(--primary);width:15px;height:15px;}
+.radio-opt:has(input:checked){border-color:var(--primary);background:rgba(79,70,229,.1);}
+/* Botbar */
+.botbar{padding:11px 18px;border-top:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover:not(:disabled){background:#4338ca;}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{color:var(--text);background:var(--hover);}
+.err-msg{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+.toast{position:fixed;bottom:18px;right:16px;padding:10px 16px;border-radius:10px;
+  font-size:13px;font-weight:500;display:none;z-index:999;}
+.toast.ok{background:#166534;color:#dcfce7;border:1px solid #22c55e;}
+.toast.err{background:#7f1d1d;color:#fee2e2;border:1px solid #f87171;}
+.toast.show{display:block;}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,.3);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span style="font-size:18px;">👤</span>
+  <div>
+    <h1>Tambah Jamaah Baru</h1>
+    <div class="topbar-sub">Isi data lengkap jamaah — field bertanda * wajib diisi</div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- COL 1: Data Pribadi -->
+  <div class="col">
+    <div class="sec-title">Data Pribadi</div>
+    <div class="fg">
+      <label>Nama Lengkap (sesuai paspor) <span class="req">*</span></label>
+      <input type="text" class="fi" id="f-nama" placeholder="MUHAMMAD RIZKI PRATAMA">
+    </div>
+    <div class="fi-row">
+      <div class="fg">
+        <label>NIK <span class="req">*</span></label>
+        <input type="text" class="fi" id="f-nik" placeholder="3171234567890001" maxlength="16">
+      </div>
+      <div class="fg">
+        <label>No. Paspor</label>
+        <input type="text" class="fi" id="f-paspor" placeholder="A1234567">
+      </div>
+    </div>
+    <div class="fi-row">
+      <div class="fg">
+        <label>Tanggal Lahir <span class="req">*</span></label>
+        <input type="date" class="fi" id="f-tgl">
+      </div>
+      <div class="fg">
+        <label>Jenis Kelamin <span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-opt">
+            <input type="radio" name="jk" value="Laki-Laki" id="r-l"> Laki-Laki
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="jk" value="Perempuan" id="r-p"> Perempuan
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Alamat Lengkap</label>
+      <textarea class="fi" id="f-alamat" placeholder="Jl. Contoh No. 1, Kota, Provinsi"></textarea>
+    </div>
+    <div class="fi-row">
+      <div class="fg">
+        <label>No. WhatsApp / HP <span class="req">*</span></label>
+        <input type="text" class="fi" id="f-hp" placeholder="08123456789">
+        <div class="fi-hint">Format: 08xxx atau 628xxx</div>
+      </div>
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" class="fi" id="f-email" placeholder="email@contoh.com">
+      </div>
+    </div>
+
+    <div class="sec-title">Kontak Darurat</div>
+    <div class="fg">
+      <label>Nama Kontak Darurat</label>
+      <input type="text" class="fi" id="f-kdnama" placeholder="Nama lengkap kontak">
+    </div>
+    <div class="fi-row">
+      <div class="fg">
+        <label>No. HP Kontak</label>
+        <input type="text" class="fi" id="f-kdhp" placeholder="08xxx">
+      </div>
+      <div class="fg">
+        <label>Hubungan</label>
+        <select class="fi" id="f-kdhub">
+          <option value="">— Pilih —</option>
+          <option>Suami</option><option>Istri</option>
+          <option>Ayah</option><option>Ibu</option>
+          <option>Anak</option><option>Saudara</option><option>Lainnya</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- COL 2: Paket & Info Tambahan -->
+  <div class="col">
+    <div class="sec-title">Paket & Keberangkatan</div>
+    <div class="fg">
+      <label>Paket Umroh <span class="req">*</span></label>
+      <select class="fi" id="f-paket">
+        <option value="">— Pilih Paket —</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Group / Kloter <span class="req">*</span></label>
+      <select class="fi" id="f-group">
+        <option value="">— Pilih Group —</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Sumber Lead / Cara Tahu</label>
+      <select class="fi" id="f-sumber">
+        <option value="">— Pilih Sumber —</option>
+        <option>WhatsApp</option><option>Instagram</option><option>Facebook</option>
+        <option>TikTok</option><option>Referral Keluarga/Teman</option>
+        <option>Website</option><option>Walk-in</option><option>Telepon</option><option>Lainnya</option>
+      </select>
+    </div>
+
+    <div class="sec-title">Data SISKOPATUH (Kemenag)</div>
+    <div class="fi-hint" style="margin-bottom:8px">Lengkapi agar data siap diekspor ke SISKOPATUH tanpa input ulang.</div>
+    <div class="fi-row">
+      <div class="fg"><label>Tempat Lahir</label><input type="text" class="fi" id="f-tmpLahir"></div>
+      <div class="fg"><label>Nama Ayah</label><input type="text" class="fi" id="f-namaAyah" placeholder="untuk nama paspor"></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Status Perkawinan</label><select class="fi" id="f-kawin"><option value="">—</option><option>Belum Kawin</option><option>Kawin</option><option>Cerai Hidup</option><option>Cerai Mati</option></select></div>
+      <div class="fg"><label>Pekerjaan</label><input type="text" class="fi" id="f-kerja"></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Pendidikan</label><select class="fi" id="f-didik"><option value="">—</option><option>SD</option><option>SMP</option><option>SMA/SMK</option><option>D1/D2/D3</option><option>S1</option><option>S2</option><option>S3</option><option>Lainnya</option></select></div>
+      <div class="fg"><label>Golongan Darah</label><select class="fi" id="f-goldar"><option value="">—</option><option>A</option><option>B</option><option>AB</option><option>O</option><option>Tidak Tahu</option></select></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Provinsi</label><input type="text" class="fi" id="f-prov"></div>
+      <div class="fg"><label>Kabupaten/Kota</label><input type="text" class="fi" id="f-kab"></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Kecamatan</label><input type="text" class="fi" id="f-kec"></div>
+      <div class="fg"><label>Kelurahan/Desa</label><input type="text" class="fi" id="f-kel"></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Kode Pos</label><input type="text" class="fi" id="f-pos"></div>
+      <div class="fg"><label>Tempat Terbit Paspor</label><input type="text" class="fi" id="f-tmpPaspor"></div>
+    </div>
+    <div class="fi-row">
+      <div class="fg"><label>Nama Mahram</label><input type="text" class="fi" id="f-mahram"><div class="fi-hint">Wajib untuk perempuan</div></div>
+      <div class="fg"><label>Hubungan Mahram</label><select class="fi" id="f-mahramHub"><option value="">—</option><option>Suami</option><option>Ayah</option><option>Anak Kandung</option><option>Saudara Kandung</option><option>Kakek</option><option>Paman</option><option>Lainnya</option></select></div>
+    </div>
+    <div class="fg"><label>Embarkasi</label><input type="text" class="fi" id="f-embarkasi" placeholder="Mis. Jakarta (CGK)"></div>
+
+    <div class="sec-title">Kesehatan & Dokumen</div>
+    <div class="fg">
+      <label>Kondisi Kesehatan Khusus</label>
+      <input type="text" class="fi" id="f-kesehatan" placeholder="Diabetes, hipertensi, dll (kosongkan jika sehat)">
+    </div>
+    <div class="fg">
+      <label>Status Vaksin Meningitis</label>
+      <select class="fi" id="f-vaksin">
+        <option value="">— Pilih —</option>
+        <option>Sudah Vaksin</option>
+        <option>Belum Vaksin</option>
+        <option>Dalam Proses</option>
+      </select>
+    </div>
+
+    <div class="sec-title">Catatan</div>
+    <div class="fg">
+      <label>Catatan Tambahan</label>
+      <textarea class="fi" id="f-catatan" placeholder="Catatan khusus, permintaan, atau info tambahan…"></textarea>
+    </div>
+
+    <!-- Preview DP setelah paket dipilih -->
+    <div id="dp-preview" style="display:none;background:rgba(79,70,229,.1);
+      border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-top:4px;">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">INFO INVOICE DP OTOMATIS</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span>Harga Paket</span>
+        <strong id="dp-harga">—</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;">
+        <span>DP (akan di-invoice)</span>
+        <strong style="color:var(--primary);" id="dp-nominal">—</strong>
+      </div>
+      <div style="font-size:10px;color:var(--sub);margin-top:5px;">Invoice DP otomatis dikirim via WA setelah simpan</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTBAR -->
+<div class="botbar">
+  <button class="btn btn-ghost" onclick="google.script.host.close()">Batal</button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span id="save-msg" style="font-size:11px;color:var(--sub);display:none;"></span>
+    <button class="btn btn-primary" id="btn-save" onclick="simpan()">
+      ✓ Simpan & Generate Invoice DP
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var _paketList = [];
+
+function val(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+
+function init() {
+  google.script.run
+    .withSuccessHandler(function(list) {
+      _paketList = list || [];
+      var sel = document.getElementById('f-paket');
+      list.forEach(function(p) {
+        var o = document.createElement('option');
+        o.value = p.idPaket;
+        o.textContent = p.namaPaket + ' — Rp ' + Number(p.harga||0).toLocaleString('id-ID');
+        o.dataset.harga = p.harga;
+        o.dataset.dp    = p.dpMinimal || (p.harga * 0.15);
+        sel.appendChild(o);
+      });
+    }).getPaketList();
+
+  google.script.run
+    .withSuccessHandler(function(list) {
+      var sel = document.getElementById('f-group');
+      (list||[]).forEach(function(g) {
+        var o = document.createElement('option');
+        o.value = g.idGroup;
+        o.textContent = g.namaGroup + ' — ' + (g.tglBerangkat||'');
+        sel.appendChild(o);
+      });
+    }).getGroupList();
+
+  document.getElementById('f-paket').addEventListener('change', function() {
+    var opt = this.options[this.selectedIndex];
+    if (opt && opt.dataset.harga) {
+      document.getElementById('dp-preview').style.display = 'block';
+      document.getElementById('dp-harga').textContent =
+        'Rp ' + Number(opt.dataset.harga).toLocaleString('id-ID');
+      document.getElementById('dp-nominal').textContent =
+        'Rp ' + Number(opt.dataset.dp).toLocaleString('id-ID');
+    } else {
+      document.getElementById('dp-preview').style.display = 'none';
+    }
+  });
+}
+
+function validate() {
+  var required = [
+    { id:'f-nama',  label:'Nama Lengkap' },
+    { id:'f-nik',   label:'NIK' },
+    { id:'f-tgl',   label:'Tanggal Lahir' },
+    { id:'f-hp',    label:'No. HP' },
+    { id:'f-paket', label:'Paket' },
+    { id:'f-group', label:'Group' }
+  ];
+  for (var i = 0; i < required.length; i++) {
+    var el = document.getElementById(required[i].id);
+    if (!el.value.trim()) {
+      toast('Field "' + required[i].label + '" wajib diisi', 'err');
+      el.classList.add('err');
+      el.focus();
+      return false;
+    }
+    el.classList.remove('err');
+  }
+  var jk = document.querySelector('input[name=jk]:checked');
+  if (!jk) { toast('Pilih Jenis Kelamin', 'err'); return false; }
+  var nik = document.getElementById('f-nik').value.trim();
+  if (nik.length !== 16 || isNaN(nik)) {
+    toast('NIK harus 16 digit angka', 'err');
+    document.getElementById('f-nik').classList.add('err');
+    return false;
+  }
+  return true;
+}
+
+function simpan() {
+  if (!validate()) return;
+  var btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> Menyimpan…';
+
+  var data = {
+    namaLengkap:     document.getElementById('f-nama').value.trim().toUpperCase(),
+    nik:             document.getElementById('f-nik').value.trim(),
+    noPaspor:        document.getElementById('f-paspor').value.trim().toUpperCase(),
+    tglLahir:        document.getElementById('f-tgl').value,
+    jenisKelamin:    document.querySelector('input[name=jk]:checked').value,
+    alamat:          document.getElementById('f-alamat').value.trim(),
+    noHp:            document.getElementById('f-hp').value.trim(),
+    email:           document.getElementById('f-email').value.trim(),
+    kontakDarurat:   document.getElementById('f-kdnama').value.trim(),
+    hpDarurat:       document.getElementById('f-kdhp').value.trim(),
+    hubunganDarurat: document.getElementById('f-kdhub').value,
+    kondisiKesehatan:document.getElementById('f-kesehatan').value.trim(),
+    statusVaksin:    document.getElementById('f-vaksin').value,
+    paket:           document.getElementById('f-paket').value,
+    idGroup:         document.getElementById('f-group').value,
+    sumberLead:      document.getElementById('f-sumber').value,
+    catatan:         document.getElementById('f-catatan').value.trim(),
+    // ── Field SISKOPATUH ──
+    tempatLahir:        val('f-tmpLahir'),  namaAyah:           val('f-namaAyah'),
+    statusPerkawinan:   val('f-kawin'),     pekerjaan:          val('f-kerja'),
+    pendidikan:         val('f-didik'),     golonganDarah:      val('f-goldar'),
+    provinsi:           val('f-prov'),      kabupaten:          val('f-kab'),
+    kecamatan:          val('f-kec'),       kelurahan:          val('f-kel'),
+    kodePos:            val('f-pos'),       tempatTerbitPaspor: val('f-tmpPaspor'),
+    namaMahram:         val('f-mahram'),    hubunganMahram:     val('f-mahramHub'),
+    embarkasi:          val('f-embarkasi'), kewarganegaraan:    'WNI'
+  };
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = '✓ Simpan & Generate Invoice DP';
+      if (res.success) {
+        toast('✅ Jamaah berhasil disimpan! Invoice DP sudah dikirim via WA.', 'ok');
+        document.getElementById('save-msg').style.display = 'block';
+        document.getElementById('save-msg').textContent =
+          'ID: ' + (res.idJamaah || '—') + '  ·  Invoice: ' + (res.idInvoice || '—');
+        reset();
+      } else {
+        toast('❌ ' + (res.error || 'Gagal menyimpan'), 'err');
+      }
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled = false;
+      btn.innerHTML = '✓ Simpan & Generate Invoice DP';
+      toast('Error: ' + e.message, 'err');
+    })
+    .simpanJamaahSecure(data);
+}
+
+function reset() {
+  ['f-nama','f-nik','f-paspor','f-tgl','f-alamat','f-hp','f-email',
+   'f-kdnama','f-kdhp','f-kesehatan','f-catatan',
+   'f-tmpLahir','f-namaAyah','f-kerja','f-prov','f-kab','f-kec','f-kel',
+   'f-pos','f-tmpPaspor','f-mahram','f-embarkasi'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('err'); }
+  });
+  ['f-kdhub','f-sumber','f-vaksin','f-paket','f-group',
+   'f-kawin','f-didik','f-goldar','f-mahramHub'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  document.querySelectorAll('input[name=jk]').forEach(function(r){ r.checked = false; });
+  document.getElementById('dp-preview').style.display = 'none';
+}
+
+var _toastT;
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(_toastT);
+  _toastT = setTimeout(function(){ t.className='toast'; }, 4000);
+}
+
+init();
+</script>
+</body>
+</html>

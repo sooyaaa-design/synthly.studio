@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --primary:#4f46e5;--mid:#818cf8;--soft:#c7d2fe;
+  --bg:#0f0d1a;--card:#1a1730;--card2:#211e36;
+  --border:rgba(79,70,229,.18);--text:#f0efff;
+  --sub:#8b87b8;--hover:#251f42;
+  --green:#34d399;--yellow:#fbbf24;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);color:var(--text);font-size:13px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.topbar{padding:11px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.03em;flex:1;}
+.layout{flex:1;overflow:hidden;display:grid;grid-template-columns:380px 1fr;}
+.left{border-right:1px solid var(--border);overflow-y:auto;padding:16px 18px;
+  display:flex;flex-direction:column;gap:14px;}
+.right{overflow-y:auto;padding:16px 18px;}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:10px;}
+.fg{margin-bottom:12px;}
+label{font-size:11px;color:var(--sub);display:block;margin-bottom:5px;}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;}
+.fi:focus{border-color:var(--primary);}
+select.fi option{background:#1a1730;}
+/* Template cards */
+.tpl-card{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:8px;}
+.tpl-card:hover{background:var(--hover);}
+.tpl-card.active{border-color:var(--primary);background:rgba(79,70,229,.1);}
+.tpl-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.tpl-icon{font-size:18px;}
+.tpl-name{font-size:13px;font-weight:600;}
+.tpl-timing{font-size:10px;color:var(--mid);letter-spacing:.06em;text-transform:uppercase;}
+.tpl-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+/* Extra fields */
+.extra-fields{background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:13px 14px;display:none;}
+.extra-fields.show{display:block;}
+/* Preview box */
+.preview-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:14px;}
+.preview-box pre{white-space:pre-wrap;font-size:12px;line-height:1.65;font-family:inherit;color:var(--text);}
+.preview-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:10px;}
+/* Jamaah count */
+.jcount{background:rgba(79,70,229,.1);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.jcount-val{font-size:24px;font-weight:700;color:var(--primary);}
+.jcount-lbl{font-size:11px;color:var(--sub);}
+/* Result */
+.result-card{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);
+  border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none;}
+.result-card.show{display:block;}
+/* Buttons */
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;
+  border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover:not(:disabled){background:#4338ca;}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{color:var(--text);background:var(--hover);}
+/* Botbar */
+.botbar{padding:11px 18px;border-top:1px solid var(--border);
+  background:var(--card);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;}
+.spin{display:inline-block;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,70,229,.3);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span style="font-size:18px;">📲</span>
+  <div>
+    <h1>WA Blast ke Jamaah</h1>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT -->
+  <div class="left">
+    <div>
+      <div class="sec-title">Pilih Group</div>
+      <div class="fg">
+        <label>Group / Kloter</label>
+        <select class="fi" id="sel-group" onchange="onGroup(this.value)">
+          <option value="">— Pilih Group —</option>
+        </select>
+      </div>
+      <div id="jcount" class="jcount" style="display:none;">
+        <div class="jcount-val" id="jcount-val">0</div>
+        <div class="jcount-lbl">Jamaah akan menerima pesan ini</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-title">Pilih Template Pesan</div>
+
+      <div class="tpl-card active" id="tpl-manasik" onclick="selectTpl('manasik')">
+        <div class="tpl-header">
+          <span class="tpl-icon">🕌</span>
+          <div>
+            <div class="tpl-name">Info Manasik</div>
+            <div class="tpl-timing">H-14 sebelum berangkat</div>
+          </div>
+        </div>
+        <div class="tpl-desc">Undangan acara manasik umroh, ingatkan jamaah untuk siap-siap.</div>
+      </div>
+
+      <div class="tpl-card" id="tpl-checklist" onclick="selectTpl('checklist')">
+        <div class="tpl-header">
+          <span class="tpl-icon">✅</span>
+          <div>
+            <div class="tpl-name">Checklist Bawaan</div>
+            <div class="tpl-timing">H-7 sebelum berangkat</div>
+          </div>
+        </div>
+        <div class="tpl-desc">Daftar barang yang perlu disiapkan jamaah sebelum keberangkatan.</div>
+      </div>
+
+      <div class="tpl-card" id="tpl-kumpul" onclick="selectTpl('kumpul')">
+        <div class="tpl-header">
+          <span class="tpl-icon">✈</span>
+          <div>
+            <div class="tpl-name">Info Kumpul Bandara</div>
+            <div class="tpl-timing">H-1 sebelum berangkat</div>
+          </div>
+        </div>
+        <div class="tpl-desc">Titik kumpul, jam, nomor flight, dan nomor pembimbing.</div>
+      </div>
+    </div>
+
+    <!-- Extra fields untuk template Kumpul -->
+    <div id="extra-fields" class="extra-fields">
+      <div class="sec-title">Info Tambahan (Kumpul Bandara)</div>
+      <div class="fg">
+        <label>Jam Kumpul</label>
+        <input type="time" class="fi" id="inp-jam">
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label>Lokasi Kumpul</label>
+        <input type="text" class="fi" id="inp-lokasi" placeholder="Terminal 3, Pintu Keberangkatan A">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Preview & Result -->
+  <div class="right">
+    <div class="sec-title" style="margin-bottom:12px;">Preview Pesan</div>
+
+    <div class="result-card" id="result-card">
+      <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:6px;">✅ WA Blast Berhasil Dikirim!</div>
+      <div id="result-detail" style="font-size:12px;color:var(--sub);line-height:1.7;"></div>
+    </div>
+
+    <div class="preview-box" id="preview-box">
+      <div class="preview-title">Contoh Pesan (untuk: [Nama Jamaah])</div>
+      <pre id="preview-text">← Pilih group dan template untuk melihat preview</pre>
+    </div>
+
+    <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.15);
+      border-radius:10px;padding:12px 14px;font-size:12px;color:var(--yellow);line-height:1.6;">
+      ⚠️ <strong>Pastikan:</strong><br>
+      • API Key Fonnte sudah diset di Config sheet<br>
+      • Nomor WA jamaah sudah diisi dengan benar (format: 08xxx atau 628xxx)<br>
+      • WA blast akan dikirim ke <strong>semua jamaah</strong> di group yang dipilih
+    </div>
+  </div>
+</div>
+
+<!-- BOTBAR -->
+<div class="botbar">
+  <button class="btn btn-ghost" onclick="google.script.host.close()">Batal</button>
+  <button class="btn btn-primary" id="btn-blast" disabled onclick="doBlast()">
+    📲 Kirim WA Blast Sekarang
+  </button>
+</div>
+
+<script>
+var _groups = [], _selGroup = null, _selTpl = 'manasik';
+
+var TEMPLATES = {
+  manasik: function(grup, tgl) {
+    return '🕌 *Undangan Manasik Umroh*\n\nAssalamualaikum *[Nama Jamaah]*,\n\n' +
+      'Anda terdaftar pada group *' + grup + '* (berangkat ' + tgl + ').\n\n' +
+      'Mohon hadir pada acara *MANASIK UMROH* yang akan segera kami informasikan.\n\n' +
+      'Harap siapkan dokumen yang diperlukan.\n\n_[Nama Travel]_';
+  },
+  checklist: function(grup, tgl) {
+    return '✅ *Checklist Persiapan Umroh*\n\nHalo *[Nama Jamaah]*,\n\n' +
+      'Keberangkatan Group *' + grup + '* semakin dekat (' + tgl + ')!\n\n' +
+      '📦 *Yang perlu disiapkan:*\n□ Paspor & Visa\n□ Buku Vaksin\n' +
+      '□ Koper (max 32kg)\n□ Pakaian ihram\n□ Sandal jepit\n' +
+      '□ Obat-obatan pribadi\n□ Uang SAR secukupnya\n□ Charger & adapter\n\n' +
+      'Info jadwal lengkap akan segera dikirimkan.\n\n_[Nama Travel]_';
+  },
+  kumpul: function(grup, tgl, jam, lokasi) {
+    return '✈ *Informasi Keberangkatan*\n\nHalo *[Nama Jamaah]*,\n\n' +
+      'Besok Anda berangkat umroh! Alhamdulillah 🎉\n\n' +
+      '📋 *Detail Keberangkatan:*\n' +
+      '• Group      : ' + grup + '\n' +
+      '• Tanggal    : ' + tgl + '\n' +
+      '• Jam Kumpul : ' + (jam||'—') + '\n' +
+      '• Lokasi     : ' + (lokasi||'—') + '\n\n' +
+      'Mohon hadir tepat waktu. Semoga menjadi umroh yang mabrur! 🕌\n\n' +
+      '_[Nama Travel]_';
+  }
+};
+
+function init() {
+  google.script.run
+    .withSuccessHandler(function(list) {
+      _groups = list || [];
+      var sel = document.getElementById('sel-group');
+      list.forEach(function(g) {
+        var o = document.createElement('option');
+        o.value = g.idGroup;
+        o.textContent = g.namaGroup + ' — ' + (g.tglBerangkat||'');
+        sel.appendChild(o);
+      });
+    }).getGroupList();
+  updatePreview();
+}
+
+function onGroup(id) {
+  _selGroup = id || null;
+  var g = _groups.find(function(x){ return x.idGroup === id; });
+  var jcnt = document.getElementById('jcount');
+  if (g && id) {
+    jcnt.style.display = 'flex';
+    document.getElementById('jcount-val').textContent = (g.terisi || '?');
+    document.getElementById('btn-blast').disabled = false;
+  } else {
+    jcnt.style.display = 'none';
+    document.getElementById('btn-blast').disabled = true;
+  }
+  updatePreview();
+}
+
+function selectTpl(name) {
+  _selTpl = name;
+  ['manasik','checklist','kumpul'].forEach(function(t) {
+    document.getElementById('tpl-' + t).classList.toggle('active', t === name);
+  });
+  document.getElementById('extra-fields').className =
+    'extra-fields' + (name === 'kumpul' ? ' show' : '');
+  updatePreview();
+}
+
+function updatePreview() {
+  var g   = _groups.find(function(x){ return x.idGroup === _selGroup; }) || {};
+  var grp = g.namaGroup  || '[Group]';
+  var tgl = g.tglBerangkat || '[Tanggal]';
+  var jam = document.getElementById('inp-jam') ? document.getElementById('inp-jam').value : '';
+  var lok = document.getElementById('inp-lokasi') ? document.getElementById('inp-lokasi').value : '';
+
+  var msg = _selTpl === 'kumpul'
+    ? TEMPLATES.kumpul(grp, tgl, jam, lok)
+    : TEMPLATES[_selTpl](grp, tgl);
+
+  document.getElementById('preview-text').textContent = msg;
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'inp-jam' || e.target.id === 'inp-lokasi') updatePreview();
+});
+
+function doBlast() {
+  if (!_selGroup) return;
+  var jam  = document.getElementById('inp-jam').value;
+  var lok  = document.getElementById('inp-lokasi').value.trim();
+  if (_selTpl === 'kumpul' && (!jam || !lok)) {
+    alert('Isi jam kumpul dan lokasi terlebih dahulu.');
+    return;
+  }
+
+  var g = _groups.find(function(x){ return x.idGroup === _selGroup; }) || {};
+  var konfirm = confirm(
+    'Kirim WA blast ke ' + (g.terisi||'semua') + ' jamaah di group "' + g.namaGroup + '"?\n\n' +
+    'Template: ' + { manasik:'Info Manasik', checklist:'Checklist', kumpul:'Info Kumpul' }[_selTpl]
+  );
+  if (!konfirm) return;
+
+  var btn = document.getElementById('btn-blast');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> Mengirim…';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = '📲 Kirim WA Blast Sekarang';
+      if (res.success) {
+        var rc = document.getElementById('result-card');
+        rc.className = 'result-card show';
+        document.getElementById('result-detail').innerHTML =
+          '• Total jamaah di group : <strong>' + res.total + '</strong><br>' +
+          '• Berhasil terkirim     : <strong style="color:var(--green)">' + res.berhasil + '</strong><br>' +
+          '• Gagal (no HP kosong)  : <strong style="color:var(--yellow)">' + res.gagal + '</strong>';
+      } else {
+        alert('❌ Gagal: ' + (res.error || 'Terjadi kesalahan'));
+      }
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled = false;
+      btn.innerHTML = '📲 Kirim WA Blast Sekarang';
+      alert('Error: ' + e.message);
+    })
+    .kirimWABlast({
+      idGroup:      _selGroup,
+      template:     _selTpl,
+      jamKumpul:    jam,
+      lokasiKumpul: lok
+    });
+}
+
+init();
+</script>
+</body>
+</html>
