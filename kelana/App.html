@@ -2600,9 +2600,9 @@ LOADERS.petugas=async function(c){
       h+='<div class="tbl-wrap"><table class="tbl"><colgroup><col style="width:18%"><col style="width:14%"><col style="width:16%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:16%"></colgroup>'
         +'<thead><tr><th>Nama</th><th>Jabatan</th><th>Kloter</th><th>No HP</th><th>Paspor</th><th>Berlaku s/d</th><th></th></tr></thead><tbody>';
       list.forEach(p=>{
-        const id=esc(p.idPetugas||''); const nm=esc((p.nama||'').replace(/'/g,''));
-        h+='<tr><td><b>'+esc(p.nama)+'</b></td><td>'+esc(p.jabatan||'-')+'</td><td>'+esc(groupName(p.idGroup))+'</td>'
-          +'<td class="sm">'+esc(p.noHp||'-')+'</td><td class="sm mono">'+esc(p.noPaspor||'-')+'</td><td class="sm">'+fmtDate(p.tglExpiredPaspor)+'</td>'
+        const id=esc(p.idPetugas||''); const nm=esc((p.namaLengkap||'').replace(/'/g,''));
+        h+='<tr><td><b>'+esc(p.namaLengkap)+'</b></td><td>'+esc(p.peran||'-')+'</td><td>'+esc(groupName(p.idGroup))+'</td>'
+          +'<td class="sm">'+esc(p.noTelepon||'-')+'</td><td class="sm mono">'+esc(p.noPaspor||'-')+'</td><td class="sm">'+fmtDate(p.masaBerlakuPaspor)+'</td>'
           +'<td style="white-space:nowrap">'
           +(canOps()?'<button class="btn sm" onclick="openPetugasForm(\''+id+'\')">Edit</button> ':'')
           +(canOps()?'<button class="btn sm danger" onclick="deletePetugas(\''+id+'\',\''+nm+'\')">Hapus</button>':'')
@@ -2621,25 +2621,25 @@ function openPetugasForm(id){
   function v(k){ return esc(p[k]!=null?p[k]:''); }
   function opt(list,sel){ return list.map(o=>'<option'+(sel===o?' selected':'')+'>'+o+'</option>').join(''); }
   const groupOpts='<option value="">— Pilih Kloter —</option>'+(cache.groups||[]).map(g=>'<option value="'+esc(g.idGroup)+'"'+(p.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+'</option>').join('');
-  const jabatanOpts=opt(['Pembimbing','Tour Leader','Muthawif','Handling Agent','Lainnya'],p.jabatan);
-  const jkOpts='<option value="">—</option>'+opt(['Laki-laki','Perempuan'],p.jk);
+  const jabatanOpts=opt(['Pembimbing','Tour Leader','Muthawif','Handling Agent','Lainnya'],p.peran);
+  const jkOpts='<option value="">—</option>'+opt(['Laki-laki','Perempuan'],p.jenisKelamin);
   openModal('<div class="modal-head"><h3>'+(editing?'Edit Petugas':'Tambah Petugas')+'</h3><button class="x" onclick="closeModal()">&times;</button></div>'
     +'<div class="modal-body"><form id="ptForm" onsubmit="return false"><div class="form-grid">'
-    +field('Nama',true,'<input id="pt_nama" value="'+v('nama')+'">')
+    +field('Nama',true,'<input id="pt_nama" value="'+v('namaLengkap')+'">')
     +field('Kloter',false,'<select id="pt_group">'+groupOpts+'</select>')
     +field('Jabatan',true,'<select id="pt_jabatan"><option value="">— Pilih —</option>'+jabatanOpts+'</select>')
-    +field('NIK',false,'<input id="pt_nik" value="'+v('nik')+'">')
+    +field('NIK',false,'<input id="pt_nik" value="'+v('noKTP')+'">')
     +field('Jenis Kelamin',false,'<select id="pt_jk">'+jkOpts+'</select>')
-    +field('Tgl Lahir',false,'<input type="date" id="pt_tglLahir" value="'+v('tglLahir')+'">')
+    +field('Tgl Lahir',false,'<input type="date" id="pt_tglLahir" value="'+v('tanggalLahir')+'">')
     +field('Tempat Lahir',false,'<input id="pt_tempatLahir" value="'+v('tempatLahir')+'">')
-    +field('No HP',false,'<input id="pt_hp" value="'+v('noHp')+'">')
+    +field('No HP',false,'<input id="pt_hp" value="'+v('noTelepon')+'">')
     +field('Email',false,'<input type="email" id="pt_email" value="'+v('email')+'">')
     +field('Alamat',false,'<textarea id="pt_alamat">'+v('alamat')+'</textarea>','fg-full')
     +'<div class="section-lbl fg-full">Data Paspor</div>'
     +field('No Paspor',false,'<input id="pt_paspor" value="'+v('noPaspor')+'">')
     +field('Kewarganegaraan',false,'<input id="pt_wn" value="'+v('kewarganegaraan')+'" placeholder="Indonesia">')
     +field('Tgl Terbit',false,'<input type="date" id="pt_tglTerbit" value="'+v('tglTerbitPaspor')+'">')
-    +field('Tgl Expired',false,'<input type="date" id="pt_tglExpired" value="'+v('tglExpiredPaspor')+'">')
+    +field('Tgl Expired',false,'<input type="date" id="pt_tglExpired" value="'+v('masaBerlakuPaspor')+'">')
     +field('Catatan',false,'<textarea id="pt_catatan">'+v('catatan')+'</textarea>','fg-full')
     +'</div></form></div>'
     +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
@@ -2648,13 +2648,13 @@ function openPetugasForm(id){
 }
 
 async function submitPetugas(id){
-  const p={nama:fval('pt_nama'),idGroup:fval('pt_group'),jabatan:fval('pt_jabatan'),
-    nik:fval('pt_nik'),jk:fval('pt_jk'),tglLahir:fval('pt_tglLahir'),tempatLahir:fval('pt_tempatLahir'),
-    noHp:fval('pt_hp'),email:fval('pt_email'),alamat:fval('pt_alamat'),
+  const p={namaLengkap:fval('pt_nama'),idGroup:fval('pt_group'),peran:fval('pt_jabatan'),
+    noKTP:fval('pt_nik'),jenisKelamin:fval('pt_jk'),tanggalLahir:fval('pt_tglLahir'),tempatLahir:fval('pt_tempatLahir'),
+    noTelepon:fval('pt_hp'),email:fval('pt_email'),alamat:fval('pt_alamat'),
     noPaspor:fval('pt_paspor'),kewarganegaraan:fval('pt_wn'),
-    tglTerbitPaspor:fval('pt_tglTerbit'),tglExpiredPaspor:fval('pt_tglExpired'),catatan:fval('pt_catatan')};
-  if(!p.nama){ toast('Nama wajib diisi.','error'); return; }
-  if(!p.jabatan){ toast('Jabatan wajib dipilih.','error'); return; }
+    tglTerbitPaspor:fval('pt_tglTerbit'),masaBerlakuPaspor:fval('pt_tglExpired'),catatan:fval('pt_catatan')};
+  if(!p.namaLengkap){ toast('Nama wajib diisi.','error'); return; }
+  if(!p.peran){ toast('Jabatan wajib dipilih.','error'); return; }
   if(id) p.idPetugas=id;
   const b=$('ptBtn'); b.disabled=true; b.textContent='Menyimpan…';
   try{

@@ -801,17 +801,33 @@ function duplikasiGroup(idGroup) {
  */
 function migratePetugasSchema_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (ss.getSheetByName('Petugas')) return;
-  var sh = ss.insertSheet('Petugas');
   var headers = [
     'idPetugas', 'idGroup', 'namaLengkap', 'peran',
     'noTelepon', 'email', 'noKTP', 'noPaspor',
     'masaBerlakuPaspor', 'tempatLahir', 'tanggalLahir', 'jenisKelamin',
-    'alamat', 'catatan', 'createdAt', 'updatedAt'
+    'alamat', 'catatan', 'createdAt', 'updatedAt',
+    // ── tambahan (idempoten, aman untuk sheet lama) ──
+    'kewarganegaraan', 'tglTerbitPaspor'
   ];
-  sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sh.setFrozenRows(1);
+  var sh = ss.getSheetByName('Petugas');
+  if (!sh) {
+    sh = ss.insertSheet('Petugas');
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sh.setFrozenRows(1);
+    return;
+  }
+  // Sheet sudah ada → pastikan kolom tambahan tersisip (kewarganegaraan, tglTerbitPaspor)
+  ensureSheetHeaders_(sh, headers);
 }
+
+// Field petugas (urutan kolom sheet) — dipakai getPetugasList & simpanPetugas
+var PETUGAS_FIELDS_ = [
+  'idPetugas', 'idGroup', 'namaLengkap', 'peran',
+  'noTelepon', 'email', 'noKTP', 'noPaspor',
+  'masaBerlakuPaspor', 'tempatLahir', 'tanggalLahir', 'jenisKelamin',
+  'alamat', 'catatan', 'createdAt', 'updatedAt',
+  'kewarganegaraan', 'tglTerbitPaspor'
+];
 
 /**
  * Ambil daftar petugas. Jika idGroup kosong, kembalikan semua.
@@ -829,8 +845,11 @@ function getPetugasList(idGroup) {
     for (var c = 0; c < headers.length; c++) {
       obj[headers[c]] = rows[i][c];
     }
-    if (obj.masaBerlakuPaspor) obj.masaBerlakuPaspor = formatTanggal_(obj.masaBerlakuPaspor);
-    if (obj.tanggalLahir) obj.tanggalLahir = formatTanggal_(obj.tanggalLahir);
+    // Tanggal dikirim sebagai ISO (yyyy-MM-dd) agar bisa langsung mengisi
+    // <input type="date"> di form & ditampilkan rapi oleh fmtDate di frontend.
+    if (obj.masaBerlakuPaspor) obj.masaBerlakuPaspor = isoDate_(obj.masaBerlakuPaspor);
+    if (obj.tanggalLahir) obj.tanggalLahir = isoDate_(obj.tanggalLahir);
+    if (obj.tglTerbitPaspor) obj.tglTerbitPaspor = isoDate_(obj.tglTerbitPaspor);
     result.push(obj);
   }
   return result;
@@ -846,12 +865,7 @@ function simpanPetugas(data) {
   if (!sh) { migratePetugasSchema_(); sh = ss.getSheetByName('Petugas'); }
   var now = new Date();
   var isEdit = !!data.idPetugas;
-  var fields = [
-    'idPetugas', 'idGroup', 'namaLengkap', 'peran',
-    'noTelepon', 'email', 'noKTP', 'noPaspor',
-    'masaBerlakuPaspor', 'tempatLahir', 'tanggalLahir', 'jenisKelamin',
-    'alamat', 'catatan', 'createdAt', 'updatedAt'
-  ];
+  var fields = PETUGAS_FIELDS_;
   if (isEdit) {
     var rows = sh.getDataRange().getValues();
     for (var i = 1; i < rows.length; i++) {

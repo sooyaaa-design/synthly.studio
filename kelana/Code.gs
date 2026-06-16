@@ -759,6 +759,7 @@ function getGroupList() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Group');
   if (!sh || sh.getLastRow() < 2) return [];
   var today = new Date(); today.setHours(0,0,0,0);
+  var terisiMap = hitungTerisiPerGroup_(); // jumlah jamaah aktual per kloter
   return sh.getDataRange().getValues().slice(1)
     .filter(function(r) { return r[0]; })
     .map(function(r) {
@@ -776,7 +777,7 @@ function getGroupList() {
           hargaQuad:      parseFloat(r[15]) || 0,
           tambahanTriple: parseFloat(r[16]) || 0,
           tambahanDouble: parseFloat(r[17]) || 0,
-          kapasitas: r[18], terisi: r[19], statusGroup: r[20],
+          kapasitas: r[18], terisi: (terisiMap[r[0]] || 0), statusGroup: r[20],
           pembimbing: r[21], catatan: r[22] || ''
         };
       } else {
@@ -789,25 +790,49 @@ function getGroupList() {
           noFlightPergi1: r[5] || '', noFlightPulang1: r[6] || '',
           hotelMadinah: r[7] || '', hotelMakkah: r[8] || '',
           hargaQuad: 0, tambahanTriple: 0, tambahanDouble: 0,
-          kapasitas: r[9], terisi: r[10], statusGroup: r[11],
+          kapasitas: r[9], terisi: (terisiMap[r[0]] || 0), statusGroup: r[11],
           pembimbing: r[12], catatan: r[13] || ''
         };
       }
-      obj.statusGroup = autoStatusGroup_(obj, today);
+      obj.statusGroup = autoStatusGroup_(obj, today, r[2], r[3]);
       return obj;
     });
 }
 
 /**
+ * Hitung jumlah jamaah aktual per kloter (IDGroup) dari sheet Jamaah.
+ * Mengembalikan map { idGroup: jumlah }. Dipakai agar "Terisi" pada kartu
+ * kloter selalu sinkron dengan data, bukan angka manual yang bisa basi.
+ */
+function hitungTerisiPerGroup_() {
+  var map = {};
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jamaah');
+  if (!sh || sh.getLastRow() < 2) return map;
+  // Kolom 15 (0-indexed) = ID Group
+  var vals = sh.getRange(2, 16, sh.getLastRow() - 1, 1).getValues();
+  for (var i = 0; i < vals.length; i++) {
+    var g = vals[i][0];
+    if (g) map[g] = (map[g] || 0) + 1;
+  }
+  return map;
+}
+
+/**
  * Hitung status kloter otomatis berdasarkan tanggal.
  */
-function autoStatusGroup_(g, today) {
+function autoStatusGroup_(g, today, rawBerangkat, rawPulang) {
   var manual = g.statusGroup || '';
   if (manual === 'Draft') return 'Draft';
-  if (!g.tglBerangkat) return manual || 'Aktif';
-  var tglBerangkat = new Date(g.tglBerangkat); tglBerangkat.setHours(0,0,0,0);
-  var tglPulang = g.tglPulang ? new Date(g.tglPulang) : null;
-  if (tglPulang) tglPulang.setHours(0,0,0,0);
+  // Pakai tanggal MENTAH (objek Date dari sheet) bila tersedia — jangan
+  // mengandalkan g.tglBerangkat yang sudah diformat ke teks "14 Juni 2026"
+  // karena new Date() tidak bisa mem-parse nama bulan Bahasa Indonesia.
+  var srcBerangkat = rawBerangkat || g.tglBerangkat;
+  var srcPulang    = rawPulang || g.tglPulang;
+  if (!srcBerangkat) return manual || 'Aktif';
+  var tglBerangkat = new Date(srcBerangkat); tglBerangkat.setHours(0,0,0,0);
+  if (isNaN(tglBerangkat.getTime())) return manual || 'Aktif';
+  var tglPulang = srcPulang ? new Date(srcPulang) : null;
+  if (tglPulang && !isNaN(tglPulang.getTime())) tglPulang.setHours(0,0,0,0); else tglPulang = null;
   if (tglPulang && today > tglPulang) return 'Selesai';
   if (today >= tglBerangkat) return 'Berjalan';
   // Jika manual masih "Selesai" atau "Berjalan" tapi tanggal belum sesuai, reset ke Aktif
