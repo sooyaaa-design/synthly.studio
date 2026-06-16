@@ -1036,6 +1036,7 @@ function openJamaahForm(id){
     +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
     +'<button class="btn primary" id="jSubmit" onclick="submitJamaah('+(editing?'\''+esc(id)+'\'':'null')+')">'+(editing?'Simpan Perubahan':'Tambah Jamaah')+'</button></div>';
   openModal(html,{size:'',persistent:true});
+  jamaahHargaPreview(); // tampilkan harga kloter bila sudah terpilih (mis. saat edit)
 }
 function field(label,req,inner,cls,hint){
   return '<div class="field '+(cls||'')+'"><label>'+esc(label)+(req?' <span class="req">*</span>':'')+'</label>'+inner+(hint?'<div class="hint">'+esc(hint)+'</div>':'')+'</div>';
@@ -1671,14 +1672,26 @@ async function roomlistLoad(idGroup){
   $('rlActions').innerHTML='';
   try{
     const d=await api('roomlist.list',{idGroup});
+    // Petugas kloter ini juga bisa ditempatkan di kamar (disimpan di kolom IDJamaah,
+    // dibedakan lewat daftar petugas — tanpa mengubah skema Roomlist).
+    let petugas=[];
+    try{ petugas=unwrapList(await api('petugas.list',{idGroup})); }catch(_){}
+    roomlistState.petugas=petugas;
+    const petMap={}; petugas.forEach(p=>{ petMap[p.idPetugas]=p; });
+    roomlistState.petMap=petMap;
     roomlistState.data=d;
     roomlistState.assignments={};
     (d.rows||[]).forEach(r=>{
       const key=r.lokasi+'|||'+r.nomorKamar+'|||'+r.tipeKamar+'|||'+r.hotel;
       if(!roomlistState.assignments[key]) roomlistState.assignments[key]={ kamar:r.nomorKamar, tipe:r.tipeKamar, hotel:r.hotel, lokasi:r.lokasi, occupants:[], placeholderIdRoom:'' };
       if(!r.idJamaah){ roomlistState.assignments[key].placeholderIdRoom=r.idRoom; return; } // kamar kosong (template)
-      const j=(cache.jamaah||[]).find(x=>x.idJamaah===r.idJamaah)||{};
-      roomlistState.assignments[key].occupants.push({ idJamaah:r.idJamaah, namaJamaah:r.namaJamaah, idRoom:r.idRoom, jenisKelamin:j.jenisKelamin||'', idKeluarga:j.idKeluarga||'' });
+      const pet=petMap[r.idJamaah];
+      if(pet){
+        roomlistState.assignments[key].occupants.push({ idJamaah:r.idJamaah, namaJamaah:r.namaJamaah, idRoom:r.idRoom, jenisKelamin:pet.jenisKelamin||'', idKeluarga:'', isPetugas:true, peran:pet.peran||'' });
+      } else {
+        const j=(cache.jamaah||[]).find(x=>x.idJamaah===r.idJamaah)||{};
+        roomlistState.assignments[key].occupants.push({ idJamaah:r.idJamaah, namaJamaah:r.namaJamaah, idRoom:r.idRoom, jenisKelamin:j.jenisKelamin||'', idKeluarga:j.idKeluarga||'' });
+      }
     });
     renderRoomlistDD();
   }catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') $('rlBody').innerHTML=emptyState('⚠️','Gagal memuat',e.message); }
@@ -1695,6 +1708,7 @@ function renderRoomlistDD(){
   const assignedIds=new Set();
   Object.values(assignments).forEach(rm=>{ if(rm.lokasi===lok) rm.occupants.forEach(o=>assignedIds.add(o.idJamaah)); });
   const unassigned=kloterJamaah.filter(j=>!assignedIds.has(j.idJamaah));
+  const unassignedPet=(roomlistState.petugas||[]).filter(p=>!assignedIds.has(p.idPetugas));
   const lokRooms=Object.entries(assignments).filter(([k,v])=>v.lokasi===lok);
 
   $('rlActions').innerHTML=
@@ -1710,12 +1724,13 @@ function renderRoomlistDD(){
 
   let h='<div class="dd-panel">';
   // LEFT: unassigned
-  h+='<div class="dd-left"><div class="card"><div class="card-title" style="margin-bottom:4px">'+icon('users',15)+'Belum Ditempatkan di '+esc(lok)+' <span class="badge gray" style="font-size:10px">'+unassigned.length+'</span></div>'
+  h+='<div class="dd-left"><div class="card"><div class="card-title" style="margin-bottom:4px">'+icon('users',15)+'Belum Ditempatkan di '+esc(lok)+' <span class="badge gray" style="font-size:10px">'+(unassigned.length+unassignedPet.length)+'</span></div>'
     +'<div class="sm muted" style="margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">'
     +'<span><span class="fam-dot" style="background:hsl(265,65%,52%);display:inline-block;vertical-align:middle"></span> warna sama = satu keluarga</span>'
-    +'<span>&#9794; laki-laki &nbsp; &#9792; perempuan</span></div>'
+    +'<span>&#9794; laki-laki &nbsp; &#9792; perempuan</span>'
+    +'<span>🧑‍✈️ petugas</span></div>'
     +'<div id="rlUnassigned">';
-  if(!unassigned.length){ h+='<div class="sm muted" style="padding:10px 0;text-align:center">Semua jamaah sudah ditempatkan.</div>'; }
+  if(!unassigned.length){ h+='<div class="sm muted" style="padding:8px 0;text-align:center">Semua jamaah sudah ditempatkan.</div>'; }
   else {
     unassigned.forEach(j=>{
       const dot=j.idKeluarga?'<span class="fam-dot" style="background:'+famColor(j.idKeluarga)+'" title="'+esc(j.idKeluarga)+'"></span>':'';
@@ -1724,6 +1739,14 @@ function renderRoomlistDD(){
       const spIc=sp?'<span title="Pasangan: '+esc(sp.namaLengkap)+' — tempatkan sekamar" style="font-size:11px">💑</span>':'';
       h+='<div class="jamaah-chip" draggable="true" data-id="'+esc(j.idJamaah)+'" data-jk="'+esc(j.jenisKelamin||'')+'" data-klg="'+esc(j.idKeluarga||'')+'" data-nama="'+esc((j.namaLengkap||'').replace(/"/g,'&quot;'))+'" ondragstart="rlDragStart(event)" ondragend="rlDragEnd(event)">'
         +dot+'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(j.namaLengkap)+'</span>'+spIc+'<span style="font-size:11px;color:var(--text-sub)">'+gIc+'</span></div>';
+    });
+  }
+  if(unassignedPet.length){
+    h+='<div class="sm muted" style="margin:10px 0 4px;font-weight:600;border-top:1px solid var(--border);padding-top:8px">Petugas Kloter</div>';
+    unassignedPet.forEach(p=>{
+      const gIc=p.jenisKelamin==='Perempuan'?'&#9792;':'&#9794;';
+      h+='<div class="jamaah-chip" draggable="true" data-id="'+esc(p.idPetugas)+'" data-jk="'+esc(p.jenisKelamin||'')+'" data-pet="1" data-peran="'+esc(p.peran||'')+'" data-nama="'+esc((p.namaLengkap||'').replace(/"/g,'&quot;'))+'" ondragstart="rlDragStart(event)" ondragend="rlDragEnd(event)" style="border-left:3px solid #0ea5e9">'
+        +'<span style="font-size:12px">🧑‍✈️</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">'+esc(p.namaLengkap)+'<span class="sm muted"> · '+esc(p.peran||'Petugas')+'</span></span><span style="font-size:11px;color:var(--text-sub)">'+gIc+'</span></div>';
     });
   }
   h+='</div></div></div>';
@@ -1748,6 +1771,12 @@ function renderRoomlistDD(){
       if(!occ){ h+='<div class="sm muted" style="text-align:center;padding:10px 0">Drop jamaah di sini</div>'; }
       else {
         rm.occupants.forEach(o=>{
+          if(o.isPetugas){
+            h+='<div class="jamaah-chip" draggable="true" data-id="'+esc(o.idJamaah)+'" data-jk="'+esc(o.jenisKelamin||'')+'" data-pet="1" data-peran="'+esc(o.peran||'')+'" data-nama="'+esc((o.namaJamaah||'').replace(/"/g,'&quot;'))+'" data-from="'+esc(key)+'" ondragstart="rlDragStart(event)" ondragend="rlDragEnd(event)" style="border-left:3px solid #0ea5e9">'
+              +'<span style="font-size:12px">🧑‍✈️</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;font-size:12px">'+esc(o.namaJamaah)+'<span class="sm muted"> · '+esc(o.peran||'Petugas')+'</span></span>'
+              +'<button class="btn sm danger" style="padding:2px 5px;font-size:11px;margin-left:4px" onclick="rlRemoveOccupant(\''+esc(key.replace(/'/g,'\\\''))+'\',\''+esc(o.idJamaah)+'\')">&#10005;</button></div>';
+            return;
+          }
           const jj=(cache.jamaah||[]).find(x=>x.idJamaah===o.idJamaah)||{};
           const dot2=jj.idKeluarga?'<span class="fam-dot" style="background:'+famColor(jj.idKeluarga)+'" title="'+esc(jj.idKeluarga)+'"></span>':'';
           h+='<div class="jamaah-chip" draggable="true" data-id="'+esc(o.idJamaah)+'" data-jk="'+esc(jj.jenisKelamin||'')+'" data-klg="'+esc(jj.idKeluarga||'')+'" data-nama="'+esc((o.namaJamaah||'').replace(/"/g,'&quot;'))+'" data-from="'+esc(key)+'" ondragstart="rlDragStart(event)" ondragend="rlDragEnd(event)">'
@@ -1767,7 +1796,7 @@ function rlSetLokasi(lok){ roomlistState.lokasi=lok; renderRoomlistDD(); }
 function rlDragStart(e){
   const el=e.currentTarget;
   _rlDragId=el.dataset.id;
-  const payload=JSON.stringify({idJamaah:el.dataset.id, namaJamaah:el.dataset.nama, jenisKelamin:el.dataset.jk, idKeluarga:el.dataset.klg, fromKey:el.dataset.from||''});
+  const payload=JSON.stringify({idJamaah:el.dataset.id, namaJamaah:el.dataset.nama, jenisKelamin:el.dataset.jk, idKeluarga:el.dataset.klg, fromKey:el.dataset.from||'', isPetugas:el.dataset.pet==='1', peran:el.dataset.peran||''});
   e.dataTransfer.setData('text/plain', payload);
   e.dataTransfer.effectAllowed='move';
   setTimeout(()=>el.classList.add('dragging'),0);
@@ -1812,8 +1841,12 @@ function rlAssignToRoom(d, toKey){
   const rm=roomlistState.assignments[toKey];
   if(!rm) return;
   if(rm.occupants.find(o=>o.idJamaah===idJamaah)) return;
-  const j=(cache.jamaah||[]).find(x=>x.idJamaah===idJamaah)||{};
-  rm.occupants.push({ idJamaah, namaJamaah:d.namaJamaah||j.namaLengkap||'', jenisKelamin:d.jenisKelamin||j.jenisKelamin||'', idKeluarga:d.idKeluarga||j.idKeluarga||'' });
+  if(d.isPetugas){
+    rm.occupants.push({ idJamaah, namaJamaah:d.namaJamaah||'', jenisKelamin:d.jenisKelamin||'', idKeluarga:'', isPetugas:true, peran:d.peran||'' });
+  } else {
+    const j=(cache.jamaah||[]).find(x=>x.idJamaah===idJamaah)||{};
+    rm.occupants.push({ idJamaah, namaJamaah:d.namaJamaah||j.namaLengkap||'', jenisKelamin:d.jenisKelamin||j.jenisKelamin||'', idKeluarga:d.idKeluarga||j.idKeluarga||'' });
+  }
   roomlistState.pendingChanges=true;
   renderRoomlistDD();
 }
@@ -2621,7 +2654,7 @@ function openPetugasForm(id){
   function v(k){ return esc(p[k]!=null?p[k]:''); }
   function opt(list,sel){ return list.map(o=>'<option'+(sel===o?' selected':'')+'>'+o+'</option>').join(''); }
   const groupOpts='<option value="">— Pilih Kloter —</option>'+(cache.groups||[]).map(g=>'<option value="'+esc(g.idGroup)+'"'+(p.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+'</option>').join('');
-  const jabatanOpts=opt(['Pembimbing','Tour Leader','Muthawif','Handling Agent','Lainnya'],p.peran);
+  const jabatanOpts=opt(['Pembimbing Ibadah (TPIHI)','Ketua Kloter','Ketua Rombongan','Tour Leader','Muthawif','Handling Agent','Lainnya'],p.peran);
   const jkOpts='<option value="">—</option>'+opt(['Laki-laki','Perempuan'],p.jenisKelamin);
   openModal('<div class="modal-head"><h3>'+(editing?'Edit Petugas':'Tambah Petugas')+'</h3><button class="x" onclick="closeModal()">&times;</button></div>'
     +'<div class="modal-body"><form id="ptForm" onsubmit="return false"><div class="form-grid">'

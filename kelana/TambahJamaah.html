@@ -238,7 +238,7 @@ select.fi option{background:#1a1730;color:#f0efff;}
       border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-top:4px;">
       <div style="font-size:11px;color:var(--sub);margin-bottom:6px;">INFO INVOICE DP OTOMATIS</div>
       <div style="display:flex;justify-content:space-between;font-size:13px;">
-        <span>Harga Paket</span>
+        <span id="dp-label">Harga Paket</span>
         <strong id="dp-harga">—</strong>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;">
@@ -290,22 +290,31 @@ function init() {
         var o = document.createElement('option');
         o.value = g.idGroup;
         o.textContent = g.namaGroup + ' — ' + (g.tglBerangkat||'');
+        o.dataset.harga = g.hargaQuad || 0; // harga aktual kloter (yang ditagih)
         sel.appendChild(o);
       });
     }).getGroupList();
 
-  document.getElementById('f-paket').addEventListener('change', function() {
-    var opt = this.options[this.selectedIndex];
-    if (opt && opt.dataset.harga) {
-      document.getElementById('dp-preview').style.display = 'block';
-      document.getElementById('dp-harga').textContent =
-        'Rp ' + Number(opt.dataset.harga).toLocaleString('id-ID');
-      document.getElementById('dp-nominal').textContent =
-        'Rp ' + Number(opt.dataset.dp).toLocaleString('id-ID');
-    } else {
-      document.getElementById('dp-preview').style.display = 'none';
-    }
-  });
+  document.getElementById('f-paket').addEventListener('change', renderHargaPreview);
+  document.getElementById('f-group').addEventListener('change', renderHargaPreview);
+}
+
+// Tampilkan harga & DP. Kloter diutamakan (itulah yang ditagih); fallback ke Paket.
+function renderHargaPreview() {
+  var gOpt = document.getElementById('f-group');
+  var pOpt = document.getElementById('f-paket');
+  var gSel = gOpt.options[gOpt.selectedIndex];
+  var pSel = pOpt.options[pOpt.selectedIndex];
+  var hargaKloter = gSel ? Number(gSel.dataset.harga||0) : 0;
+  var hargaPaket  = pSel ? Number(pSel.dataset.harga||0) : 0;
+  var harga = hargaKloter > 0 ? hargaKloter : hargaPaket;
+  if (!harga) { document.getElementById('dp-preview').style.display = 'none'; return; }
+  var dp = hargaKloter > 0 ? Math.round(hargaKloter * 0.30)
+                           : (pSel && pSel.dataset.dp ? Number(pSel.dataset.dp) : Math.round(harga * 0.30));
+  document.getElementById('dp-preview').style.display = 'block';
+  document.getElementById('dp-label').textContent = hargaKloter > 0 ? 'Harga Kloter (ditagih)' : 'Harga Paket';
+  document.getElementById('dp-harga').textContent = 'Rp ' + harga.toLocaleString('id-ID');
+  document.getElementById('dp-nominal').textContent = 'Rp ' + dp.toLocaleString('id-ID');
 }
 
 function validate() {

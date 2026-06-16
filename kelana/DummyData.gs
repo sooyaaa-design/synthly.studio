@@ -34,6 +34,7 @@ function isiDummyData() {
   _isiGroup(ss);
   _isiJamaah(ss);
   _isiAddOn(ss);
+  _isiPetugas(ss);
   _isiDokumen(ss);
   _isiPembayaran(ss);
   _isiRoomlist(ss);
@@ -59,7 +60,7 @@ function hapusSemuaDummyData() {
     ui.ButtonSet.YES_NO);
   if (resp !== ui.Button.YES) return;
 
-  ['Jamaah','Group','Paket','Pembayaran','AddOn','Dokumen','Roomlist','Manifest',
+  ['Jamaah','Group','Paket','Pembayaran','AddOn','Petugas','Dokumen','Roomlist','Manifest',
    'Lead','Pengguna','Log Aktivitas'].forEach(function(name) {
     var sh = ss.getSheetByName(name);
     if (sh && sh.getLastRow() > 1) {
@@ -409,6 +410,43 @@ function _isiAddOn(ss) {
     ['ADO-005','JMH-1012','Upgrade Maskapai ke Business Class','Maskapai',
       5000000,'Upgrade dari Economy ke Business Class (Garuda GA981)',
       new Date('2025-05-03'),'admin@albarokah.com'],
+  ];
+  rows.forEach(function(r) { sh.appendRow(r); });
+}
+
+// ─── PETUGAS ──────────────────────────────────────────────────────────────────
+
+function _isiPetugas(ss) {
+  var sh = ss.getSheetByName('Petugas');
+  if (!sh) { try { migratePetugasSchema_(); } catch(e){} sh = ss.getSheetByName('Petugas'); }
+  if (!sh) return;
+  var HEADERS = [
+    'idPetugas','idGroup','namaLengkap','peran',
+    'noTelepon','email','noKTP','noPaspor',
+    'masaBerlakuPaspor','tempatLahir','tanggalLahir','jenisKelamin',
+    'alamat','catatan','createdAt','updatedAt',
+    'kewarganegaraan','tglTerbitPaspor'
+  ];
+  sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
+
+  // 0:idPetugas 1:idGroup 2:namaLengkap 3:peran 4:noTelepon 5:email 6:noKTP
+  // 7:noPaspor 8:masaBerlakuPaspor 9:tempatLahir 10:tanggalLahir 11:jenisKelamin
+  // 12:alamat 13:catatan 14:createdAt 15:updatedAt 16:kewarganegaraan 17:tglTerbitPaspor
+  var now = new Date('2025-06-01');
+  var rows = [
+    ['PTG-001','GRP-2025-04','Ust. Ridwan Al-Habsyi','Pembimbing Ibadah (TPIHI)',
+      '6281234200001','ridwan.habsyi@email.com','3271015003700001','P1234567',
+      new Date('2030-05-10'),'Bandung',new Date('1970-03-15'),'Laki-laki',
+      'Jl. Cibaduyut No. 10, Bandung','Pembimbing utama kloter Juli',now,now,'WNI',new Date('2020-05-11')],
+    ['PTG-002','GRP-2025-04','H. Fauzan Akmal','Ketua Kloter',
+      '6281234200002','fauzan.akmal@email.com','3271012504800002','P2345678',
+      new Date('2029-08-20'),'Garut',new Date('1980-04-25'),'Laki-laki',
+      'Jl. Buah Batu No. 22, Bandung','Koordinator lapangan',now,now,'WNI',new Date('2019-08-21')],
+    ['PTG-003','GRP-2025-04','Hj. Salma Nuraini','Tour Leader',
+      '6281234200003','salma.nuraini@email.com','3271016012850003','P3456789',
+      new Date('2031-01-15'),'Cimahi',new Date('1985-12-20'),'Perempuan',
+      'Jl. Sukajadi No. 5, Bandung','Pendamping jamaah perempuan',now,now,'WNI',new Date('2021-01-16')],
   ];
   rows.forEach(function(r) { sh.appendRow(r); });
 }
