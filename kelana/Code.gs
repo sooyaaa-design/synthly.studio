@@ -1605,7 +1605,10 @@ function esc_(s) {
 
 function createSheetIfNotExists_(ss, name, headers) {
   var sh = ss.getSheetByName(name);
-  if (sh) return sh;
+  if (sh) {
+    ensureSheetHeaders_(sh, headers);
+    return sh;
+  }
   sh = ss.insertSheet(name);
   if (headers && headers.length) {
     sh.appendRow(headers);
@@ -1616,4 +1619,26 @@ function createSheetIfNotExists_(ss, name, headers) {
     sh.setFrozenRows(1);
   }
   return sh;
+}
+
+/**
+ * Pastikan semua header yang diharapkan sudah ada di baris pertama sheet.
+ * Kolom baru ditambahkan jika belum ada; sel header kosong diisi ulang.
+ * Idempoten — aman dipanggil berulang.
+ */
+function ensureSheetHeaders_(sh, headers) {
+  if (!headers || !headers.length) return;
+  if (sh.getMaxColumns() < headers.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+  }
+  var existing = sh.getRange(1, 1, 1, headers.length).getValues()[0];
+  for (var i = 0; i < headers.length; i++) {
+    if (!existing[i]) {
+      sh.getRange(1, i + 1)
+        .setValue(headers[i])
+        .setFontWeight('bold')
+        .setBackground('#4f46e5')
+        .setFontColor('#ffffff');
+    }
+  }
 }
