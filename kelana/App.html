@@ -977,7 +977,7 @@ async function confirmDeleteJamaah(id){
 function openJamaahForm(id){
   const editing=!!id;
   const j=editing?(cache.jamaah||[]).find(x=>x.idJamaah===id)||{}:{};
-  const groupOpts='<option value="">— Pilih kloter —</option>'+(cache.groups||[]).map(g=>'<option value="'+esc(g.idGroup)+'"'+(j.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+'</option>').join('');
+  const groupOpts='<option value="">— Pilih kloter —</option>'+(cache.groups||[]).filter(g=>g.statusGroup!=='Selesai'||j.idGroup===g.idGroup).map(g=>'<option value="'+esc(g.idGroup)+'"'+(j.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+(g.statusGroup==='Selesai'?' (selesai)':'')+'</option>').join('');
   const paketOpts='<option value="">— Pilih paket —</option>'+(cache.paket||[]).map(p=>'<option value="'+esc(p.namaPaket)+'"'+(j.paket===p.namaPaket?' selected':'')+'>'+esc(p.namaPaket)+' — '+rupiah(p.harga)+'</option>').join('');
   function v(x){ return esc(j[x]!=null?j[x]:''); }
   function opt(list,sel){ return list.map(o=>'<option'+(sel===o?' selected':'')+'>'+o+'</option>').join(''); }
@@ -1290,7 +1290,7 @@ function openKloterForm(id){
     +'<div class="section-lbl fg-full">Info Kloter</div>'
     +field('Nama Kloter',true,'<input id="g_nama" value="'+v('namaGroup')+'" placeholder="Contoh: Ramadhan 1447H — Feb 2026">','fg-full')
     +field('Status',false,'<select id="g_status">'+statusOpts+'</select>','','Status "Berjalan" & "Selesai" otomatis dari tanggal')
-    +field('Pembimbing',false,'<input id="g_pembimbing" value="'+v('pembimbing')+'">')
+    +field('Pembimbing',false,'<input id="g_pembimbing" list="pembimbingList" value="'+v('pembimbing')+'" placeholder="Pilih/ketik nama petugas"><datalist id="pembimbingList"></datalist>','','Pilih dari petugas terdaftar atau ketik manual')
     +field('Kapasitas',true,'<input type="number" id="g_kapasitas" value="'+v('kapasitas',45)+'" min="1">')
     +'<div class="section-lbl fg-full">Jadwal Keberangkatan</div>'
     +field('Tgl Berangkat',true,'<input type="date" id="g_tglb" value="'+v('tglBerangkat')+'">')
@@ -1325,6 +1325,14 @@ function openKloterForm(id){
     +'<button class="btn primary" id="gSubmit" onclick="submitKloter('+(editing?'\''+esc(id)+'\'':'null')+')">'+(editing?'Simpan Perubahan':'Buat Kloter')+'</button></div>';
   openModal(html,{size:'lg',persistent:true});
   kloterUpdateHarga();
+  loadPembimbingOptions();
+}
+async function loadPembimbingOptions(){
+  try{
+    const list=unwrapList(await api('petugas.list'));
+    const dl=$('pembimbingList'); if(!dl) return;
+    dl.innerHTML=(list||[]).map(p=>'<option value="'+esc(p.namaLengkap||'')+'">'+esc(p.peran||'Petugas')+(p.idGroup?' · '+esc(groupName(p.idGroup)):'')+'</option>').join('');
+  }catch(e){}
 }
 function kloterToggleTransit(dir,show){
   $('tr'+dir+'Fields').style.display=show?'grid':'none';
@@ -2258,8 +2266,10 @@ function renderBayarTable(){
     let act='<button class="btn sm" title="Detail" onclick="event.stopPropagation();openBayarDetail(\''+idJs+'\')">'+icon('list',13)+'</button> '
       +'<button class="btn sm" title="Preview invoice" onclick="event.stopPropagation();openInvoicePreview(\''+idJs+'\')">'+icon('doc',13)+'</button> ';
     if(canFinance()){
-      if(p.status!=='Lunas') act+='<button class="btn sm primary" onclick="event.stopPropagation();openKonfirm(\''+idJs+'\',\''+esc((p.namaJamaah||'').replace(/'/g,''))+'\')">Konfirm</button> ';
-      act+='<button class="btn sm" title="Kirim reminder WA" onclick="event.stopPropagation();bayarReminder(\''+idJs+'\')">'+icon('wa',14)+'</button>';
+      if(p.status!=='Lunas'){
+        act+='<button class="btn sm primary" onclick="event.stopPropagation();openKonfirm(\''+idJs+'\',\''+esc((p.namaJamaah||'').replace(/'/g,''))+'\')">Konfirm</button> ';
+        act+='<button class="btn sm" title="Kirim reminder WA" onclick="event.stopPropagation();bayarReminder(\''+idJs+'\')">'+icon('wa',14)+'</button>';
+      }
     }
     const bukti=p.buktiBayar?'<a href="'+esc(p.buktiBayar)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Lihat bukti">🧾</a>':'<span class="muted">—</span>';
     h+='<tr class="clickable" onclick="openBayarDetail(\''+idJs+'\')"><td class="sm mono">'+esc(p.idInvoice)+'</td><td>'+esc(p.namaJamaah||'-')+'</td><td class="sm">'+esc(p.jenisBayar||'-')+'</td>'

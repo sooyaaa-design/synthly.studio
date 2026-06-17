@@ -230,12 +230,68 @@ function konfirmasiPembayaranManual(idInvoice, metodeBayar, catatan, buktiBayarU
         kirimWA_(jamaah.noHp, msg);
       }
 
-      return { success: true, namaJamaah: namaJamaah };
+      // Perbarui status pembayaran jamaah (Belum Bayar / DP Lunas / Lunas)
+      // berdasarkan total invoice yang sudah Lunas vs total tagihan booking.
+      recomputeStatusBayarJamaah_(idJamaah);
+
+      // Setelah DP dikonfirmasi, otomatis buatkan tagihan PELUNASAN beserta
+      // jatuh temponya (jika belum ada & jamaah belum lunas).
+      var pelunasanInfo = null;
+      if (String(jenisBayar).indexOf('DP') !== -1) {
+        try {
+          var pel = generateInvoicePelunasan(idJamaah);
+          if (pel && pel.success) pelunasanInfo = pel;
+        } catch (e2) {}
+      }
+
+      return { success: true, namaJamaah: namaJamaah, pelunasan: pelunasanInfo };
     }
     return { success: false, error: 'Invoice ' + idInvoice + ' tidak ditemukan.' };
   } catch (err) {
     return { success: false, error: err.message };
   }
+}
+
+/**
+ * Set kolom Status Pembayaran (kolom 18 / 0-idx 17) di sheet Jamaah.
+ */
+function setJamaahStatusBayar_(idJamaah, status) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jamaah');
+  if (!sh || sh.getLastRow() < 2) return;
+  var ids = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(idJamaah)) {
+      sh.getRange(i + 2, 18).setValue(status);
+      return;
+    }
+  }
+}
+
+/**
+ * Hitung ulang status pembayaran jamaah dari data invoice:
+ *  - Lunas       : total invoice Lunas >= total tagihan booking
+ *  - DP Lunas    : sudah ada pembayaran Lunas tapi belum penuh
+ *  - Belum Bayar : belum ada pembayaran Lunas
+ * Mengembalikan status yang ditulis.
+ */
+function recomputeStatusBayarJamaah_(idJamaah) {
+  try {
+    var shP = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Pembayaran');
+    var sumLunas = 0;
+    if (shP && shP.getLastRow() > 1) {
+      shP.getDataRange().getValues().slice(1).forEach(function(r) {
+        if (String(r[1]) !== String(idJamaah)) return;
+        if (String(r[6]) === 'Lunas') sumLunas += parseFloat(r[4]) || 0;
+      });
+    }
+    var total  = hitungTotalBookingJamaah_(idJamaah) || 0;
+    var status;
+    if (total > 0 && sumLunas >= total) status = 'Lunas';
+    else if (sumLunas > 0)              status = 'DP Lunas';
+    else                                status = 'Belum Bayar';
+    setJamaahStatusBayar_(idJamaah, status);
+    return status;
+  } catch (e) { return ''; }
 }
 
 /**
@@ -796,31 +852,9 @@ function duplikasiGroup(idGroup) {
   return { success: true, idGroup: src[0], namaGroup: src[1] };
 }
 
-/**
- * Migrasi: buat sheet "Petugas" jika belum ada (16 kolom).
- */
-function migratePetugasSchema_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var headers = [
-    'idPetugas', 'idGroup', 'namaLengkap', 'peran',
-    'noTelepon', 'email', 'noKTP', 'noPaspor',
-    'masaBerlakuPaspor', 'tempatLahir', 'tanggalLahir', 'jenisKelamin',
-    'alamat', 'catatan', 'createdAt', 'updatedAt',
-    // ── tambahan (idempoten, aman untuk sheet lama) ──
-    'kewarganegaraan', 'tglTerbitPaspor'
-  ];
-  var sh = ss.getSheetByName('Petugas');
-  if (!sh) {
-    sh = ss.insertSheet('Petugas');
-    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sh.setFrozenRows(1);
-    return;
-  }
-  // Sheet sudah ada → pastikan kolom tambahan tersisip (kewarganegaraan, tglTerbitPaspor)
-  ensureSheetHeaders_(sh, headers);
-}
-
-// Field petugas (urutan kolom sheet) — dipakai getPetugasList & simpanPetugas
+// Field petugas (urutan kolom, 0-indexed) — dipakai getPetugasList & simpanPetugas.
+// Pembacaan/penulisan berbasis INDEKS, tidak tergantung teks header, agar header
+// boleh memakai label ramah ("Nama Lengkap") tanpa merusak logika.
 var PETUGAS_FIELDS_ = [
   'idPetugas', 'idGroup', 'namaLengkap', 'peran',
   'noTelepon', 'email', 'noKTP', 'noPaspor',
@@ -828,25 +862,69 @@ var PETUGAS_FIELDS_ = [
   'alamat', 'catatan', 'createdAt', 'updatedAt',
   'kewarganegaraan', 'tglTerbitPaspor'
 ];
+// Header tampilan (Title Case) sesuai urutan PETUGAS_FIELDS_.
+var PETUGAS_HEADERS_ = [
+  'ID Petugas', 'ID Group', 'Nama Lengkap', 'Peran',
+  'No Telepon', 'Email', 'No KTP', 'No Paspor',
+  'Masa Berlaku Paspor', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin',
+  'Alamat', 'Catatan', 'Tgl Dibuat', 'Tgl Update',
+  'Kewarganegaraan', 'Tgl Terbit Paspor'
+];
+
+/**
+ * Migrasi sheet "Petugas": buat bila belum ada, normalkan header ke label ramah,
+ * dan pastikan 18 kolom. Idempoten — aman dipanggil berulang.
+ */
+function migratePetugasSchema_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var n = PETUGAS_HEADERS_.length;
+  var sh = ss.getSheetByName('Petugas');
+  if (!sh) {
+    sh = ss.insertSheet('Petugas');
+    sh.getRange(1, 1, 1, n).setValues([PETUGAS_HEADERS_]);
+    sh.getRange(1, 1, 1, n).setFontWeight('bold').setBackground('#4f46e5').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+    return;
+  }
+  // Pastikan jumlah kolom cukup, lalu tulis ulang header ke label ramah
+  // (urutan kolom konsisten dengan skema lama camelCase → aman di-overwrite).
+  if (sh.getMaxColumns() < n) sh.insertColumnsAfter(sh.getMaxColumns(), n - sh.getMaxColumns());
+  sh.getRange(1, 1, 1, n).setValues([PETUGAS_HEADERS_])
+    .setFontWeight('bold').setBackground('#4f46e5').setFontColor('#ffffff');
+  sh.setFrozenRows(1);
+}
+
+// Normalisasi alias field (toleran terhadap frontend lama / penamaan berbeda).
+function normalizePetugas_(data) {
+  data = data || {};
+  var alias = {
+    nama: 'namaLengkap', jabatan: 'peran', noHp: 'noTelepon',
+    nik: 'noKTP', jk: 'jenisKelamin', tglLahir: 'tanggalLahir',
+    tglExpiredPaspor: 'masaBerlakuPaspor'
+  };
+  Object.keys(alias).forEach(function(k) {
+    if (data[alias[k]] === undefined && data[k] !== undefined) data[alias[k]] = data[k];
+  });
+  return data;
+}
 
 /**
  * Ambil daftar petugas. Jika idGroup kosong, kembalikan semua.
+ * Pembacaan berbasis indeks kolom (tidak tergantung teks header).
  */
 function getPetugasList(idGroup) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Petugas');
   if (!sh || sh.getLastRow() < 2) return [];
   var rows = sh.getDataRange().getValues();
-  var headers = rows[0];
   var result = [];
   for (var i = 1; i < rows.length; i++) {
     if (!rows[i][0]) continue;
     if (idGroup && rows[i][1] !== idGroup) continue;
     var obj = {};
-    for (var c = 0; c < headers.length; c++) {
-      obj[headers[c]] = rows[i][c];
+    for (var c = 0; c < PETUGAS_FIELDS_.length; c++) {
+      obj[PETUGAS_FIELDS_[c]] = rows[i][c] !== undefined ? rows[i][c] : '';
     }
-    // Tanggal dikirim sebagai ISO (yyyy-MM-dd) agar bisa langsung mengisi
-    // <input type="date"> di form & ditampilkan rapi oleh fmtDate di frontend.
+    // Tanggal dikirim ISO (yyyy-MM-dd) agar bisa mengisi <input type="date">.
     if (obj.masaBerlakuPaspor) obj.masaBerlakuPaspor = isoDate_(obj.masaBerlakuPaspor);
     if (obj.tanggalLahir) obj.tanggalLahir = isoDate_(obj.tanggalLahir);
     if (obj.tglTerbitPaspor) obj.tglTerbitPaspor = isoDate_(obj.tglTerbitPaspor);
@@ -856,9 +934,10 @@ function getPetugasList(idGroup) {
 }
 
 /**
- * Simpan (create/update) petugas — 16 field.
+ * Simpan (create/update) petugas — 18 field, penulisan berbasis indeks.
  */
 function simpanPetugas(data) {
+  data = normalizePetugas_(data);
   if (!data || !data.namaLengkap) return { success: false, error: 'Nama lengkap wajib diisi.' };
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Petugas');
@@ -870,10 +949,10 @@ function simpanPetugas(data) {
     var rows = sh.getDataRange().getValues();
     for (var i = 1; i < rows.length; i++) {
       if (rows[i][0] === data.idPetugas) {
-        var updated = fields.map(function(f) {
+        var updated = fields.map(function(f, idx) {
           if (f === 'updatedAt') return now;
           if (f === 'createdAt') return rows[i][14] || now;
-          return data[f] !== undefined ? data[f] : (rows[i][fields.indexOf(f)] || '');
+          return data[f] !== undefined ? data[f] : (rows[i][idx] || '');
         });
         sh.getRange(i + 1, 1, 1, fields.length).setValues([updated]);
         return { success: true, idPetugas: data.idPetugas };
@@ -885,7 +964,7 @@ function simpanPetugas(data) {
   data.idPetugas = Utilities.getUuid();
   data.createdAt = now;
   data.updatedAt = now;
-  var row = fields.map(function(f) { return data[f] || ''; });
+  var row = fields.map(function(f) { return data[f] !== undefined ? data[f] : ''; });
   sh.appendRow(row);
   return { success: true, idPetugas: data.idPetugas };
 }

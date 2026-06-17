@@ -421,11 +421,11 @@ function _isiPetugas(ss) {
   if (!sh) { try { migratePetugasSchema_(); } catch(e){} sh = ss.getSheetByName('Petugas'); }
   if (!sh) return;
   var HEADERS = [
-    'idPetugas','idGroup','namaLengkap','peran',
-    'noTelepon','email','noKTP','noPaspor',
-    'masaBerlakuPaspor','tempatLahir','tanggalLahir','jenisKelamin',
-    'alamat','catatan','createdAt','updatedAt',
-    'kewarganegaraan','tglTerbitPaspor'
+    'ID Petugas','ID Group','Nama Lengkap','Peran',
+    'No Telepon','Email','No KTP','No Paspor',
+    'Masa Berlaku Paspor','Tempat Lahir','Tanggal Lahir','Jenis Kelamin',
+    'Alamat','Catatan','Tgl Dibuat','Tgl Update',
+    'Kewarganegaraan','Tgl Terbit Paspor'
   ];
   sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);

@@ -286,7 +286,7 @@ function init() {
   google.script.run
     .withSuccessHandler(function(list) {
       var sel = document.getElementById('f-group');
-      (list||[]).forEach(function(g) {
+      (list||[]).filter(function(g){ return g.statusGroup !== 'Selesai'; }).forEach(function(g) {
         var o = document.createElement('option');
         o.value = g.idGroup;
         o.textContent = g.namaGroup + ' — ' + (g.tglBerangkat||'');
