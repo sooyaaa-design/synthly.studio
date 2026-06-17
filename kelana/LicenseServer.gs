@@ -106,6 +106,17 @@ function doPost(e) {
   }
 }
 
+/**
+ * Bridge untuk LicenseAdmin.html yang memanggil `google.script.run.adminAction(...)`.
+ * Memproses payload sama seperti doPost (cek ADMIN_PASS + dispatch), lalu
+ * mengembalikan OBJEK (bukan ContentService) agar bisa dibaca callback klien.
+ * WAJIB ada di project License Server (LicenseAdmin.html bergantung padanya).
+ */
+function adminAction(bodyStr) {
+  var resp = doPost({ postData: { contents: bodyStr } });
+  return JSON.parse(resp.getContent());
+}
+
 // ─── CORE CHECK ──────────────────────────────────────────────────────────────
 
 function checkLicense_(key, currentJamaah) {
@@ -436,6 +447,9 @@ function showAdminPanel() {
     .setWidth(1100).setHeight(700);
   SpreadsheetApp.getUi().showModalDialog(html, '🔑 Kelana License Manager');
 }
+
+// Alias agar pemanggilan `showLicenseAdmin` (mis. dari menu/dokumentasi) tetap jalan.
+function showLicenseAdmin() { showAdminPanel(); }
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('🔑 License Manager')

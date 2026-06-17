@@ -23,16 +23,19 @@
 ### 1.1 Buat Spreadsheet License Server
 1. Buka [sheets.google.com](https://sheets.google.com) dengan akun Google Anda
 2. Buat spreadsheet baru: **"Kelana — License Server"**
-3. Buat 3 sheet manual dengan nama persis:
-   - `Licenses` — data semua lisensi client
-   - `Log` — log aktivitas server
-   - `Config` — konfigurasi server (bisa kosong dulu)
+3. **Tidak perlu membuat sheet manual.** Sheet `Lisensi` (database) dan `Log Akses` (log)
+   dibuat **otomatis** saat pertama kali server dipakai.
 
-### 1.2 Upload LicenseServer.gs
+### 1.2 Upload File ke Apps Script (WAJIB dua file)
 1. Di spreadsheet → **Extensions → Apps Script**
-2. Hapus isi Code.gs yang ada
-3. Buat file baru: `LicenseServer.gs` → paste isi file `kelana/LicenseServer.gs`
-4. Simpan (Ctrl+S)
+2. Hapus isi `Code.gs` yang ada
+3. Buat/isi file **`LicenseServer.gs`** → paste isi file `kelana/LicenseServer.gs`
+4. Buat file HTML baru bernama **`LicenseAdmin`** (File → + → HTML) → paste isi
+   `kelana/LicenseAdmin.html`
+   > ⚠️ **Tanpa file `LicenseAdmin` ini, panel admin tidak akan terbuka** dan tombol
+   > "Buat Lisensi Baru" gagal. Cukup dua file ini saja — **jangan** menyalin file client
+   > (Roles.gs, WebApp.gs, dll.) ke project server.
+5. Simpan (Ctrl+S)
 
 ### 1.3 Set Password Admin Server (WAJIB)
 **Tidak ada password default lagi** — endpoint admin akan menolak semua request sampai
@@ -66,9 +69,15 @@ Contoh URL: `https://script.google.com/macros/s/AKfycb.../exec`
 > ⚠️ Setiap kali Anda update kode LicenseServer.gs, buat deployment baru (bukan edit yang lama) agar URL tidak berubah.
 
 ### 1.5 Buka License Admin Panel
-1. Di Apps Script → klik **Run** → pilih fungsi `showLicenseAdmin`
-2. Atau buka sidebar dari spreadsheet → Menu Kelana → License Admin
-3. Masukkan ADMIN_PASS yang sudah di-set
+1. **Refresh** spreadsheet License Server (tutup-buka / F5). Akan muncul menu baru di atas:
+   **🔑 License Manager**.
+2. Klik **🔑 License Manager → Buka Admin Panel**.
+   - (Pertama kali Google minta izin → Lanjutkan → Izinkan.)
+3. Masukkan **ADMIN_PASS** yang sudah di-set di langkah 1.3.
+
+> Jika menu belum muncul, jalankan fungsi `onOpen` sekali dari editor, lalu refresh.
+> Membuka panel **harus lewat menu ini** (bukan tombol Run di editor), karena panel berupa
+> dialog di dalam spreadsheet.
 
 ---
 
@@ -108,15 +117,19 @@ Upload file-file berikut ke Apps Script spreadsheet client:
 - `KelolaUser`
 
 #### Step 3: Generate License Key
-1. Buka **License Admin Panel** Anda
-2. Klik **Buat Lisensi Baru**
+1. Buka **License Admin Panel** Anda (menu 🔑 License Manager → Buka Admin Panel)
+2. Klik **+ Buat Lisensi Baru** (kanan atas)
 3. Isi form:
-   - Nama Travel (contoh: Al-Barokah Travel)
-   - Email Owner travel
-   - Paket: Trial / Starter / Growth / Pro
-   - Durasi: jumlah hari aktif (contoh: Trial = 30 hari)
-4. Klik **Generate** → license key otomatis terbuat (format: `KLN-XXXX-XXXX-XXXX`)
-5. **Catat license key ini**
+   - Nama Travel (contoh: Al-Barokah Travel) — **wajib**
+   - Email PIC / Owner travel
+   - Paket: Trial / Starter / Growth / Pro / Enterprise
+   - Durasi (hari) & Limit Jamaah (terisi otomatis sesuai paket, bisa diubah)
+4. Klik **✨ Buat & Salin Key** → key otomatis terbuat (format `KLN-XXXX-XXXX-XXXX`) dan
+   **otomatis tersalin** ke clipboard.
+5. **Catat license key ini.**
+
+> Jika muncul **"ADMIN_PASS belum diset"** → ulangi langkah 1.3. Jika muncul **"Akses
+> ditolak"** → password yang Anda masukkan salah (tutup & buka panel lagi).
 
 #### Step 4: Isi Config Client
 Di spreadsheet client, buka sheet **Config** dan isi:
@@ -158,7 +171,7 @@ Kirimkan ke Owner travel:
 ## BAGIAN 3: KELOLA LISENSI CLIENT
 
 ### Buka License Admin
-- Dari spreadsheet License Server → Extensions → Apps Script → Run `showLicenseAdmin`
+- Dari spreadsheet License Server → menu **🔑 License Manager → Buka Admin Panel**
 - Masukkan ADMIN_PASS
 
 ### Statistik di License Admin
@@ -206,25 +219,26 @@ Contoh: client bayar 3 bulan → isi "90 hari"
 
 ## BAGIAN 4: STRUKTUR DATA LICENSE SERVER
 
-### Sheet `Licenses`
+### Sheet `Lisensi` (dibuat otomatis)
 
 | Kolom | Isi |
 |-------|-----|
-| A | ID Lisensi |
-| B | License Key (KLN-XXXX-XXXX-XXXX) |
-| C | Nama Travel |
-| D | Email Owner |
-| E | Plan (Trial/Starter/Growth/Pro/Enterprise) |
-| F | Status (Aktif/Nonaktif/Expired) |
-| G | Tanggal Mulai |
-| H | Tanggal Expired |
-| I | Limit Jamaah |
-| J | Limit Kloter |
+| A | License Key (KLN-XXXX-XXXX-XXXX) |
+| B | Nama Travel |
+| C | Email Owner |
+| D | Plan (Trial/Starter/Growth/Pro/Enterprise) |
+| E | Status (Aktif/Nonaktif) |
+| F | Tanggal Mulai |
+| G | Tanggal Expired |
+| H | Limit Jamaah |
+| I | Limit Kloter |
+| J | Catatan |
 | K | Tgl Dibuat |
-| L | Catatan |
+| L | Tgl Update (terakhir diakses/diubah) |
 
-### Sheet `Log`
-Mencatat semua aktivitas: check lisensi, admin actions, dll.
+### Sheet `Log Akses` (dibuat otomatis)
+Mencatat setiap pengecekan lisensi dari client & hasilnya
+(OK / EXPIRED / DENIED_INACTIVE / LIMIT_EXCEEDED / KEY_NOT_FOUND).
 
 ---
 
@@ -286,6 +300,19 @@ Jika ada bug fix atau fitur baru di file .gs / .html:
 ---
 
 ## BAGIAN 8: TROUBLESHOOTING SERVER
+
+**Q: Gagal "Buat Lisensi Baru" / panel admin tidak terbuka / "Error: ... is not a function"**  
+A: Hampir selalu karena file di project License Server kurang. Pastikan project **hanya**
+berisi **dua** file: `LicenseServer.gs` dan file HTML `LicenseAdmin` (lihat 1.2). File
+`LicenseAdmin` wajib ada, dan fungsi `adminAction` sudah termasuk di `LicenseServer.gs`
+versi terbaru. Setelah memperbarui kode, **simpan ulang & refresh** spreadsheet.
+
+**Q: Saat buat lisensi muncul "ADMIN_PASS belum diset"**  
+A: Jalankan `setAdminPass('passwordKuat')` sekali di editor (lihat 1.3), lalu coba lagi.
+
+**Q: Menu "🔑 License Manager" tidak muncul**  
+A: Refresh spreadsheet. Jika masih belum, jalankan fungsi `onOpen` sekali dari editor lalu
+refresh. Buka panel lewat menu ini (bukan tombol Run editor).
 
 **Q: Client lapor "Lisensi tidak valid" padahal sudah bayar**  
 A: Cek di License Admin, status client. Kemungkinan:

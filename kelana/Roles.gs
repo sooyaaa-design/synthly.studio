@@ -387,13 +387,5 @@ function setupRolesSheet() {
   }
 }
 
-/**
- * Fungsi bridge untuk LicenseAdmin.html yang panggil adminAction via google.script.run.
- * (Khusus untuk License Server, bukan client)
- */
-function adminAction(bodyStr) {
-  var body = JSON.parse(bodyStr);
-  var e    = { postData: { contents: bodyStr } };
-  var resp = doPost(e);
-  return JSON.parse(resp.getContent());
-}
+// Catatan: fungsi bridge `adminAction` untuk License Admin kini berada di
+// LicenseServer.gs (project License Server), bukan di sini (project client).
