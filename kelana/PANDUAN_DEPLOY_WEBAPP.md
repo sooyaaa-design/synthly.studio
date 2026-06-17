@@ -21,9 +21,12 @@ Di Apps Script project client, pastikan file berikut sudah di-paste:
 - `Code.gs`
 - `Code.additions.gs` (nama: `CodeAdditions`)
 - `Roles.gs`
+- `Roomlist.gs`
+- `Siskopatuh.gs`
 - `LicenseClient.gs`
 - `Manifest.gs`
 - `Webhook.gs`
+- `FormIntegration.gs` (opsional, untuk integrasi Google Form)
 - `WebApp.gs`  ← **file baru untuk web app**
 - `DummyData.gs` (opsional, untuk demo)
 
@@ -161,7 +164,13 @@ A: Kemungkinan `AUTH_PEPPER` diubah setelah password dibuat. Reset password
 lewat Kelola Pengguna, atau buat ulang akun Owner dengan `buatAkunOwner`.
 
 **Q: Setelah update kode, perubahan tidak muncul**
-A: Deploy → Manage deployments → Edit → New version → Deploy.
+A: Deploy → Manage deployments → Edit → New version → Deploy. Selain itu, **jalankan ulang
+"Setup Awal"** sekali agar kolom baru tersisip otomatis (mis. ID Paket di Group, Tambahan
+Triple/Double di Paket, header Petugas) — idempoten, tidak menghapus data.
+
+**Q: Status kloter tidak berpindah ke Berjalan/Selesai padahal tanggal sudah lewat**
+A: Atur **Zona Waktu** project: Apps Script → ⚙️ Project Settings → Time zone →
+(GMT+07:00) Asia/Jakarta.
 
 **Q: Staff tidak bisa akses menu tertentu**
 A: Itu normal — menu disembunyikan sesuai role. Ubah role lewat Kelola Pengguna.

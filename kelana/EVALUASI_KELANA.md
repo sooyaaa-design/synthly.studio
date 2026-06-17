@@ -255,6 +255,64 @@ ada di **keamanan input, skalabilitas (paginasi), dan otomasi onboarding tenant*
 
 ---
 
+## 5b. Iterasi P5 — Audit Alur, Paket sebagai Sumber Harga, Perbaikan Finance
+
+Iterasi ini menindaklanjuti audit alur kerja (daftar → bayar → kepulangan) dan menemukan
+beberapa cacat fungsional. Semua perubahan **tidak menyentuh field/ekspor SISKOPATUH**.
+
+**Perbaikan bug:**
+1. ✅ **Status kloter by-tanggal.** `autoStatusGroup_` dulu mem-parse string tanggal yang
+   sudah diformat ("14 Juni 2026") → `Invalid Date` → status tak pernah pindah. Sekarang
+   memakai tanggal mentah (objek Date). Status **Berjalan/Selesai otomatis** dari tanggal.
+2. ✅ **"Terisi" kartu kloter.** Dihitung live dari jumlah jamaah per `IDGroup`
+   (`hitungTerisiPerGroup_`), bukan angka manual yang basi.
+3. ✅ **Modul Petugas tadinya rusak total** (nama field frontend ≠ backend → simpan/edit
+   selalu gagal). Disamakan, header sheet jadi label rapi, baca/tulis **berbasis indeks** +
+   toleran alias (`normalizePetugas_`). Tambah kolom `Kewarganegaraan` & `Tgl Terbit Paspor`.
+4. ✅ **Reminder WA** hanya muncul untuk invoice **belum lunas** (tidak lagi bisa kirim ke
+   yang sudah lunas).
+5. ✅ **Header sheet hilang** diperbaiki: `ensureSheetHeaders_` dipanggil
+   `createSheetIfNotExists_` untuk mengisi kolom header yang kosong pada sheet lama.
+6. ✅ **DummyData** disinkron penuh dengan skema terbaru (Jamaah 43 kolom + SISKOPATUH,
+   sheet AddOn, Petugas, Paket dgn harga upgrade, tiap Group tertaut paket).
+
+**Fitur baru:**
+7. ✅ **Petugas di Roomlist.** Petugas kloter bisa ditempatkan di kamar (drag & drop),
+   ditandai 🧑‍✈️ + peran, disimpan via kolom `IDJamaah` (tanpa ubah skema Roomlist).
+8. ✅ **Peran Petugas sesuai Kemenag** (Pembimbing Ibadah/TPIHI, Ketua Kloter, Ketua
+   Rombongan, Tour Leader, Muthawif, Handling).
+9. ✅ **Pembimbing kloter ↔ Petugas.** Field Pembimbing di form Kloter jadi datalist dari
+   petugas terdaftar (tetap bisa manual).
+10. ✅ **Alur DP → Pelunasan otomatis.** `konfirmasiPembayaranManual` kini:
+    (a) memperbarui status jamaah via `recomputeStatusBayarJamaah_` (**Belum Bayar → DP
+    Lunas → Lunas**), dan (b) setelah DP, **otomatis membuat invoice Pelunasan** + jatuh
+    tempo (tglBerangkat − `BATAS_PELUNASAN_HARI`).
+11. ✅ **Filter kloter** "Selesai" disembunyikan dari pilihan tambah jamaah.
+
+**Perubahan model harga (besar):**
+12. ✅ **Harga pindah dari Kloter ke Paket.** Sheet **Paket** kini sumber harga:
+    `Harga (Quad)` + `Tambahan Triple` + `Tambahan Double` + `DP Minimal`. Sheet **Group**
+    dapat kolom **`ID Paket`** (index 23). `hitungHargaJamaah_` resolusi via paket kloter,
+    **fallback ke harga inline kloter** untuk data lama (kompatibel mundur).
+13. ✅ **Halaman Paket** (sidebar, grup Utama) dengan CRUD penuh (`simpanPaket`/`hapusPaket`,
+    route `paket.save`/`paket.delete`, izin `kelolaGroup`). `getGroupList` mengembalikan
+    `idPaket`, `namaPaket`, dan harga efektif.
+14. ✅ **Form Kloter**: input harga manual diganti **pemilih Paket** + preview.
+    **Form Tambah Jamaah**: cukup pilih Kloter → Paket & harga **terisi otomatis**.
+
+### Berikutnya (P6 — opsional)
+- DP memakai `DP Minimal` paket (saat ini DP = % dari `DP_DEFAULT_PERSEN`).
+- Satu kloter = satu paket (bila perlu multi-paket per kloter, perlu desain tambahan).
+- Add-on yang ditambahkan setelah invoice pelunasan terbit perlu regenerasi.
+- Paginasi modul Dokumen & "Jamaah Terbaru" dashboard.
+
+> ⚠️ **Aksi setelah deploy P5**: jalankan **Setup Awal** sekali → tambah kolom **ID Paket**
+> (Group), **Tambahan Triple/Double** (Paket), dan normalkan header **Petugas**. Set juga
+> **timezone project ke Asia/Jakarta** (Project Settings) agar status by-tanggal akurat.
+> Untuk data lama: isi harga tiap **Paket**, lalu buka tiap **Kloter** → pilih Paket.
+
+---
+
 ## 6. Catatan Teknis SISKOPATUH
 
 - **Sumber data resmi**: template & alur unggah jamaah ada di manual Kemenag

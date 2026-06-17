@@ -109,29 +109,42 @@ Setiap perubahan data dicatat otomatis: siapa yang input, jam berapa, apa yang d
 
 ## Mengelola Paket dan Kloter
 
-### Buat Paket Baru
-1. Buka tab sheet **Paket** di spreadsheet
-2. Tambah baris baru, isi kolom:
-   - ID Paket (contoh: PKT-2025-01)
-   - Nama Paket (contoh: Paket Hemat Ramadhan)
-   - Harga, DP Minimal, Durasi (hari)
-   - Hotel Madinah, Hotel Makkah
-   - Kolom Aktif: isi `TRUE`
+### Buat Paket Baru (sumber harga)
+**Paket adalah tempat mengatur HARGA.** Kloter tinggal memilih paket, dan harga jamaah
+otomatis mengikuti paket tersebut.
+1. Buka halaman **Paket** di sidebar (grup Utama), klik **+ Tambah Paket**
+2. Isi:
+   - Nama Paket (contoh: Paket Nyaman Plus)
+   - **Harga Quad / orang** (harga dasar kamar berempat)
+   - **Tambahan Triple** & **Tambahan Double** (biaya upgrade di atas Quad)
+   - DP Minimal, Durasi (hari), Hotel Madinah/Makkah (acuan)
+   - Status: Aktif / Nonaktif
+3. Preview harga Quad/Triple/Double muncul saat mengisi.
 
 ### Buat Kloter / Group
 1. Di halaman **Kloter**, klik **+ Tambah Kloter**
-2. Isi data: Nama, Tanggal Berangkat/Pulang, Maskapai, Harga, dst.
-3. Status kloter **otomatis ditentukan dari tanggal**:
-   - **Aktif/Draft** — tanggal berangkat belum tiba
-   - **Berjalan** — sudah melewati tanggal berangkat, belum lewat tanggal pulang
-   - **Selesai** — sudah melewati tanggal pulang
-4. Untuk membuat kloter serupa, klik **Duplikasi** pada kloter yang sudah ada — data tersalin
-   (kecuali tanggal & jamaah), tinggal edit sedikit.
+2. Isi data: Nama, Tanggal Berangkat/Pulang, Maskapai, Penerbangan, **Hotel**, Kapasitas.
+3. **Pilih Paket** — harga kloter & jamaah otomatis mengikuti paket (tidak lagi mengetik
+   harga manual di kloter). Preview harga muncul setelah paket dipilih.
+4. **Pembimbing** bisa dipilih dari daftar petugas terdaftar (atau ketik manual).
+5. Status kloter **otomatis dari tanggal**:
+   - **Aktif/Draft** — belum tiba tanggal berangkat
+   - **Berjalan** — sudah lewat tanggal berangkat, belum lewat tanggal pulang
+   - **Selesai** — sudah lewat tanggal pulang
+   > Agar status akurat, pastikan **timezone project = Asia/Jakarta** (Project Settings).
+6. Untuk kloter serupa, klik **Duplikasi** pada kloter yang ada.
+
+> 💡 **Kloter lama** yang sudah punya harga sendiri tetap berfungsi; tinggal buka & pilih
+> paket bila ingin pindah ke model harga-di-paket.
 
 ### Petugas (Tour Leader / Pembimbing / Muthawif)
 1. Buka halaman **Petugas** di sidebar (grup Admin)
-2. Klik **+ Tambah Petugas**, isi data lengkap (NIK, paspor, jabatan, dll.)
-3. Data petugas sesuai format SISKOPATUH — bisa dilaporkan ke Kemenag.
+2. Klik **+ Tambah Petugas**, isi data lengkap (NIK, paspor, peran, dll.)
+   - **Peran** sesuai Kemenag: Pembimbing Ibadah (TPIHI), Ketua Kloter, Ketua Rombongan,
+     Tour Leader, Muthawif, Handling.
+   - Pilih **Kloter** tempat petugas bertugas.
+3. Petugas yang sudah dipilihkan kloter akan **muncul di Roomlist** kloter tersebut dan bisa
+   ditempatkan di kamar (ditandai 🧑‍✈️).
 
 ### Pengaturan Penting (sheet Config)
 - **`BPIU_REFERENSI`** — isi biaya referensi umroh Kemenag (angka saja). Bila harga kloter
@@ -185,7 +198,9 @@ Setiap perubahan data dicatat otomatis: siapa yang input, jam berapa, apa yang d
 2. Isi semua data wajib (ditandai *):
    - **Data Pribadi**: Nama lengkap, NIK (16 digit), No. HP (format: 628xxx), Email
    - **Alamat**: Jalan, Kota, Provinsi
-   - **Paket & Kloter**: pilih dari dropdown (diisi Owner sebelumnya)
+   - **Paket & Kloter**: cukup **pilih Kloter** — **Paket & harga terisi otomatis** dari
+     kloter tsb. Harga per jamaah langsung tampil sesuai tipe kamar yang dipilih.
+     (Kloter berstatus "Selesai" tidak muncul di pilihan.)
    - **Kesehatan**: isi jika ada kondisi khusus
 3. Klik **Simpan Jamaah**
 4. Sistem otomatis:
@@ -263,6 +278,10 @@ Roomlist adalah pengaturan kamar hotel untuk jamaah di Madinah dan Makkah.
 **Membaca tanda di kartu jamaah:**
 - 🟣 **Titik berwarna** = penanda **satu keluarga**. Jamaah dengan `ID Keluarga` sama
   mendapat **warna yang sama**, supaya mudah ditempatkan sekamar/berdekatan.
+- 💑 = pasangan suami-istri (tempatkan sekamar).
+- 🧑‍✈️ = **petugas kloter** (pembimbing/tour leader/muthawif). Petugas yang sudah
+  dipilihkan kloter muncul di bagian **"Petugas Kloter"** pada daftar Belum Ditempatkan dan
+  bisa di-drag ke kamar seperti jamaah.
 - **♂ / ♀** = jenis kelamin (laki-laki / perempuan).
 - Keterangan tanda ini juga ditampilkan di atas daftar "Belum Ditempatkan".
 
@@ -394,9 +413,12 @@ Ketika jamaah sudah transfer dan kirim bukti ke WA/email:
 4. Klik **Konfirmasi**
 5. Sistem otomatis:
    - Update status invoice menjadi **Lunas**
+   - Perbarui **status pembayaran jamaah**: **Belum Bayar → DP Lunas → Lunas**
+     (yang baru bayar DP berstatus **DP Lunas**, bukan langsung Lunas)
+   - **Jika yang dikonfirmasi adalah DP**, otomatis **membuat invoice Pelunasan** lengkap
+     dengan tanggal jatuh tempo (= tanggal berangkat − batas pelunasan, default 45 hari)
    - Catat **tanggal + jam** konfirmasi & nama Finance yang konfirmasi
-   - Simpan tautan bukti
-   - Kirim notifikasi WA ke jamaah
+   - Simpan tautan bukti, kirim notifikasi WA ke jamaah
 
 ---
 
@@ -420,22 +442,24 @@ maskapai, dll):
 Untuk jamaah yang belum bayar atau sudah jatuh tempo:
 
 1. Temukan invoice di daftar
-2. Klik tombol **📲 WA** (kuning) di baris invoice
+2. Klik tombol **📲 WA** di baris invoice — tombol ini **hanya muncul pada invoice yang
+   belum lunas** (tidak bisa mengirim reminder ke invoice yang sudah Lunas)
 3. Pesan reminder otomatis terkirim ke nomor HP jamaah
 
 ---
 
-## Generate Invoice Pelunasan
+## Invoice Pelunasan
 
-Setelah jamaah lunas DP dan siap bayar pelunasan:
+**Otomatis:** begitu **DP dikonfirmasi**, invoice Pelunasan langsung dibuat beserta jatuh
+temponya — Finance tidak perlu membuat manual untuk kasus normal.
 
-1. Di halaman Pembayaran → klik tombol **Generate Pelunasan**
-2. Cari nama atau ID jamaah di kotak pencarian
-3. Pilih jamaah dari hasil pencarian
-4. Klik **Generate Invoice Pelunasan**
-5. Invoice pelunasan otomatis dibuat dan dikirim via WA
+**Manual (bila perlu):** untuk kasus khusus (mis. pelunasan dibuat ulang setelah tambah
+add-on), tetap tersedia tombol **Generate Pelunasan**:
+1. Klik **Generate Pelunasan** → cari & pilih jamaah → **Generate Invoice Pelunasan**
+2. Nominal = (harga kamar + semua add-on) − total yang sudah dibayar.
 
-> Pastikan jamaah sudah lunas DP sebelum generate pelunasan.
+> Tambahkan **add-on sebelum** DP dikonfirmasi agar langsung ikut tertagih di pelunasan
+> otomatis. Bila ditambah setelahnya, buat ulang invoice pelunasan.
 
 ---
 
@@ -476,8 +500,7 @@ Setelah jamaah lunas DP dan siap bayar pelunasan:
    - **No. HP**: format 628xxx (contoh: 6281234567890)
    - **Email**: opsional, jika punya
    - **Alamat**: lengkap
-   - **Paket**: pilih paket yang dibeli jamaah
-   - **Group/Kloter**: pilih kloter keberangkatan
+   - **Kloter**: pilih kloter keberangkatan — **Paket & harga otomatis mengikuti** kloter
 3. Klik **Simpan Jamaah**
 4. WhatsApp otomatis terkirim ke jamaah berisi:
    - Konfirmasi pendaftaran

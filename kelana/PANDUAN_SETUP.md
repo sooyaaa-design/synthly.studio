@@ -94,7 +94,18 @@ Saat membuat file HTML, pilih **HTML** (bukan Script).
 7. Tunggu hingga muncul notifikasi "Setup berhasil"
 
 > Setelah setup, spreadsheet Anda akan otomatis punya semua sheet:  
-> Jamaah, Group, Lead, Pembayaran, Dokumen, Roomlist, Manifest, Paket, Config, Log Aktivitas
+> Jamaah, Group, Lead, Pembayaran, Dokumen, Roomlist, Manifest, Paket, AddOn, Petugas,
+> Config, Log Aktivitas
+>
+> **Setup Awal aman dijalankan berulang (idempoten).** Selain membuat sheet, ia juga
+> menambah kolom baru bila ada update sistem (mis. **ID Paket** di Group, **Tambahan
+> Triple/Double** di Paket, kolom SISKOPATUH/Keluarga di Jamaah, header Petugas) **tanpa
+> menghapus data**. Jalankan ulang setiap kali memperbarui kode.
+
+> ⏰ **WAJIB: atur Zona Waktu project.** Buka Apps Script → **⚙️ Project Settings** →
+> **Time zone** → pilih **(GMT+07:00) Asia/Jakarta**. Tanpa ini, status kloter
+> (Aktif/Berjalan/Selesai) dan tanggal jatuh tempo bisa meleset karena server memakai jam
+> default-nya.
 
 ---
 
