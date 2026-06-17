@@ -290,7 +290,8 @@ function init() {
         var o = document.createElement('option');
         o.value = g.idGroup;
         o.textContent = g.namaGroup + ' — ' + (g.tglBerangkat||'');
-        o.dataset.harga = g.hargaQuad || 0; // harga aktual kloter (yang ditagih)
+        o.dataset.harga = g.hargaQuad || 0; // harga inline kloter (fallback)
+        o.dataset.idpaket = g.idPaket || ''; // paket sumber harga
         sel.appendChild(o);
       });
     }).getGroupList();
@@ -304,9 +305,11 @@ function renderHargaPreview() {
   var gOpt = document.getElementById('f-group');
   var pOpt = document.getElementById('f-paket');
   var gSel = gOpt.options[gOpt.selectedIndex];
+  // Paket otomatis mengikuti kloter (jika kloter merujuk paket).
+  if (gSel && gSel.dataset.idpaket) { pOpt.value = gSel.dataset.idpaket; }
   var pSel = pOpt.options[pOpt.selectedIndex];
-  var hargaKloter = gSel ? Number(gSel.dataset.harga||0) : 0;
   var hargaPaket  = pSel ? Number(pSel.dataset.harga||0) : 0;
+  var hargaKloter = (pSel && Number(pSel.dataset.harga||0)) ? 0 : (gSel ? Number(gSel.dataset.harga||0) : 0);
   var harga = hargaKloter > 0 ? hargaKloter : hargaPaket;
   if (!harga) { document.getElementById('dp-preview').style.display = 'none'; return; }
   var dp = hargaKloter > 0 ? Math.round(hargaKloter * 0.30)

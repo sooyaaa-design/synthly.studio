@@ -104,13 +104,18 @@ function setupSheets_() {
     'Kota Transit Pulang','No Flight Pulang 1','No Flight Pulang 2',
     'Hotel Madinah','Hotel Makkah','Hotel Transit',
     'Harga Quad','Tambahan Triple','Tambahan Double',
-    'Kapasitas','Terisi','Status Group','Pembimbing','Catatan'
+    'Kapasitas','Terisi','Status Group','Pembimbing','Catatan',
+    // index 23 — kloter merujuk ke Paket sebagai sumber harga
+    'ID Paket'
   ]);
 
-  // Paket
+  // Paket — sumber harga utama (Quad base + tambahan upgrade + DP)
+  // 0:IDPaket 1:NamaPaket 2:HargaQuad 3:DPMinimal 4:Durasi
+  // 5:HotelMadinah 6:HotelMakkah 7:Aktif 8:TambahanTriple 9:TambahanDouble
   createSheetIfNotExists_(ss, 'Paket', [
-    'ID Paket','Nama Paket','Harga','DP Minimal',
-    'Durasi (Hari)','Hotel Madinah','Hotel Makkah','Aktif'
+    'ID Paket','Nama Paket','Harga (Quad)','DP Minimal',
+    'Durasi (Hari)','Hotel Madinah','Hotel Makkah','Aktif',
+    'Tambahan Triple','Tambahan Double'
   ]);
 
   // Pembayaran — kolom (0-indexed):
@@ -760,6 +765,9 @@ function getGroupList() {
   if (!sh || sh.getLastRow() < 2) return [];
   var today = new Date(); today.setHours(0,0,0,0);
   var terisiMap = hitungTerisiPerGroup_(); // jumlah jamaah aktual per kloter
+  // Peta harga paket (sumber harga utama) — dipakai mengisi harga efektif kloter.
+  var paketMap = {};
+  try { getPaketList(true).forEach(function(p){ paketMap[p.idPaket] = p; }); } catch(e) {}
   return sh.getDataRange().getValues().slice(1)
     .filter(function(r) { return r[0]; })
     .map(function(r) {
@@ -778,7 +786,7 @@ function getGroupList() {
           tambahanTriple: parseFloat(r[16]) || 0,
           tambahanDouble: parseFloat(r[17]) || 0,
           kapasitas: r[18], terisi: (terisiMap[r[0]] || 0), statusGroup: r[20],
-          pembimbing: r[21], catatan: r[22] || ''
+          pembimbing: r[21], catatan: r[22] || '', idPaket: r[23] || ''
         };
       } else {
         // backward compat: old 14-col schema
@@ -795,6 +803,14 @@ function getGroupList() {
         };
       }
       obj.statusGroup = autoStatusGroup_(obj, today, r[2], r[3]);
+      // Harga efektif: bila kloter merujuk paket, harga mengikuti paket.
+      if (obj.idPaket && paketMap[obj.idPaket]) {
+        var pk = paketMap[obj.idPaket];
+        obj.namaPaket      = pk.namaPaket;
+        obj.hargaQuad      = parseFloat(pk.harga) || 0;
+        obj.tambahanTriple = parseFloat(pk.tambahanTriple) || 0;
+        obj.tambahanDouble = parseFloat(pk.tambahanDouble) || 0;
+      }
       return obj;
     });
 }
@@ -855,9 +871,20 @@ function hitungHargaJamaah_(idGroup, tipeKamar, kategori) {
   var rows = sh.getDataRange().getValues();
   for (var i = 1; i < rows.length; i++) {
     if (rows[i][0] === idGroup) {
-      var base   = parseFloat(rows[i][15]) || 0;
-      var triple = parseFloat(rows[i][16]) || 0;
-      var dbl    = parseFloat(rows[i][17]) || 0;
+      // Sumber harga UTAMA: Paket yang dirujuk kloter (kolom 23). Bila kloter
+      // belum punya paket (data lama), fallback ke harga inline kloter (15-17).
+      var base, triple, dbl;
+      var idPaket = rows[i][23] || '';
+      var paket = idPaket ? getPaketById_(idPaket) : null;
+      if (paket && parseFloat(paket.harga) > 0) {
+        base   = parseFloat(paket.harga) || 0;
+        triple = parseFloat(paket.tambahanTriple) || 0;
+        dbl    = parseFloat(paket.tambahanDouble) || 0;
+      } else {
+        base   = parseFloat(rows[i][15]) || 0;
+        triple = parseFloat(rows[i][16]) || 0;
+        dbl    = parseFloat(rows[i][17]) || 0;
+      }
       // Infant: persen dari harga base Quad, tidak pilih tipe kamar
       if (kategori === 'Infant') {
         var persen = parseFloat(getConfig_('HARGA_INFANT_PERSEN') || '10') / 100;
@@ -895,7 +922,8 @@ function simpanGroup(data) {
       0,
       data.statusGroup || 'Aktif',
       data.pembimbing  || '',
-      data.catatan     || ''
+      data.catatan     || '',
+      data.idPaket     || ''
     ];
 
     if (idGroup) {
@@ -963,19 +991,90 @@ function hapusGroup(idGroup) {
 /**
  * Daftar semua paket (untuk dropdown di form).
  */
-function getPaketList() {
+function getPaketList(includeNonaktif) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Paket');
   if (!sh || sh.getLastRow() < 2) return [];
   return sh.getDataRange().getValues().slice(1)
-    .filter(function(r) { return r[0] && r[7] !== false; })
+    .filter(function(r) { return r[0] && (includeNonaktif || r[7] !== false); })
     .map(function(r) {
       return {
         idPaket:      r[0], namaPaket:    r[1],
         harga:        r[2], dpMinimal:    r[3],
         durasi:       r[4], hotelMadinah: r[5],
-        hotelMakkah:  r[6]
+        hotelMakkah:  r[6], aktif:        r[7] !== false,
+        tambahanTriple: parseFloat(r[8]) || 0,
+        tambahanDouble: parseFloat(r[9]) || 0
       };
     });
+}
+
+/**
+ * Simpan (create/update) paket.
+ */
+function simpanPaket(data) {
+  try {
+    if (!data || !String(data.namaPaket || '').trim()) return { success: false, error: 'Nama paket wajib diisi.' };
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName('Paket');
+    if (!sh) return { success: false, error: 'Sheet Paket tidak ditemukan.' };
+    var bpiuWarning = cekBpiu_(parseFloat(data.harga) || 0);
+    var row = [
+      data.idPaket || ('PKT-' + new Date().getTime()),
+      String(data.namaPaket).trim(),
+      parseFloat(data.harga) || 0,
+      parseFloat(data.dpMinimal) || 0,
+      parseInt(data.durasi) || 0,
+      data.hotelMadinah || '',
+      data.hotelMakkah || '',
+      data.aktif === false ? false : true,
+      parseFloat(data.tambahanTriple) || 0,
+      parseFloat(data.tambahanDouble) || 0
+    ];
+    if (data.idPaket) {
+      var rows = sh.getDataRange().getValues();
+      for (var i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]) === String(data.idPaket)) {
+          sh.getRange(i + 1, 1, 1, row.length).setValues([row]);
+          logActivity_(getCurrentUser_(), 'Update Paket', 'Paket', data.idPaket, data.namaPaket);
+          return { success: true, idPaket: data.idPaket, action: 'updated', warning: bpiuWarning };
+        }
+      }
+    }
+    sh.appendRow(row);
+    logActivity_(getCurrentUser_(), 'Tambah Paket', 'Paket', row[0], data.namaPaket);
+    return { success: true, idPaket: row[0], action: 'created', warning: bpiuWarning };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Hapus paket. Tolak bila masih dipakai kloter.
+ */
+function hapusPaket(idPaket) {
+  try {
+    if (!idPaket) return { success: false, error: 'ID paket wajib diisi.' };
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var shG = ss.getSheetByName('Group');
+    if (shG && shG.getLastRow() > 1) {
+      var dipakai = shG.getDataRange().getValues().slice(1).some(function(r) { return r[0] && r[23] === idPaket; });
+      if (dipakai) return { success: false, error: 'Paket masih dipakai oleh kloter. Ubah kloter dulu.' };
+    }
+    var sh = ss.getSheetByName('Paket');
+    if (!sh) return { success: false, error: 'Sheet Paket tidak ditemukan.' };
+    var rows = sh.getDataRange().getValues();
+    for (var i = rows.length - 1; i >= 1; i--) {
+      if (String(rows[i][0]) === String(idPaket)) {
+        var nama = rows[i][1];
+        sh.deleteRow(i + 1);
+        logActivity_(getCurrentUser_(), 'Hapus Paket', 'Paket', idPaket, nama);
+        return { success: true, namaPaket: nama };
+      }
+    }
+    return { success: false, error: 'Paket tidak ditemukan.' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 // ─── PRIVATE HELPERS ─────────────────────────────────────────────────────────
@@ -1027,7 +1126,9 @@ function getPaketById_(idPaket) {
       return {
         idPaket:    rows[i][0], namaPaket:   rows[i][1],
         harga:      rows[i][2], dpMinimal:   rows[i][3],
-        durasi:     rows[i][4]
+        durasi:     rows[i][4], hotelMadinah: rows[i][5], hotelMakkah: rows[i][6],
+        tambahanTriple: parseFloat(rows[i][8]) || 0,
+        tambahanDouble: parseFloat(rows[i][9]) || 0
       };
     }
   }

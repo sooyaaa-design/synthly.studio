@@ -248,7 +248,8 @@ var WRITE_ACTIONS = {
   'keluarga.tambah': 1, 'roomlist.saveBatch': 1,
   'group.save': 1, 'group.delete': 1,
   'group.duplikasi': 1, 'petugas.save': 1, 'petugas.delete': 1,
-  'pembayaran.uploadBukti': 1, 'addon.save': 1, 'addon.delete': 1
+  'pembayaran.uploadBukti': 1, 'addon.save': 1, 'addon.delete': 1,
+  'paket.save': 1, 'paket.delete': 1
 };
 
 // Aksi → fitur (untuk cek PERMISSIONS di Roles.gs). null = boleh semua user login.
@@ -310,6 +311,8 @@ var ACTION_PERMISSION = {
   'group.get':              null,
   'group.harga':            null,
   'group.duplikasi':        'kelolaGroup',
+  'paket.save':             'kelolaGroup',
+  'paket.delete':           'kelolaGroup',
   'petugas.list':           'daftarJamaah',
   'petugas.save':           'kelolaGroup',
   'petugas.delete':         'kelolaGroup',
@@ -355,7 +358,9 @@ function dispatchAction_(action, p, sess) {
     case 'auth.me':       return { email: sess.email, nama: sess.nama, role: sess.role };
     case 'dashboard':     return getDashboardFull();
     case 'group.list':    return getGroupList();
-    case 'paket.list':    return getPaketList();
+    case 'paket.list':    return getPaketList(p.includeNonaktif);
+    case 'paket.save':    return logKalauSukses_(simpanPaket(p), 'Simpan Paket', 'Paket', p.namaPaket);
+    case 'paket.delete':  return hapusPaket(p.idPaket);
     case 'license.info':  return getLicenseInfo();
 
     case 'jamaah.list':   return getJamaahList();

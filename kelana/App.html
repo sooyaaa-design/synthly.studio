@@ -486,6 +486,7 @@ const ACCESS = {
   overview:['Owner','Admin','Finance','Marketing','Pembimbing'],
   jamaah:['Owner','Admin','Finance','Marketing','Pembimbing'],
   kloter:['Owner','Admin','Finance','Marketing','Pembimbing'],
+  paket:['Owner','Admin'],
   lead:['Owner','Admin','Marketing'],
   dokumen:['Owner','Admin'],
   roomlist:['Owner','Admin','Pembimbing'],
@@ -621,6 +622,7 @@ const NAV = [
     {id:'overview', label:'Dashboard', ic:'dash'},
     {id:'jamaah',   label:'Jamaah',    ic:'users', count:()=> cache.jamaah?cache.jamaah.length:null},
     {id:'kloter',   label:'Kloter',    ic:'plane', count:()=> cache.groups?cache.groups.length:null},
+    {id:'paket',    label:'Paket',     ic:'doc', count:()=> cache.paket?cache.paket.length:null},
     {id:'lead',     label:'Lead & CRM',ic:'lead'}
   ]},
   {grp:'Admin', items:[
@@ -978,7 +980,6 @@ function openJamaahForm(id){
   const editing=!!id;
   const j=editing?(cache.jamaah||[]).find(x=>x.idJamaah===id)||{}:{};
   const groupOpts='<option value="">— Pilih kloter —</option>'+(cache.groups||[]).filter(g=>g.statusGroup!=='Selesai'||j.idGroup===g.idGroup).map(g=>'<option value="'+esc(g.idGroup)+'"'+(j.idGroup===g.idGroup?' selected':'')+'>'+esc(g.namaGroup)+(g.statusGroup==='Selesai'?' (selesai)':'')+'</option>').join('');
-  const paketOpts='<option value="">— Pilih paket —</option>'+(cache.paket||[]).map(p=>'<option value="'+esc(p.namaPaket)+'"'+(j.paket===p.namaPaket?' selected':'')+'>'+esc(p.namaPaket)+' — '+rupiah(p.harga)+'</option>').join('');
   function v(x){ return esc(j[x]!=null?j[x]:''); }
   function opt(list,sel){ return list.map(o=>'<option'+(sel===o?' selected':'')+'>'+o+'</option>').join(''); }
   const html='<div class="modal-head"><h3>'+(editing?'Edit Jamaah':'Tambah Jamaah')+'</h3><button class="x" onclick="closeModal()">&times;</button></div>'
@@ -1026,8 +1027,8 @@ function openJamaahForm(id){
     +field('Status Vaksin',false,'<select id="f_vaksin"><option value="">—</option>'+opt(['Lengkap','Belum','Sebagian'],j.statusVaksin)+'</select>')
     +field('Kondisi Kesehatan',false,'<textarea id="f_sehat">'+v('kondisiKesehatan')+'</textarea>','fg-full')
     +'<div class="section-lbl">Paket & Kloter</div>'
-    +field('Paket',true,'<select id="f_paket">'+paketOpts+'</select>')
-    +field('Kloter',false,'<select id="f_group" onchange="jamaahHargaPreview()">'+groupOpts+'</select>')
+    +field('Kloter',true,'<select id="f_group" onchange="jamaahHargaPreview()">'+groupOpts+'</select>','','Pilih kloter — paket & harga otomatis mengikuti')
+    +field('Paket',false,'<input id="f_paket" readonly value="'+esc(j.paket||'')+'" style="background:var(--k-surface)">','','Otomatis dari kloter yang dipilih')
     +field('Tipe Kamar',false,'<select id="f_tipe" onchange="jamaahHargaPreview()"><option value="Quad"'+(j.tipeKamar==='Quad'||!j.tipeKamar?' selected':'')+'>Quad (standar)</option><option value="Triple"'+(j.tipeKamar==='Triple'?' selected':'')+'>Triple (upgrade)</option><option value="Double"'+(j.tipeKamar==='Double'?' selected':'')+'>Double (upgrade)</option></select>','','Tidak berlaku untuk Infant — harga infant dihitung otomatis')
     +'<div id="f_hargaInfo" class="fg-full" style="display:none;background:var(--k-surface);border-radius:8px;padding:9px 13px;font-size:13px;font-weight:700;color:var(--k)"></div>'
     +field('Sumber Lead',false,'<select id="f_sumber"><option value="">—</option>'+opt(['Instagram','Facebook','Referral','Walk-in','WhatsApp','Lainnya'],j.sumberLead)+'</select>')
@@ -1046,6 +1047,10 @@ async function jamaahHargaPreview(){
   const idGroup=$('f_group')?$('f_group').value:'';
   const tipeKamar=$('f_tipe')?$('f_tipe').value:'Quad';
   const kategori=$('f_kategori')?$('f_kategori').value:'Dewasa';
+  // Paket otomatis mengikuti kloter terpilih.
+  const grp=(cache.groups||[]).find(g=>g.idGroup===idGroup);
+  const pk=grp&&grp.idPaket?(cache.paket||[]).find(p=>p.idPaket===grp.idPaket):null;
+  if($('f_paket')) $('f_paket').value=pk?pk.namaPaket:'';
   const el=$('f_hargaInfo'); if(!el) return;
   if(!idGroup){ el.style.display='none'; return; }
   try{
@@ -1083,7 +1088,7 @@ async function submitJamaah(id){
   if(!p.namaLengkap){ err='Nama lengkap wajib diisi.'; $('f_nama').closest('.field').classList.add('err'); }
   else if(!/^\d{16}$/.test(p.nik)){ err='NIK harus 16 digit angka.'; $('f_nik').closest('.field').classList.add('err'); }
   else if(!p.noHp){ err='No HP wajib diisi.'; $('f_hp').closest('.field').classList.add('err'); }
-  else if(!p.paket){ err='Paket wajib dipilih.'; $('f_paket').closest('.field').classList.add('err'); }
+  else if(!p.idGroup){ err='Kloter wajib dipilih.'; $('f_group').closest('.field').classList.add('err'); }
   if(err){ toast(err,'error'); return; }
   const b=$('jSubmit'); b.disabled=true; b.textContent='Menyimpan…';
   try{
@@ -1260,6 +1265,7 @@ function renderKloterPage(c){
         +' &nbsp;·&nbsp; 🕋 <b>Makkah:</b> '+esc(g.hotelMakkah||'—')
         +(g.hotelTransit?' &nbsp;·&nbsp; 🏨 <b>Transit:</b> '+esc(g.hotelTransit):'')
         +'</div>':'')
+      +(g.namaPaket?'<div style="font-size:11px;margin-bottom:6px"><span class="badge gray" style="font-size:10px">📦 '+esc(g.namaPaket)+'</span></div>':'')
       +(g.hargaQuad?'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">'
         +'<div style="background:var(--indigo-bg);border-radius:7px;padding:5px 10px;text-align:center"><div style="font-size:10px;color:var(--indigo-tx);font-weight:700">QUAD</div><div style="font-size:13px;font-weight:800;color:var(--k)">'+rupiah(g.hargaQuad)+'</div></div>'
         +(g.tambahanTriple?'<div style="background:#f0fdf4;border-radius:7px;padding:5px 10px;text-align:center"><div style="font-size:10px;color:#166534;font-weight:700">TRIPLE</div><div style="font-size:13px;font-weight:800;color:#16a34a">'+rupiah(g.hargaQuad+g.tambahanTriple)+'</div></div>':'')
@@ -1315,17 +1321,25 @@ function openKloterForm(id){
     +field('Hotel Madinah',false,'<input id="g_hmad" value="'+v('hotelMadinah')+'" placeholder="Pullman Zamzam Madinah">')
     +field('Hotel Makkah',false,'<input id="g_hmak" value="'+v('hotelMakkah')+'" placeholder="Swissotel Makkah">')
     +field('Hotel Transit',false,'<input id="g_htrans" value="'+v('hotelTransit')+'" placeholder="Kosongkan jika tidak transit">','fg-full')
-    +'<div class="section-lbl fg-full">Harga & Kamar</div>'
-    +field('Harga Quad / orang',true,'<input type="number" id="g_hq" value="'+rawv('hargaQuad','')+'" placeholder="25000000" oninput="kloterUpdateHarga()">','','Harga dasar per orang (kamar 4 tempat tidur / Quad)')
-    +field('Tambahan Triple / orang',false,'<input type="number" id="g_ht" value="'+rawv('tambahanTriple','')+'" placeholder="2000000" oninput="kloterUpdateHarga()">','','Biaya upgrade ke kamar Triple (+Rp di atas Quad)')
-    +field('Tambahan Double / orang',false,'<input type="number" id="g_hd" value="'+rawv('tambahanDouble','')+'" placeholder="5000000" oninput="kloterUpdateHarga()">','','Biaya upgrade ke kamar Double (+Rp di atas Quad)')
+    +'<div class="section-lbl fg-full">Paket & Harga</div>'
+    +field('Paket',true,'<select id="g_paket" onchange="kloterUpdateHarga()"><option value="">— Pilih paket —</option></select>','','Harga jamaah otomatis mengikuti paket. Kelola harga di menu Paket.')
     +'<div id="g_hargaPreview" class="fg-full" style="background:var(--k-surface);border-radius:9px;padding:11px 14px;display:flex;gap:20px;flex-wrap:wrap"></div>'
     +'</div></form></div>'
     +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
     +'<button class="btn primary" id="gSubmit" onclick="submitKloter('+(editing?'\''+esc(id)+'\'':'null')+')">'+(editing?'Simpan Perubahan':'Buat Kloter')+'</button></div>';
   openModal(html,{size:'lg',persistent:true});
-  kloterUpdateHarga();
+  loadKloterPaketOptions(g.idPaket||'');
   loadPembimbingOptions();
+}
+let _kloterPaketMap={};
+async function loadKloterPaketOptions(selId){
+  try{
+    const list=unwrapList(await api('paket.list',{includeNonaktif:true}));
+    _kloterPaketMap={}; (list||[]).forEach(p=>{ _kloterPaketMap[p.idPaket]=p; });
+    const sel=$('g_paket'); if(!sel) return;
+    sel.innerHTML='<option value="">— Pilih paket —</option>'+(list||[]).map(p=>'<option value="'+esc(p.idPaket)+'"'+(selId===p.idPaket?' selected':'')+'>'+esc(p.namaPaket)+' — '+rupiah(p.harga||0)+(p.aktif?'':' (nonaktif)')+'</option>').join('');
+    kloterUpdateHarga();
+  }catch(e){}
 }
 async function loadPembimbingOptions(){
   try{
@@ -1338,11 +1352,12 @@ function kloterToggleTransit(dir,show){
   $('tr'+dir+'Fields').style.display=show?'grid':'none';
 }
 function kloterUpdateHarga(){
-  const hq=parseFloat($('g_hq')?$('g_hq').value:0)||0;
-  const ht=parseFloat($('g_ht')?$('g_ht').value:0)||0;
-  const hd=parseFloat($('g_hd')?$('g_hd').value:0)||0;
+  const pk=_kloterPaketMap[$('g_paket')?$('g_paket').value:'']||{};
+  const hq=parseFloat(pk.harga)||0;
+  const ht=parseFloat(pk.tambahanTriple)||0;
+  const hd=parseFloat(pk.tambahanDouble)||0;
   const el=$('g_hargaPreview'); if(!el) return;
-  if(!hq){ el.innerHTML='<span class="muted sm">Isi harga Quad untuk melihat preview.</span>'; return; }
+  if(!hq){ el.innerHTML='<span class="muted sm">Pilih paket untuk melihat harga.</span>'; return; }
   el.innerHTML='<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--indigo-tx)">Quad</div><div style="font-size:15px;font-weight:800;color:var(--k)">'+rupiah(hq)+'</div></div>'
     +(ht?'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#166534">Triple</div><div style="font-size:15px;font-weight:800;color:#16a34a">'+rupiah(hq+ht)+'</div></div>':'')
     +(hd?'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#713f12">Double</div><div style="font-size:15px;font-weight:800;color:#d97706">'+rupiah(hq+hd)+'</div></div>':'');
@@ -1358,11 +1373,12 @@ async function submitKloter(id){
     noFlightPulang1:fval('g_pp1'), noFlightPulang2:fval('g_pp2'),
     kotaTransitPulang: $('g_trR')&&$('g_trR').checked?fval('g_trRkota'):'',
     hotelMadinah:fval('g_hmad'), hotelMakkah:fval('g_hmak'), hotelTransit:fval('g_htrans'),
-    hargaQuad:fval('g_hq'), tambahanTriple:fval('g_ht'), tambahanDouble:fval('g_hd')
+    idPaket:fval('g_paket')
   };
   if(!p.namaGroup){ toast('Nama kloter wajib diisi.','error'); return; }
   if(!p.tglBerangkat){ toast('Tanggal berangkat wajib diisi.','error'); return; }
   if(!p.noFlightPergi1){ toast('No penerbangan pergi wajib diisi.','error'); return; }
+  if(!p.idPaket){ toast('Pilih paket dulu (sumber harga kloter).','error'); return; }
   const b=$('gSubmit'); b.disabled=true; b.textContent='Menyimpan…';
   try{
     const res=await api('group.save',p);
@@ -2626,6 +2642,98 @@ LOADERS.log=async function(c){
     c.innerHTML=h;
   }catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') c.innerHTML=emptyState('⚠️','Gagal memuat log',e.message); }
 };
+
+/* =================================================================
+   VIEW: PAKET (master harga)
+   ================================================================= */
+LOADERS.paket=async function(c){
+  if(canOps()) setTopActions('<button class="btn primary" onclick="openPaketForm()">'+icon('plus',15)+'Tambah Paket</button>');
+  c.innerHTML=skelTable(6,5);
+  try{
+    const list=unwrapList(await api('paket.list',{includeNonaktif:true}));
+    cache.paketAll=list;
+    let h='<div class="card">';
+    h+='<div class="sm muted" style="margin-bottom:10px">Paket adalah sumber harga. Kloter memilih paket, lalu harga jamaah otomatis mengikuti paket.</div>';
+    if(!list.length){ h+=emptyState('📦','Belum ada paket','Klik "+ Tambah Paket" untuk membuat paket harga.'); }
+    else {
+      h+='<div class="tbl-wrap"><table class="tbl"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:14%"><col style="width:14%"><col style="width:12%"><col style="width:20%"></colgroup>'
+        +'<thead><tr><th>Nama Paket</th><th>Harga Quad</th><th>+Triple</th><th>+Double</th><th>Status</th><th></th></tr></thead><tbody>';
+      list.forEach(p=>{
+        const id=esc(p.idPaket||''); const nm=esc((p.namaPaket||'').replace(/'/g,''));
+        h+='<tr><td><b>'+esc(p.namaPaket)+'</b><div class="sm muted">DP min '+rupiah(p.dpMinimal||0)+' · '+esc(p.durasi||'-')+' hari</div></td>'
+          +'<td class="mono">'+rupiah(p.harga||0)+'</td>'
+          +'<td class="sm mono">'+(p.tambahanTriple?'+'+rupiah(p.tambahanTriple):'—')+'</td>'
+          +'<td class="sm mono">'+(p.tambahanDouble?'+'+rupiah(p.tambahanDouble):'—')+'</td>'
+          +'<td>'+(p.aktif?'<span class="badge green" style="font-size:10px">Aktif</span>':'<span class="badge gray" style="font-size:10px">Nonaktif</span>')+'</td>'
+          +'<td style="white-space:nowrap">'
+          +(canOps()?'<button class="btn sm" onclick="openPaketForm(\''+id+'\')">Edit</button> ':'')
+          +(canOps()?'<button class="btn sm danger" onclick="deletePaket(\''+id+'\',\''+nm+'\')">Hapus</button>':'')
+          +'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    h+='</div>';
+    c.innerHTML=h;
+  }catch(e){ if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') c.innerHTML=emptyState('⚠️','Gagal memuat paket',e.message); }
+};
+
+function openPaketForm(id){
+  const editing=!!id;
+  const p=editing?(cache.paketAll||[]).find(x=>x.idPaket===id)||{}:{};
+  function rv(k,def){ const val=p[k]; return val!=null&&val!==''?val:(def||''); }
+  openModal('<div class="modal-head"><h3>'+(editing?'Edit Paket':'Tambah Paket')+'</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body"><form id="pkForm" onsubmit="return false"><div class="form-grid">'
+    +field('Nama Paket',true,'<input id="pk_nama" value="'+esc(rv('namaPaket'))+'" placeholder="Contoh: Paket Nyaman Plus">','fg-full')
+    +field('Harga Quad / orang',true,'<input type="number" id="pk_hq" value="'+rv('harga','')+'" placeholder="28500000" oninput="pkPreview()">','','Harga dasar (kamar Quad)')
+    +field('DP Minimal',false,'<input type="number" id="pk_dp" value="'+rv('dpMinimal','')+'" placeholder="8550000">')
+    +field('Tambahan Triple / orang',false,'<input type="number" id="pk_ht" value="'+rv('tambahanTriple','')+'" placeholder="2000000" oninput="pkPreview()">','','+Rp di atas Quad')
+    +field('Tambahan Double / orang',false,'<input type="number" id="pk_hd" value="'+rv('tambahanDouble','')+'" placeholder="4000000" oninput="pkPreview()">','','+Rp di atas Quad')
+    +field('Durasi (hari)',false,'<input type="number" id="pk_durasi" value="'+rv('durasi','')+'" placeholder="12">')
+    +field('Hotel Madinah (acuan)',false,'<input id="pk_hmad" value="'+esc(rv('hotelMadinah'))+'">')
+    +field('Hotel Makkah (acuan)',false,'<input id="pk_hmak" value="'+esc(rv('hotelMakkah'))+'">')
+    +field('Status',false,'<select id="pk_aktif"><option value="1"'+(p.aktif!==false?' selected':'')+'>Aktif</option><option value="0"'+(p.aktif===false?' selected':'')+'>Nonaktif</option></select>')
+    +'<div id="pk_preview" class="fg-full" style="background:var(--k-surface);border-radius:9px;padding:11px 14px;display:flex;gap:20px;flex-wrap:wrap"></div>'
+    +'</div></form></div>'
+    +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button>'
+    +'<button class="btn primary" id="pkBtn" onclick="submitPaket('+(editing?'\''+esc(id)+'\'':'null')+')">'+(editing?'Simpan':'Tambah Paket')+'</button></div>',
+    {size:'lg',persistent:true});
+  pkPreview();
+}
+function pkPreview(){
+  const hq=parseFloat($('pk_hq')?$('pk_hq').value:0)||0;
+  const ht=parseFloat($('pk_ht')?$('pk_ht').value:0)||0;
+  const hd=parseFloat($('pk_hd')?$('pk_hd').value:0)||0;
+  const el=$('pk_preview'); if(!el) return;
+  if(!hq){ el.innerHTML='<span class="muted sm">Isi harga Quad untuk melihat preview.</span>'; return; }
+  el.innerHTML='<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--indigo-tx)">Quad</div><div style="font-size:15px;font-weight:800;color:var(--k)">'+rupiah(hq)+'</div></div>'
+    +(ht?'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#166534">Triple</div><div style="font-size:15px;font-weight:800;color:#16a34a">'+rupiah(hq+ht)+'</div></div>':'')
+    +(hd?'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#713f12">Double</div><div style="font-size:15px;font-weight:800;color:#d97706">'+rupiah(hq+hd)+'</div></div>':'');
+}
+async function submitPaket(id){
+  const p={ namaPaket:fval('pk_nama'), harga:fval('pk_hq'), dpMinimal:fval('pk_dp'),
+    tambahanTriple:fval('pk_ht'), tambahanDouble:fval('pk_hd'), durasi:fval('pk_durasi'),
+    hotelMadinah:fval('pk_hmad'), hotelMakkah:fval('pk_hmak'), aktif:fval('pk_aktif')!=='0' };
+  if(!p.namaPaket){ toast('Nama paket wajib diisi.','error'); return; }
+  if(!parseFloat(p.harga)){ toast('Harga Quad wajib diisi.','error'); return; }
+  if(id) p.idPaket=id;
+  const b=$('pkBtn'); b.disabled=true; b.textContent='Menyimpan…';
+  try{
+    const r=await api('paket.save',p);
+    await getPaket(true);
+    closeModal(); toast('Paket disimpan.'); if(r&&r.warning) toast(r.warning,'error');
+    LOADERS.paket($('content'));
+  }catch(e){ if(b){b.disabled=false;b.textContent=id?'Simpan':'Tambah Paket';} if(e.message!=='LISENSI'&&e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
+}
+function deletePaket(id,nama){
+  openModal('<div class="modal-head"><h3>Hapus Paket</h3><button class="x" onclick="closeModal()">&times;</button></div>'
+    +'<div class="modal-body">Yakin ingin menghapus paket <b>'+esc(nama)+'</b>?</div>'
+    +'<div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button><button class="btn danger" id="dpkBtn" onclick="confirmDeletePaket(\''+esc(id)+'\')">Hapus</button></div>',{size:'sm'});
+}
+async function confirmDeletePaket(id){
+  const b=$('dpkBtn'); b.disabled=true; b.textContent='Menghapus…';
+  try{ await api('paket.delete',{idPaket:id}); await getPaket(true); closeModal(); toast('Paket dihapus.'); LOADERS.paket($('content')); }
+  catch(e){ if(b){b.disabled=false;b.textContent='Hapus';} if(e.message!=='SESSION_EXPIRED'&&e.message!=='AKSES_DITOLAK') toast(e.message,'error'); }
+}
 
 /* =================================================================
    VIEW: PETUGAS & TOUR LEADER

@@ -107,16 +107,17 @@ function _isiConfig(ss) {
 function _isiPaket(ss) {
   var sh = ss.getSheetByName('Paket');
   if (!sh) return;
-  var HEADERS = ['ID Paket','Nama Paket','Harga','DP Minimal','Durasi (Hari)','Hotel Madinah','Hotel Makkah','Aktif'];
+  var HEADERS = ['ID Paket','Nama Paket','Harga (Quad)','DP Minimal','Durasi (Hari)','Hotel Madinah','Hotel Makkah','Aktif','Tambahan Triple','Tambahan Double'];
   sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
 
+  // ID | Nama | HargaQuad | DPMinimal | Durasi | HotelMadinah | HotelMakkah | Aktif | +Triple | +Double
   var rows = [
-    ['PKT-001', 'Paket Hemat Reguler',       22000000, 6600000,  9,  'Movenpick Hajar Tower', 'Hilton Suites Makkah',    true],
-    ['PKT-002', 'Paket Nyaman Plus',          28500000, 8550000,  12, 'Pullman Zamzam Madinah','Swissotel Makkah',        true],
-    ['PKT-003', 'Paket Premium Ramadhan',     35000000, 10500000, 14, 'Dar Al Iman Royal',     'Sheraton Makkah Jabal',   true],
-    ['PKT-004', 'Paket VIP Eksklusif',        55000000, 16500000, 14, 'Anwar Al Madinah',      'Raffles Makkah Palace',   true],
-    ['PKT-005', 'Paket Backpacker Budget',    18500000, 5550000,  9,  'Al Haram Hotel',        'Ajyad Makkah Hotel',      false],
+    ['PKT-001', 'Paket Hemat Reguler',       22000000, 6600000,  9,  'Movenpick Hajar Tower', 'Hilton Suites Makkah',    true,  1500000, 3000000],
+    ['PKT-002', 'Paket Nyaman Plus',          28500000, 8550000,  12, 'Pullman Zamzam Madinah','Swissotel Makkah',        true,  2000000, 4000000],
+    ['PKT-003', 'Paket Premium Ramadhan',     35000000, 10500000, 14, 'Dar Al Iman Royal',     'Sheraton Makkah Jabal',   true,  2500000, 5000000],
+    ['PKT-004', 'Paket VIP Eksklusif',        55000000, 16500000, 14, 'Anwar Al Madinah',      'Raffles Makkah Palace',   true,  5000000, 10000000],
+    ['PKT-005', 'Paket Backpacker Budget',    18500000, 5550000,  9,  'Al Haram Hotel',        'Ajyad Makkah Hotel',      false, 1000000, 2000000],
   ];
   rows.forEach(function(r) { sh.appendRow(r); });
 }
@@ -132,7 +133,7 @@ function _isiGroup(ss) {
     'Kota Transit Pulang','No Flight Pulang 1','No Flight Pulang 2',
     'Hotel Madinah','Hotel Makkah','Hotel Transit',
     'Harga Quad','Tambahan Triple','Tambahan Double',
-    'Kapasitas','Terisi','Status Group','Pembimbing','Catatan'
+    'Kapasitas','Terisi','Status Group','Pembimbing','Catatan','ID Paket'
   ];
   sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   if (sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
@@ -152,7 +153,7 @@ function _isiGroup(ss) {
       '', 'SV815', '',
       'Movenpick Hajar Tower', 'Hilton Suites Makkah', '',
       22000000, 1500000, 3000000,
-      45, 42, 'Selesai', 'Ust. Ahmad Fauzi', 'Sudah berangkat, semua berjalan lancar'],
+      45, 42, 'Selesai', 'Ust. Ahmad Fauzi', 'Sudah berangkat, semua berjalan lancar', 'PKT-001'],
 
     // Direct flight — Garuda Indonesia CGK→JED
     ['GRP-2025-02','Kloter Maret 2025 — Nyaman Plus',
@@ -162,7 +163,7 @@ function _isiGroup(ss) {
       '', 'GA980', '',
       'Pullman Zamzam Madinah', 'Swissotel Makkah', '',
       28500000, 2000000, 4000000,
-      40, 38, 'Selesai', 'Ust. Hasan Basri', 'Sudah selesai'],
+      40, 38, 'Selesai', 'Ust. Hasan Basri', 'Sudah selesai', 'PKT-002'],
 
     // Direct flight — Saudi Airlines, Ramadhan premium
     ['GRP-2025-03','Kloter Ramadhan 2025 — Premium',
@@ -172,7 +173,7 @@ function _isiGroup(ss) {
       '', 'SV821', '',
       'Dar Al Iman Royal', 'Sheraton Makkah Jabal', '',
       35000000, 2500000, 5000000,
-      35, 35, 'Selesai', 'Ust. Yusuf Mansur Jr.', 'Full capacity'],
+      35, 35, 'Selesai', 'Ust. Yusuf Mansur Jr.', 'Full capacity', 'PKT-003'],
 
     // Transit via KUL — Batik Air BDO→KUL + AirAsia KUL→JED
     ['GRP-2025-04','Kloter Juli 2025 — Nyaman Plus',
@@ -182,7 +183,7 @@ function _isiGroup(ss) {
       'KUL', 'QZ3702', 'ID7082',
       'Pullman Zamzam Madinah', 'Swissotel Makkah', 'Berjaya Times Square KL',
       28500000, 2000000, 4000000,
-      42, 30, 'Aktif', 'Ust. Ridwan Al-Habsyi', 'Proses dokumen jamaah'],
+      42, 30, 'Aktif', 'Ust. Ridwan Al-Habsyi', 'Proses dokumen jamaah', 'PKT-002'],
 
     // Transit via KUL — Lion Air CGK→KUL + Malaysia Airlines KUL→JED
     ['GRP-2025-05','Kloter September 2025 — Hemat',
@@ -192,7 +193,7 @@ function _isiGroup(ss) {
       'KUL', 'MH370', 'JT210',
       'Movenpick Hajar Tower', 'Hilton Suites Makkah', 'Tune Hotel KL',
       22000000, 1500000, 3000000,
-      50, 18, 'Aktif', 'Ust. Fuad Ibrahim', 'Masih open booking'],
+      50, 18, 'Aktif', 'Ust. Fuad Ibrahim', 'Masih open booking', 'PKT-001'],
 
     // Direct flight — Garuda VIP
     ['GRP-2026-01','Kloter Januari 2026 — VIP',
@@ -202,7 +203,7 @@ function _isiGroup(ss) {
       '', 'GA980', '',
       'Anwar Al Madinah', 'Raffles Makkah Palace', '',
       55000000, 5000000, 10000000,
-      20, 5, 'Aktif', 'Belum ditentukan', 'Pre-booking VIP'],
+      20, 5, 'Aktif', 'Belum ditentukan', 'Pre-booking VIP', 'PKT-004'],
   ];
   rows.forEach(function(r) { sh.appendRow(r); });
 }
