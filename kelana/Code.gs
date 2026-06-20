@@ -272,6 +272,27 @@ function validateJamaahData_(data, mode) {
 }
 
 /**
+ * Cek apakah NIK sudah dipakai jamaah LAIN.
+ * @param {string} nik
+ * @param {string} [kecualiIdJamaah] — abaikan baris dengan idJamaah ini (untuk update)
+ * @returns {boolean}
+ */
+function nikSudahDipakai_(nik, kecualiIdJamaah) {
+  var norm = String(nik || '').replace(/\D/g, '');
+  if (!norm) return false; // NIK kosong tidak diblok di sini
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jamaah');
+  if (!sh || sh.getLastRow() < 2) return false;
+  // Kolom A..C → 0:ID Jamaah, 2:NIK
+  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+  for (var i = 0; i < vals.length; i++) {
+    if (kecualiIdJamaah && String(vals[i][0]) === String(kecualiIdJamaah)) continue;
+    var rowNik = String(vals[i][2] || '').replace(/\D/g, '');
+    if (rowNik && rowNik === norm) return true;
+  }
+  return false;
+}
+
+/**
  * Simpan jamaah baru ke sheet Jamaah + buat baris dokumen + generate invoice DP.
  * Dipanggil oleh simpanJamaahSecure() di Roles.gs (sudah ada permission + license check).
  * HTML harus memanggil simpanJamaahSecure(), bukan fungsi ini langsung.
@@ -280,6 +301,10 @@ function simpanJamaah(data) {
   try {
     var verr = validateJamaahData_(data, 'create');
     if (verr) return { success: false, error: verr };
+
+    if (data.nik && nikSudahDipakai_(data.nik)) {
+      return { success: false, error: 'NIK sudah terdaftar atas nama lain.' };
+    }
 
     var ss  = SpreadsheetApp.getActiveSpreadsheet();
     var shJ = ss.getSheetByName('Jamaah');

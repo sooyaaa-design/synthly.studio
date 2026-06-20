@@ -13,10 +13,38 @@
  *   formatRupiah_(n), getConfig_(key)
  */
 
+// ─── KEAMANAN WEBHOOK ────────────────────────────────────────────────────────
+
+/** Token webhook tersimpan di ScriptProperties (tidak ada default — fail-closed). */
+function getWebhookToken_() {
+  return PropertiesService.getScriptProperties().getProperty('XENDIT_WEBHOOK_TOKEN') || '';
+}
+
+/**
+ * Set token webhook. Jalankan SEKALI di editor: setWebhookToken_('tokenAcakPanjang...').
+ * Minimal 16 karakter. Daftarkan URL webhook ke Xendit dengan query: ...?token=TOKEN
+ */
+function setWebhookToken_(t) {
+  if (!t || String(t).length < 16) throw new Error('Token minimal 16 karakter.');
+  PropertiesService.getScriptProperties().setProperty('XENDIT_WEBHOOK_TOKEN', String(t));
+  Logger.log('XENDIT_WEBHOOK_TOKEN tersimpan.');
+  return 'OK — XENDIT_WEBHOOK_TOKEN tersimpan.';
+}
+
 // ─── ENTRY POINT ─────────────────────────────────────────────────────────────
 
 function doPost(e) {
   try {
+    // ── Gate keamanan (FAIL-CLOSED): tolak jika token belum diset atau tidak cocok ──
+    var expectedToken = getWebhookToken_();
+    var gotToken = (e && e.parameter && e.parameter.token) || '';
+    if (!expectedToken || gotToken !== expectedToken) {
+      try {
+        logActivity_('System', 'Webhook Ditolak', 'Pembayaran', '-', 'token invalid/absen');
+      } catch (e2) {}
+      return jsonResponse_({ received: false, reason: 'unauthorized' });
+    }
+
     if (!e || !e.postData || !e.postData.contents) {
       return jsonResponse_({ received: false, reason: 'empty body' });
     }

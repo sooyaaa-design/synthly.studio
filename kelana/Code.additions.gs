@@ -439,6 +439,10 @@ function updateJamaah(data) {
     var verr = validateJamaahData_(data, 'update');
     if (verr) return { success: false, error: verr };
 
+    if (data.nik && nikSudahDipakai_(data.nik, data.idJamaah)) {
+      return { success: false, error: 'NIK sudah terdaftar atas nama lain.' };
+    }
+
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName('Jamaah');
     if (!sh) return { success: false, error: 'Sheet Jamaah tidak ditemukan.' };

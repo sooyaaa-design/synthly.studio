@@ -145,7 +145,8 @@ function setupOwnerPertama(data) {
     var email    = String(data.email || '').toLowerCase().trim();
     var password = String(data.password || '');
     if (!email || email.indexOf('@') < 0) return { success: false, error: 'Email tidak valid.' };
-    if (password.length < 6)              return { success: false, error: 'Password minimal 6 karakter.' };
+    var perr = validatePasswordStrength_(password);
+    if (perr)                              return { success: false, error: perr };
 
     // Buat akun owner DULU agar setupSheets_ → setupRolesSheet tidak menambah
     // akun Google pelaksana sebagai owner kedua.
@@ -205,6 +206,12 @@ function destroySession_(token) {
 }
 
 // ─── PASSWORD ───────────────────────────────────────────────────────────────────
+
+/** Validasi kekuatan password saat DI-SET (bukan saat login). '' = lolos. */
+function validatePasswordStrength_(pw) {
+  if (String(pw || '').length < 8) return 'Password minimal 8 karakter.';
+  return '';
+}
 
 function hashPassword_(password, salt) {
   var raw = Utilities.computeDigest(
@@ -538,6 +545,10 @@ function simpanPenggunaInternal_(data) {
     var sh    = ensurePenggunaSheet_();
     var email = String(data.email || '').toLowerCase().trim();
     if (!email) return { success: false, error: 'Email wajib diisi.' };
+    if (data.password) {
+      var perr = validatePasswordStrength_(data.password);
+      if (perr) return { success: false, error: perr };
+    }
 
     var existing = cariPengguna_(email);
     if (existing) {
@@ -561,6 +572,8 @@ function simpanPenggunaInternal_(data) {
 
 function setPasswordPengguna_(email, password) {
   if (!email || !password) return { success: false, error: 'Email dan password wajib diisi.' };
+  var perr = validatePasswordStrength_(password);
+  if (perr) return { success: false, error: perr };
   var u = cariPengguna_(String(email).toLowerCase());
   if (!u) return { success: false, error: 'Pengguna tidak ditemukan.' };
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Pengguna');
