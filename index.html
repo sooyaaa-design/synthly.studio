@@ -30,10 +30,14 @@ img,video{display:block;max-width:100%}
 .font-heading{font-family:var(--font-heading);font-style:italic;font-weight:400}
 .font-body{font-family:var(--font-body)}
 .liquid-glass{background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:none;box-shadow:inset 0 1px 1px rgba(255,255,255,.1);position:relative;overflow:hidden}
-.liquid-glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.15) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.15) 80%,rgba(255,255,255,.45) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.liquid-glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.15) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.15) 80%,rgba(255,255,255,.45) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;animation:liquid-border-pulse 5s ease-in-out infinite}
+.liquid-glass::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:skewX(-15deg);animation:liquid-shine 7s ease-in-out infinite;pointer-events:none;z-index:2}
 .liquid-glass-strong{background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);border:none;box-shadow:4px 4px 4px rgba(0,0,0,.05),inset 0 1px 1px rgba(255,255,255,.15);position:relative;overflow:hidden}
-.liquid-glass-strong::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.2) 80%,rgba(255,255,255,.5) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.liquid-glass-strong::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.2) 80%,rgba(255,255,255,.5) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;animation:liquid-border-pulse 6s ease-in-out 1s infinite}
+.liquid-glass-strong::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);transform:skewX(-15deg);animation:liquid-shine 9s ease-in-out 1.5s infinite;pointer-events:none;z-index:2}
 @keyframes fade-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes liquid-shine{0%{left:-70%}100%{left:130%}}
+@keyframes liquid-border-pulse{0%,100%{opacity:1}50%{opacity:.55}}
 .animate-fade-rise{animation:fade-rise .8s ease-out both}
 .animate-fade-rise-delay{animation:fade-rise .8s ease-out .2s both}
 .animate-fade-rise-delay-2{animation:fade-rise .8s ease-out .4s both}
@@ -100,6 +104,8 @@ img,video{display:block;max-width:100%}
 .slp-chess-copy .slp-btn{margin-top:26px;padding:11px 22px;color:#fff;font-size:14px}
 .slp-media-card{border-radius:24px;padding:8px}
 .slp-media-card img{width:100%;min-height:260px;border-radius:18px;object-fit:cover}
+.profile-photo-card{max-width:340px;margin:0 auto;justify-self:center}
+.profile-photo-card img{aspect-ratio:3/4;min-height:unset;height:420px;object-position:top}
 /* video portfolio cards */
 .work-grid{column-count:1;column-gap:18px}
 .vcard{position:relative;border-radius:20px;overflow:hidden;cursor:pointer;break-inside:avoid;margin-bottom:18px;background:#0b0b0d}
@@ -294,7 +300,7 @@ img,video{display:block;max-width:100%}
     </div>
     <div class="slp-chess">
       <div class="slp-chess-row reverse reveal">
-        <div class="slp-media-card liquid-glass">
+        <div class="slp-media-card liquid-glass profile-photo-card">
           <img src="kr9.jpg" alt="Khalid Ridwan">
         </div>
         <div class="slp-chess-copy">
