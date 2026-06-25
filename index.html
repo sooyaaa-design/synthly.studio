@@ -204,10 +204,15 @@
 
 <!-- ─── HERO ─── -->
 <section id="home" style="position:relative;height:100svh;min-height:600px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;">
-  <video id="hero-video" autoplay muted loop playsinline
-    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.36) saturate(1.1);">
-    <source id="hero-video-src" src="Video_Intro_V2.mp4" type="video/mp4">
-  </video>
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+    <iframe
+      src="https://www.youtube-nocookie.com/embed/_LjAeWipoS4?autoplay=1&mute=1&loop=1&controls=0&playlist=_LjAeWipoS4&rel=0&showinfo=0&modestbranding=1&disablekb=1"
+      style="position:absolute;top:50%;left:50%;width:177.78vh;height:100vh;min-width:100%;min-height:56.25vw;transform:translate(-50%,-50%);filter:brightness(0.36) saturate(1.1);pointer-events:none;border:none;"
+      frameborder="0"
+      allow="autoplay; encrypted-media"
+      title="Hero background video">
+    </iframe>
+  </div>
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 30%,transparent 55%,rgba(0,0,0,0.95) 100%);"></div>
   <div style="position:relative;text-align:center;padding:0 32px;max-width:960px;width:100%;">
     <p class="ha" style="font-size:12px;letter-spacing:0.22em;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:28px;font-weight:500;">AI Generative Video Studio</p>
@@ -401,7 +406,8 @@
 <div id="video-modal" class="hidden"
   style="position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;"
   onclick="if(event.target===this)closeModal();">
-  <video id="modal-video" controls autoplay style="max-width:100%;max-height:90svh;border-radius:14px;width:100%;"></video>
+  <iframe id="modal-video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
+    style="border-radius:14px;border:none;"></iframe>
   <button onclick="closeModal()"
     style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
 </div>
@@ -425,13 +431,13 @@ const content = {
 };
 
 const portfolio = [
-  { id:1, title:"DHI",                     tag:"Demo Project",                   src:"DHI_demo.mp4" },
-  { id:2, title:"Profil",                  tag:"AI Video Producer",              src:"Video_Intro_V2.mp4" },
-  { id:3, title:"Chuba",                   tag:"Brand Content \u00b7 AI Generated",  src:"Chuba_WM.mp4" },
-  { id:4, title:"Cat Choize",              tag:"Creative Ad \u00b7 Product Showcase", src:"Cat_Choize_WM.mp4" },
-  { id:5, title:"Raich",                   tag:"Beauty",                          src:"Raich_WM.mp4" },
-  { id:6, title:"Valord \u2014 5AM",       tag:"AI Cinematic",                   src:"Valord_5AM_WM.mp4" },
-  { id:7, title:"Valord \u2014 Imperium",  tag:"Brand Ad",                       src:"Valord_Imperium_WM.mp4" },
+  { id:1, title:"DHI",                     tag:"Demo Project",                    ytId:"2suUfN7MMDo", isShort:false },
+  { id:2, title:"Profil",                  tag:"AI Video Producer",               ytId:"_LjAeWipoS4", isShort:false },
+  { id:3, title:"Chuba",                   tag:"Brand Content \u00b7 AI Generated",   ytId:"7QaFqdYSePw", isShort:true  },
+  { id:4, title:"Cat Choize",              tag:"Creative Ad \u00b7 Product Showcase",  ytId:"oI2vnEiqGcM", isShort:true  },
+  { id:5, title:"Raich",                   tag:"Beauty",                           ytId:"0TKH_7UT0Jc",  isShort:true  },
+  { id:6, title:"Valord \u2014 5AM",       tag:"AI Cinematic",                    ytId:"Ne6Uonu83C0",  isShort:true  },
+  { id:7, title:"Valord \u2014 Imperium",  tag:"Brand Ad",                        ytId:"ItffkpLzAs8",  isShort:true  },
 ];
 
 const marqueeItems = [
@@ -446,7 +452,6 @@ const marqueeItems = [
 ];
 
 const profileSrc = "kr9.jpg";
-const heroSrc    = "Video_Intro_V2.mp4";
 
 let menuOpen = false;
 
@@ -481,11 +486,10 @@ function escHtml(s) {
 
 function videoCardHTML(item, featured) {
   const fs = featured ? "19px" : "14px", ts = featured ? "11px" : "10px";
+  const thumb = `https://img.youtube.com/vi/${escHtml(item.ytId)}/hqdefault.jpg`;
   return `
-    <div class="video-card${featured?" featured":""}" data-src="${escHtml(item.src)}">
-      <video muted loop preload="metadata" playsinline>
-        <source src="${escHtml(item.src)}" type="video/mp4">
-      </video>
+    <div class="video-card${featured?" featured":""}" data-ytid="${escHtml(item.ytId)}" data-isshort="${item.isShort?'1':'0'}">
+      <img src="${thumb}" alt="${escHtml(item.title)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
       <div class="vc-overlay"></div>
       <div class="vc-info">
         <p style="font-weight:600;letter-spacing:-0.02em;margin-bottom:4px;font-size:${fs};color:#fff;">${escHtml(item.title)}</p>
@@ -509,11 +513,7 @@ function renderPortfolio() {
   c.innerHTML = html;
 
   c.querySelectorAll(".video-card").forEach(card => {
-    const vid = card.querySelector("video");
-    card.addEventListener("mouseenter", () => vid && vid.play());
-    card.addEventListener("mouseleave", () => vid && vid.pause());
-    card.addEventListener("touchstart", () => vid && vid.play(), {passive:true});
-    card.addEventListener("click", () => openModal(card.dataset.src));
+    card.addEventListener("click", () => openModal(card.dataset.ytid, card.dataset.isshort === "1"));
   });
 }
 
@@ -573,17 +573,22 @@ function closeMenu() {
 }
 
 /* ─── VIDEO MODAL ─── */
-function openModal(src) {
-  const modal = document.getElementById("video-modal");
-  const vid   = document.getElementById("modal-video");
-  vid.src = src;
-  vid.load(); vid.play();
+function openModal(ytId, isShort) {
+  const modal  = document.getElementById("video-modal");
+  const iframe = document.getElementById("modal-video");
+  iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
+  if (isShort) {
+    iframe.style.cssText = "border-radius:14px;border:none;height:80svh;width:auto;aspect-ratio:9/16;max-width:calc(80svh * 9/16);";
+  } else {
+    iframe.style.cssText = "border-radius:14px;border:none;width:min(100%, calc(80svh * 16/9));aspect-ratio:16/9;";
+  }
   modal.classList.remove("hidden");
   modal.style.display = "flex";
 }
 function closeModal() {
-  const modal = document.getElementById("video-modal");
-  document.getElementById("modal-video").pause();
+  const modal  = document.getElementById("video-modal");
+  const iframe = document.getElementById("modal-video");
+  iframe.src = "";
   modal.classList.add("hidden");
   modal.style.display = "";
 }
