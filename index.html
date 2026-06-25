@@ -3,614 +3,620 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="description" content="Synthly Studio — Video Editor & AI Video Creator. CapCut, Premiere Pro & generative AI. Based in Indonesia.">
 <title>Synthly Studio</title>
+<meta name="description" content="Synthly Studio — Khalid Ridwan. Video Editor (CapCut & Premiere Pro) & AI Generative Video Creator. Based in Indonesia, working with brands and creators worldwide.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-/* ─── RESET ─── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-img,video,iframe{display:block;max-width:100%}
-
-/* ─── DESIGN TOKENS ─── */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap');
 :root{
-  --font-serif:"Instrument Serif",Georgia,serif;
-  --font-body:"Barlow",-apple-system,BlinkMacSystemFont,sans-serif;
-  --bg-base:#000;
-  --bg-layer:#0a0a0a;
-  --bg-card:#111;
-  --text-primary:#f5f5f7;
-  --text-muted:#86868b;
-  --text-faint:#6e6e73;
-  --accent:#0071e3;
+  --foreground:0 0% 100%;
+  --radius:9999px;
+  --glass-bg:rgba(255,255,255,.12);
+  --glass-border:rgba(255,255,255,.25);
+  --glass-shadow:0 4px 30px rgba(0,0,0,.08);
+  --glass-blur:16px;
+  --font-body:"Barlow",sans-serif;
+  --font-heading:"Instrument Serif",serif;
 }
-
-/* ─── LIQUID GLASS ─── */
-.lg{
-  background:rgba(255,255,255,.045);
-  backdrop-filter:blur(4px) saturate(160%);
-  -webkit-backdrop-filter:blur(4px) saturate(160%);
-  border:1px solid rgba(255,255,255,.12);
-  position:relative;
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:hidden;background:hsl(0,0%,0%);color:hsl(var(--foreground));font-family:var(--font-body);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+img,video{display:block;max-width:100%}
+.slp-page{min-height:100vh;background:hsl(0,0%,0%);color:hsl(var(--foreground));font-family:var(--font-body)}
+.font-heading{font-family:var(--font-heading);font-style:italic;font-weight:400}
+.font-body{font-family:var(--font-body)}
+.liquid-glass{background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:none;box-shadow:inset 0 1px 1px rgba(255,255,255,.1);position:relative;overflow:hidden}
+.liquid-glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.15) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.15) 80%,rgba(255,255,255,.45) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.liquid-glass-strong{background:rgba(255,255,255,.01);background-blend-mode:luminosity;backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);border:none;box-shadow:4px 4px 4px rgba(0,0,0,.05),inset 0 1px 1px rgba(255,255,255,.15);position:relative;overflow:hidden}
+.liquid-glass-strong::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,.2) 80%,rgba(255,255,255,.5) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes fade-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-rise{animation:fade-rise .8s ease-out both}
+.animate-fade-rise-delay{animation:fade-rise .8s ease-out .2s both}
+.animate-fade-rise-delay-2{animation:fade-rise .8s ease-out .4s both}
+@keyframes slp-blur-word{0%{filter:blur(10px);opacity:0;transform:translateY(50px)}50%{filter:blur(5px);opacity:.5;transform:translateY(-5px)}100%{filter:blur(0);opacity:1;transform:translateY(0)}}
+.slp-blur-word{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(50px)}
+.slp-blur-visible .slp-blur-word{animation:slp-blur-word .7s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--slp-word-delay,0ms)}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.slp-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:9999px}
+.slp-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;white-space:nowrap;transition:transform .2s ease,color .2s ease,border-color .2s ease,background .2s ease;cursor:pointer}
+.slp-btn:hover{transform:scale(1.03)}
+.slp-badge{display:inline-flex;align-items:center;gap:8px;border-radius:9999px;padding:4px 14px;color:#fff;font-family:var(--font-body);font-size:12px;font-weight:500}
+.slp-section-title{margin:0;color:#fff;font-family:var(--font-heading);font-style:italic;font-size:40px;font-weight:400;line-height:.9;letter-spacing:-.03em}
+.slp-section-copy{margin:0;color:rgba(255,255,255,.62);font-family:var(--font-body);font-size:15px;font-weight:300;line-height:1.65}
+.slp-nav{position:fixed;top:16px;left:0;right:0;z-index:50;padding:12px 32px}
+.slp-nav-inner{display:flex;align-items:center;justify-content:space-between;width:min(1280px,100%);margin:0 auto}
+.slp-brand{display:inline-flex;align-items:center;gap:12px;color:#fff;font-family:var(--font-heading);font-style:italic;font-size:22px;font-weight:400;letter-spacing:.01em}
+.slp-brand img{width:44px;height:44px;border-radius:999px;object-fit:cover}
+.slp-nav-links{display:none;align-items:center;gap:2px;padding:4px 6px;border-radius:999px}
+.slp-nav-links a{border-radius:999px;padding:8px 12px;color:rgba(255,255,255,.9);font-family:var(--font-body);font-size:14px;font-weight:500;transition:color .2s ease,background .2s ease}
+.slp-nav-links a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.slp-nav-links .slp-nav-cta{display:inline-flex;align-items:center;gap:6px;margin-left:2px;background:#fff;color:#000;padding:6px 14px}
+.slp-menu-button{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;border:0;border-radius:999px;color:#fff;background:rgba(255,255,255,.04);cursor:pointer}
+.slp-menu-button span,.slp-menu-button span::before,.slp-menu-button span::after{display:block;width:18px;height:1.5px;border-radius:99px;background:#fff;transition:transform .2s ease,opacity .2s ease}
+.slp-menu-button span{position:relative}
+.slp-menu-button span::before,.slp-menu-button span::after{content:"";position:absolute;left:0}
+.slp-menu-button span::before{top:-6px}
+.slp-menu-button span::after{top:6px}
+.slp-nav.slp-open .slp-menu-button span{background:transparent}
+.slp-nav.slp-open .slp-menu-button span::before{transform:translateY(6px) rotate(45deg)}
+.slp-nav.slp-open .slp-menu-button span::after{transform:translateY(-6px) rotate(-45deg)}
+.slp-mobile-panel{position:absolute;top:78px;left:24px;right:24px;display:none;flex-direction:column;gap:10px;border-radius:28px;padding:18px;background:rgba(10,10,12,.86);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 18px 60px rgba(0,0,0,.36)}
+.slp-nav.slp-open .slp-mobile-panel{display:flex;animation:fade-rise .28s ease-out both}
+.slp-mobile-panel a{border-radius:999px;padding:13px 16px;color:rgba(255,255,255,.86);font-size:15px}
+.slp-mobile-panel a:hover{background:rgba(255,255,255,.06);color:#fff}
+.slp-mobile-panel .slp-mobile-cta{margin-top:6px;background:#fff;color:#000;text-align:center}
+.slp-hero{position:relative;min-height:100svh;overflow:hidden;background:#000;display:flex;flex-direction:column}
+.hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.hero-bg iframe{position:absolute;top:50%;left:50%;width:177.78vh;height:100vh;min-width:100%;min-height:56.25vw;transform:translate(-50%,-50%);border:0;filter:brightness(.42) saturate(1.12);pointer-events:none}
+.slp-hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,.1) 35%,rgba(0,0,0,.2) 60%,rgba(0,0,0,.92) 100%)}
+.slp-hero-content{position:relative;z-index:10;display:flex;flex:1;flex-direction:column;align-items:center;text-align:center;padding:150px 24px 0}
+.slp-hero-main{display:flex;flex-direction:column;align-items:center;width:100%}
+.slp-hero-badge{gap:10px;padding:4px 12px 4px 4px;border-radius:999px;color:rgba(255,255,255,.88);font-size:13px}
+.slp-hero-badge strong{border-radius:999px;background:#fff;color:#000;padding:4px 12px;font-size:12px;font-weight:600}
+.slp-hero h1{margin:26px 0 0;max-width:820px;color:#fff;font-family:var(--font-heading);font-size:58px;font-style:italic;font-weight:400;line-height:.92;letter-spacing:-3px}
+.slp-hero p{margin:24px 0 0;max-width:560px;color:rgba(255,255,255,.82);font-size:15px;font-weight:300;line-height:1.5}
+.slp-hero-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;margin-top:32px}
+.slp-primary{padding:11px 22px;color:#fff;font-size:14px}
+.slp-film{gap:8px;color:#fff;font-size:14px;padding:11px 18px}
+.slp-partners{margin-top:auto;padding:60px 0 40px;width:100%}
+.slp-partner-label{margin:0 auto 24px;width:max-content;max-width:100%;padding:8px 18px;color:rgba(255,255,255,.75);font-size:12px}
+.slp-partner-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:20px 40px}
+.slp-partner-list span{font-family:var(--font-heading);font-style:italic;font-size:24px;line-height:1;color:rgba(255,255,255,.85)}
+.slp-content-section{background:#000;padding:112px 24px}
+.slp-wrap{width:min(1180px,100%);margin:0 auto}
+.slp-section-head{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:56px}
+.slp-section-head h2{max-width:760px;margin-top:24px}
+.slp-section-head .slp-section-copy{margin-top:18px;max-width:560px}
+.slp-chess{display:flex;flex-direction:column;gap:56px}
+.slp-chess-row{display:grid;align-items:center;gap:28px}
+.slp-chess-row.reverse .slp-chess-copy{order:2}
+.slp-chess-copy h3{margin:0;color:#fff;font-family:var(--font-heading);font-size:40px;font-style:italic;font-weight:400;line-height:.98;letter-spacing:-.02em}
+.slp-chess-copy p{max-width:470px;margin:22px 0 0}
+.slp-chess-copy .slp-btn{margin-top:26px;padding:11px 22px;color:#fff;font-size:14px}
+.slp-media-card{border-radius:24px;padding:8px}
+.slp-media-card img{width:100%;min-height:260px;border-radius:18px;object-fit:cover}
+/* video portfolio cards */
+.work-grid{column-count:1;column-gap:18px}
+.vcard{position:relative;border-radius:20px;overflow:hidden;cursor:pointer;break-inside:avoid;margin-bottom:18px;background:#0b0b0d}
+.vcard.short{aspect-ratio:9/16}
+.vcard:not(.short){aspect-ratio:16/9}
+.vcard img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.vcard:hover img{transform:scale(1.06)}
+.vcard-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,0) 55%);pointer-events:none}
+.vcard-info{position:absolute;left:0;right:0;bottom:0;padding:16px 18px 18px;z-index:2}
+.vcard-title{font-family:var(--font-heading);font-style:italic;font-size:22px;line-height:1;color:#fff;letter-spacing:-.02em}
+.vcard-tag{margin-top:8px;font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.vcard-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.78);width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s ease,transform .3s ease;z-index:2}
+.vcard:hover .vcard-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.slp-grid{display:grid;grid-template-columns:1fr;gap:18px}
+.slp-card{border-radius:24px;padding:26px;color:#fff}
+.slp-icon-circle{display:flex;width:42px;height:42px;align-items:center;justify-content:center;border-radius:999px;color:#fff;margin-bottom:44px}
+.slp-card h3{margin:0;color:#fff;font-family:var(--font-heading);font-style:italic;font-size:22px;font-weight:400;letter-spacing:-.01em}
+.slp-card p{margin:12px 0 0;color:rgba(255,255,255,.62);font-size:14px;font-weight:300;line-height:1.6}
+.slp-video-section{position:relative;min-height:520px;overflow:hidden;background:#000}
+.slp-video-content{position:relative;z-index:10;display:flex;min-height:520px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:96px 24px}
+.slp-start h2,.slp-cta h2{margin-top:22px;max-width:780px}
+.slp-start p,.slp-cta p{max-width:610px;margin-top:22px}
+.slp-start .slp-btn,.slp-cta .slp-btn{margin-top:32px;padding:12px 24px;color:#fff;font-size:14px}
+.slp-cta{min-height:680px}
+.slp-cta-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:32px}
+.slp-cta-actions .slp-btn{margin-top:0}
+.slp-secondary{background:#fff;color:#000!important;padding:12px 24px;font-size:14px}
+.contact-info{margin-top:48px;display:grid;grid-template-columns:1fr;gap:24px;width:min(680px,100%);text-align:center}
+.contact-info .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px;font-weight:600}
+.contact-info .val{font-size:14px;color:rgba(255,255,255,.9)}
+.slp-footerbar{position:relative;z-index:10;width:min(1120px,calc(100% - 48px));margin:96px auto 0;padding-top:28px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:16px;color:rgba(255,255,255,.4);font-size:12px}
+.slp-footerlinks{display:flex;gap:22px}
+.slp-footerlinks a{transition:color .2s ease}
+.slp-footerlinks a:hover{color:#fff}
+#video-modal{position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px}
+#video-modal.hidden{display:none}
+@media(min-width:640px){
+  .slp-hero h1{font-size:74px}
+  .slp-partner-list span{font-size:28px}
+  .slp-cta-actions{flex-direction:row}
+  .work-grid{column-count:2}
+  .contact-info{grid-template-columns:repeat(2,1fr)}
 }
-.lg::before{
-  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
-  background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.04) 40%,rgba(255,255,255,.10) 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;
+@media(min-width:768px){
+  .slp-nav-links{display:flex}
+  .slp-menu-button{display:none}
+  .slp-hero h1{font-size:88px}
+  .slp-hero p{font-size:16px}
+  .slp-section-title{font-size:56px}
+  .slp-chess-row{grid-template-columns:1fr 1.05fr}
+  .slp-chess-row.reverse .slp-chess-copy{order:initial}
+  .slp-chess-row.reverse{grid-template-columns:1.05fr 1fr}
+  .slp-chess-row.reverse .slp-media-card{order:1}
+  .slp-chess-row.reverse .slp-chess-copy{order:2}
+  .slp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .contact-info{grid-template-columns:repeat(4,1fr)}
+  .slp-footerbar{flex-direction:row}
 }
-.lg-strong{
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(50px) saturate(180%);
-  -webkit-backdrop-filter:blur(50px) saturate(180%);
-  border:1px solid rgba(255,255,255,.18);
-  position:relative;
-}
-.lg-strong::before{
-  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
-  background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.15) 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;
-}
-
-/* ─── TYPOGRAPHY UTILITIES ─── */
-.section-label{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:block}
-.section-heading{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:clamp(2rem,4vw,3.8rem);letter-spacing:-.02em;line-height:1.1;color:var(--text-primary)}
-.section-sub{color:var(--text-muted);font-size:17px;font-weight:300;line-height:1.65;margin-top:12px}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 16px;border-radius:980px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
-.badge-accent{color:var(--accent);border-color:rgba(0,113,227,.3);background:rgba(0,113,227,.08)}
-
-/* ─── NAV ─── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;background:transparent;transition:background .35s,border-color .35s;display:flex;align-items:center;justify-content:space-between;padding:0 48px;border-bottom:1px solid transparent}
-nav.scrolled{background:rgba(0,0,0,.75);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom-color:rgba(255,255,255,.08)}
-#nav-logo{font-family:var(--font-serif);font-style:italic;font-size:19px;font-weight:400;color:#fff;letter-spacing:-.01em}
-.nl{font-size:14px;font-weight:500;color:rgba(255,255,255,.7);padding:6px 12px;border-radius:980px;transition:color .2s,background .2s}
-.nl:hover{color:#fff;background:rgba(255,255,255,.07)}
-#hamburger{display:none;flex-direction:column;gap:5px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);border-radius:10px}
-#hb1,#hb2,#hb3{width:18px;height:1.5px;background:#86868b;border-radius:99px;transition:transform .22s,background .22s}
-
-/* ─── MOBILE MENU ─── */
-.mm{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.88);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;animation:fadeIn .25s ease}
-.mm a.mlink{font-family:var(--font-serif);font-style:italic;font-size:32px;font-weight:400;color:rgba(255,255,255,.8);letter-spacing:-.01em;transition:color .2s}
-.mm a.mlink:hover{color:#fff}
-.hidden{display:none!important}
-
-/* ─── ANIMATIONS ─── */
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes fadeRise{from{opacity:0;transform:translateY(28px);filter:blur(4px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
-@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.7}}
-@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.ha{opacity:0;animation:fadeRise .9s cubic-bezier(.25,.46,.45,.94) forwards}
-.ha:nth-child(1){animation-delay:.05s}
-.ha:nth-child(2){animation-delay:.14s}
-.ha:nth-child(3){animation-delay:.22s}
-.ha:nth-child(4){animation-delay:.32s}
-.ha:nth-child(5){animation-delay:.42s}
-.pls{animation:pulse 2.4s ease-in-out infinite}
-.fade-rise{opacity:0;animation:fadeRise .85s cubic-bezier(.25,.46,.45,.94) forwards;animation-play-state:paused}
-.fade-rise.visible{animation-play-state:running}
-
-/* ─── HERO ─── */
-.hero-h1{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:clamp(3rem,9vw,8rem);letter-spacing:-.04em;line-height:1;color:#fff}
-
-/* ─── MARQUEE ─── */
-.marquee-wrap{overflow:hidden;width:100%;background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);padding:14px 0}
-.marquee-track{display:flex;width:max-content;animation:marqueeScroll 32s linear infinite}
-.marquee-item{display:inline-flex;align-items:center;padding:0 28px;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;transition:color .2s}
-.marquee-item:hover{color:var(--text-primary)}
-.marquee-sep{color:rgba(255,255,255,.14);padding:0 2px}
-
-/* ─── LAYOUT GRIDS ─── */
-.ag{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
-.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
-.ps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-
-/* ─── SERVICE CARDS ─── */
-.sc{padding:38px 32px;background:var(--bg-layer);transition:background .25s}
-.sc:hover{background:#181818}
-.sc h3{font-family:var(--font-serif);font-style:italic;font-size:19px;font-weight:400;letter-spacing:-.01em;margin-bottom:10px;color:#fff}
-.sc p{color:var(--text-muted);font-size:14px;line-height:1.75;font-weight:300}
-.sc-icon{font-size:22px;margin-bottom:14px}
-.sc-group-label{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px;display:block}
-
-/* ─── VIDEO CARDS ─── */
-.video-card{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;cursor:pointer;background:var(--bg-card);border:1px solid rgba(255,255,255,.08);transition:transform .3s,box-shadow .3s,border-color .3s}
-.video-card:hover{transform:scale(1.015);box-shadow:0 28px 70px rgba(0,0,0,.7);border-color:rgba(255,255,255,.18)}
-.video-card.featured{border-radius:20px}
-.video-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.vc-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.85) 100%);opacity:.75;transition:opacity .3s}
-.video-card:hover .vc-overlay{opacity:.92}
-.vc-info{position:absolute;bottom:0;left:0;right:0;padding:16px 20px;transform:translateY(4px);transition:transform .3s}
-.video-card:hover .vc-info{transform:translateY(0)}
-.vc-title{font-family:var(--font-serif);font-style:italic;font-size:15px;font-weight:400;color:#fff;margin-bottom:4px}
-.vc-title.featured{font-size:20px}
-.vc-tag{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.vc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s,transform .3s}
-.video-card:hover .vc-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
-
-/* ─── PROCESS ─── */
-.process-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
-.process-step{padding:38px 32px;background:var(--bg-layer);transition:background .25s}
-.process-step:hover{background:#181818}
-.process-num{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,113,227,.5);font-family:monospace}
-.process-icon{font-size:22px;margin:16px 0 12px}
-.process-step h3{font-family:var(--font-serif);font-style:italic;font-size:18px;font-weight:400;color:#fff;margin-bottom:8px}
-.process-step p{color:var(--text-muted);font-size:14px;line-height:1.72;font-weight:300}
-
-/* ─── ABOUT TAG PILLS ─── */
-.about-tag{border:1px solid rgba(255,255,255,.12);border-radius:980px;padding:5px 14px;font-size:12px;color:var(--text-muted);background:rgba(255,255,255,.04)}
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#000}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
-::selection{background:rgba(0,113,227,.3)}
-
-/* ─── RESPONSIVE ─── */
-@media(max-width:1023px){
-  .sg{grid-template-columns:repeat(2,1fr)}
-  .process-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:767px){
-  nav{padding:0 20px}
-  .ag{grid-template-columns:1fr;gap:48px}
-  .sg{grid-template-columns:1fr}
-  .hero-h1{font-size:clamp(2.8rem,12vw,8rem)!important}
-  .section-heading{font-size:2rem!important}
+@media(min-width:1024px){
+  .slp-nav{padding-left:64px;padding-right:64px}
+  .slp-hero h1{font-size:96px}
+  .slp-section-title{font-size:64px}
+  .slp-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .work-grid{column-count:3}
 }
 @media(max-width:560px){
-  nav{padding:0 16px}
-  .ps{grid-template-columns:1fr}
+  .slp-nav{padding-left:18px;padding-right:18px}
+  .slp-brand span{display:none}
+  .slp-hero-content{padding-top:128px}
+  .slp-hero h1{font-size:46px;letter-spacing:-2px}
+  .slp-hero-actions{gap:14px}
+  .slp-content-section{padding:88px 20px}
+  .slp-section-title{font-size:38px}
+  .slp-chess-copy h3{font-size:34px}
 }
 </style>
-</head>
+<style data-scaletify-template-mobile-nav>
+@media (min-width:769px){
+  .st-mobile-shell,
+  .st-mobile-panel{display:none!important;}
+}
+@media (max-width:768px){
+  .st-mobile-nav{
+    position:fixed!important;top:14px!important;left:auto!important;right:14px!important;z-index:9999!important;
+    display:block!important;width:46px!important;max-width:46px!important;height:46px!important;min-height:0!important;
+    margin:0!important;padding:0!important;overflow:visible!important;background:transparent!important;border:0!important;
+    color:var(--st-mobile-text, inherit)!important;font-family:var(--st-mobile-font, inherit)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;
+  }
+  .st-mobile-nav::before{display:none!important;}
+  .st-mobile-nav > :not(.st-mobile-shell):not(.st-mobile-panel){display:none!important;}
+  .st-mobile-shell{
+    display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:0!important;
+    width:46px!important;max-width:46px!important;min-height:46px!important;margin:0!important;padding:0!important;
+  }
+  .st-mobile-brand{display:none!important;}
+  .st-mobile-menu-btn{
+    flex:0 0 auto!important;width:46px!important;height:46px!important;display:inline-flex!important;flex-direction:column!important;
+    align-items:center!important;justify-content:center!important;gap:4px!important;padding:0!important;
+    border:1px solid var(--st-mobile-border, rgba(255,255,255,.26))!important;border-radius:999px!important;
+    background:var(--st-mobile-button-bg, rgba(16,18,24,.64))!important;
+    color:var(--st-mobile-icon, var(--st-mobile-text, currentColor))!important;
+    -webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;
+    box-shadow:0 8px 26px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.06)!important;cursor:pointer!important;
+  }
+  .st-mobile-menu-btn span{display:block!important;width:23px!important;height:2.4px!important;border-radius:999px!important;background:currentColor!important;}
+  .st-mobile-panel{
+    display:none!important;position:fixed!important;inset:0!important;width:auto!important;max-width:none!important;margin:0!important;
+    padding:84px 26px 44px!important;background:var(--st-mobile-panel-bg, rgba(10,10,12,.97))!important;border-top:0!important;
+    -webkit-backdrop-filter:blur(22px)!important;backdrop-filter:blur(22px)!important;
+  }
+  .st-mobile-panel.is-open{display:flex!important;flex-direction:column!important;justify-content:center!important;}
+  .st-mobile-panel a{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;width:100%!important;max-width:520px!important;
+    margin:0 auto!important;padding:17px 4px!important;border-bottom:1px solid var(--st-mobile-divider, rgba(255,255,255,.1))!important;
+    color:var(--st-mobile-link-color, #fff)!important;text-decoration:none!important;
+    font-family:var(--font-heading)!important;font-style:italic!important;font-size:26px!important;font-weight:400!important;line-height:1.1!important;
+  }
+  .st-mobile-panel a:last-child{border-bottom:none!important;}
+}
+</style></head>
 <body>
+<main class="slp-page">
 
-<!-- ─── NAV ─── -->
-<nav id="main-nav">
-  <a id="nav-logo" href="#home">Synthly Studio</a>
-  <div id="nav-links" style="display:flex;align-items:center;gap:2px;">
-    <a class="nl" href="#about">About</a>
-    <a class="nl" href="#services">Services</a>
-    <a class="nl" href="#portfolio">Portfolio</a>
-    <a class="nl" href="#process">Process</a>
-    <a class="nl" href="#contact" style="background:var(--accent);color:#fff;font-size:13px;font-weight:600;padding:7px 18px;margin-left:6px;">Get in Touch</a>
+<nav class="slp-nav" data-slp-menu-root>
+  <div class="slp-nav-inner">
+    <a class="slp-brand" href="#home">
+      <span>Synthly Studio</span>
+    </a>
+    <div class="slp-nav-links liquid-glass">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#work-editing">Video Editing</a>
+      <a href="#work-ai">AI Video</a>
+      <a href="#process">Process</a>
+      <a class="slp-nav-cta" href="#contact">Get in Touch
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+    </div>
+    <button class="slp-menu-button liquid-glass" type="button" aria-label="Open menu" aria-expanded="false" data-slp-menu-toggle><span></span></button>
+    <div class="slp-mobile-panel liquid-glass">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#work-editing">Video Editing</a>
+      <a href="#work-ai">AI Video</a>
+      <a href="#process">Process</a>
+      <a class="slp-mobile-cta" href="#contact">Get in Touch</a>
+    </div>
   </div>
-  <button id="hamburger" onclick="toggleMenu()" aria-label="Open menu">
-    <span id="hb1"></span><span id="hb2"></span><span id="hb3"></span>
-  </button>
 </nav>
 
-<!-- ─── MOBILE MENU ─── -->
-<div id="mobile-menu" class="mm hidden">
-  <a class="mlink" href="#about"     onclick="closeMenu()">About</a>
-  <a class="mlink" href="#services"  onclick="closeMenu()">Services</a>
-  <a class="mlink" href="#portfolio" onclick="closeMenu()">Portfolio</a>
-  <a class="mlink" href="#process"   onclick="closeMenu()">Process</a>
-  <div style="height:1px;width:48px;background:rgba(255,255,255,.1);"></div>
-  <a href="#contact" onclick="closeMenu()"
-    style="background:var(--accent);color:#fff;border-radius:980px;padding:13px 32px;font-size:15px;font-weight:600;">Start a Project →</a>
-</div>
-
 <!-- ─── HERO ─── -->
-<section id="home" style="position:relative;height:100svh;min-height:600px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;">
-  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
-    <iframe
-      src="https://www.youtube-nocookie.com/embed/_LjAeWipoS4?autoplay=1&mute=1&loop=1&controls=0&playlist=_LjAeWipoS4&rel=0&showinfo=0&modestbranding=1&disablekb=1"
-      style="position:absolute;top:50%;left:50%;width:177.78vh;height:100vh;min-width:100%;min-height:56.25vw;transform:translate(-50%,-50%);filter:brightness(0.32) saturate(1.1);pointer-events:none;border:none;"
-      frameborder="0" allow="autoplay; encrypted-media" title="Hero background video">
-    </iframe>
+<section id="home" class="slp-hero">
+  <div class="hero-bg">
+    <iframe src="https://www.youtube-nocookie.com/embed/_LjAeWipoS4?autoplay=1&mute=1&loop=1&controls=0&playlist=_LjAeWipoS4&rel=0&showinfo=0&modestbranding=1&disablekb=1&playsinline=1" allow="autoplay; encrypted-media" title="Hero background"></iframe>
   </div>
-  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,transparent 30%,transparent 55%,rgba(0,0,0,.96) 100%);"></div>
-  <div style="position:relative;text-align:center;padding:0 32px;max-width:960px;width:100%;display:flex;flex-direction:column;align-items:center;">
-    <div class="ha badge badge-accent" style="margin-bottom:28px;">Video Editor · AI Video Creator</div>
-    <h1 id="hero-line1" class="ha hero-h1" style="margin-bottom:0;">Edit. Generate.</h1>
-    <h1 id="hero-line2" class="ha hero-h1" style="margin-bottom:36px;">Tell the Story.</h1>
-    <p id="hero-sub" class="ha" style="font-size:18px;color:rgba(255,255,255,.65);max-width:520px;margin-bottom:44px;line-height:1.65;font-weight:300;">Video editing with CapCut & Premiere Pro, and AI-generated cinematics — for brands, creators, and campaigns that demand attention.</p>
-    <div class="ha" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <a href="#portfolio" style="background:#fff;color:#000;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:600;">View My Work</a>
-      <a href="#contact" style="background:rgba(255,255,255,.1);color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(12px);">Get in Touch</a>
+  <div class="slp-hero-overlay"></div>
+  <div class="slp-hero-content">
+    <div class="slp-hero-main">
+      <div class="slp-hero-badge liquid-glass animate-fade-rise">
+        <strong>✦</strong>
+        <span>Video Editor &amp; AI Video Creator</span>
+      </div>
+      <h1 data-blur-text="Edit. Generate. Tell the Story." data-blur-delay="90">Edit. Generate. Tell the Story.</h1>
+      <p class="animate-fade-rise-delay">Video editing with CapCut &amp; Premiere Pro, and AI-generated cinematics — for brands, creators, and campaigns that demand attention.</p>
+      <div class="slp-hero-actions animate-fade-rise-delay-2">
+        <a class="slp-btn slp-primary liquid-glass-strong" href="#work-editing">View My Work
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+        <a class="slp-btn slp-film liquid-glass" href="#contact">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg> Get in Touch</a>
+      </div>
+    </div>
+    <div class="slp-partners">
+      <div class="slp-partner-label liquid-glass">Tools I work with</div>
+      <div class="slp-partner-list">
+        <span>CapCut</span>
+        <span>Premiere Pro</span>
+        <span>Kling</span>
+        <span>Seedance</span>
+        <span>Midjourney</span>
+      </div>
     </div>
   </div>
-  <div class="pls" style="position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);"></div>
 </section>
 
-<!-- ─── MARQUEE ─── -->
-<div class="marquee-wrap">
-  <div class="marquee-track" id="marquee-track"></div>
-</div>
-
 <!-- ─── ABOUT ─── -->
-<section id="about" style="padding:120px 48px;background:#000;">
-  <div style="max-width:1100px;margin:0 auto;">
-    <div class="ag">
-      <div>
-        <span class="section-label fade-rise visible">About</span>
-        <h2 id="about-title" class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:18px;">Two Crafts, One Vision</h2>
-        <p id="about-desc" class="fade-rise" data-delay=".16s" style="color:var(--text-muted);font-size:17px;line-height:1.82;margin-bottom:14px;font-weight:300;">Synthly Studio blends precise video editing with cutting-edge AI generation. Armed with CapCut, Premiere Pro, and the latest generative AI tools, I craft content that's built to perform — whether it's a tight brand reel or a fully AI-generated cinematic.</p>
-        <p id="about-location" class="fade-rise" data-delay=".22s" style="color:var(--text-faint);font-size:15px;line-height:1.7;margin-bottom:28px;font-weight:300;">Based in Indonesia, working with brands and creators worldwide.</p>
-        <div class="fade-rise" data-delay=".28s" style="display:flex;flex-wrap:wrap;gap:8px;">
-          <span class="about-tag">Video Editing</span>
-          <span class="about-tag">CapCut</span>
-          <span class="about-tag">Premiere Pro</span>
-          <span class="about-tag">AI Generation</span>
-          <span class="about-tag">Reels</span>
-          <span class="about-tag">Brand Video</span>
-          <span class="about-tag">Short-Form</span>
-          <span class="about-tag">Product Ads</span>
+<section id="about" class="slp-content-section">
+  <div class="slp-wrap">
+    <div class="slp-section-head reveal">
+      <div class="slp-badge liquid-glass">About</div>
+      <h2 class="slp-section-title">Two Crafts, One Vision.</h2>
+      <p class="slp-section-copy">Synthly Studio blends precise video editing with cutting-edge AI generation. Armed with CapCut, Premiere Pro, and the latest generative tools, I craft content that's built to perform — whether it's a tight brand reel or a fully AI-generated cinematic.</p>
+    </div>
+    <div class="slp-chess">
+      <div class="slp-chess-row reverse reveal">
+        <div class="slp-media-card liquid-glass">
+          <img src="kr9.jpg" alt="Khalid Ridwan">
+        </div>
+        <div class="slp-chess-copy">
+          <h3>Khalid Ridwan</h3>
+          <p class="slp-section-copy">Video Editor &amp; AI Video Creator based in Indonesia, working with brands and creators worldwide. Every frame is intentional — every cut a decision, every generated scene directed, not just prompted.</p>
+          <a class="slp-btn liquid-glass-strong" href="#contact">Work with me
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
         </div>
       </div>
-      <div style="position:relative;" class="fade-rise" data-delay=".1s">
-        <div style="border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:#141414;">
-          <img id="profile-img" src="kr9.jpg" alt="Khalid Ridwan" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <div class="slp-chess-row reveal">
+        <div class="slp-chess-copy">
+          <h3>Precision Video Editing.</h3>
+          <p class="slp-section-copy">Fast-paced, scroll-stopping edits and polished brand films — cut in CapCut and Premiere Pro. Color-graded, captioned, and exported for every platform and ratio.</p>
+          <a class="slp-btn liquid-glass-strong" href="#work-editing">See the edits
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
         </div>
-        <div class="lg-strong" style="position:absolute;bottom:18px;left:18px;right:18px;border-radius:14px;padding:15px 18px;">
-          <p id="owner-name" style="font-family:var(--font-serif);font-style:italic;font-size:16px;font-weight:400;margin-bottom:3px;color:#fff;">Khalid Ridwan</p>
-          <p id="owner-title" style="color:var(--text-muted);font-size:13px;font-weight:300;">Video Editor & AI Video Creator</p>
+        <div class="slp-media-card liquid-glass" data-yt="tvkMqGHibAo" data-short="0" style="cursor:pointer;">
+          <img src="https://i.ytimg.com/vi/tvkMqGHibAo/hqdefault.jpg" alt="Video editing preview">
+        </div>
+      </div>
+      <div class="slp-chess-row reverse reveal">
+        <div class="slp-media-card liquid-glass" data-yt="ItffkpLzAs8" data-short="1" style="cursor:pointer;">
+          <img src="https://i.ytimg.com/vi/ItffkpLzAs8/hqdefault.jpg" alt="AI generative video preview">
+        </div>
+        <div class="slp-chess-copy">
+          <h3>AI Generative Video.</h3>
+          <p class="slp-section-copy">Cinematic brand films and ads generated with Kling, Seedance, and Midjourney — no studio, no limits. Premium-quality visuals that move at the speed of a prompt.</p>
+          <a class="slp-btn liquid-glass-strong" href="#work-ai">See the AI work
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ─── WORK: VIDEO EDITING ─── -->
+<section id="work-editing" class="slp-content-section">
+  <div class="slp-wrap">
+    <div class="slp-section-head reveal">
+      <div class="slp-badge liquid-glass">Portfolio</div>
+      <h2 class="slp-section-title">Video Editing.</h2>
+      <p class="slp-section-copy">CapCut &amp; Premiere Pro — crafted frame by frame.</p>
+    </div>
+    <div class="work-grid" id="work-editing-grid"></div>
+  </div>
+</section>
+
+<!-- ─── WORK: CRAFTED BY AI ─── -->
+<section id="work-ai" class="slp-content-section">
+  <div class="slp-wrap">
+    <div class="slp-section-head reveal">
+      <div class="slp-badge liquid-glass">Portfolio</div>
+      <h2 class="slp-section-title">Crafted by AI.</h2>
+      <p class="slp-section-copy">Generative visuals powered by Kling, Seedance, Midjourney, and more.</p>
+    </div>
+    <div class="work-grid" id="work-ai-grid"></div>
   </div>
 </section>
 
 <!-- ─── SERVICES ─── -->
-<section id="services" style="padding:100px 48px;background:var(--bg-layer);">
-  <div style="max-width:1100px;margin:0 auto;">
-    <span class="section-label fade-rise visible">Services</span>
-    <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:40px;">What I Create</h2>
-
-    <span class="sc-group-label fade-rise" data-delay=".14s">✂ Video Editing</span>
-    <div class="sg" style="margin-bottom:48px;">
-      <div class="sc fade-rise" data-delay=".18s">
-        <div class="sc-icon">✂️</div>
-        <h3>Reels & Short-Form Editing</h3>
-        <p>Fast-paced, scroll-stopping edits for Instagram Reels, TikTok, and YouTube Shorts — cut in CapCut or Premiere Pro.</p>
-      </div>
-      <div class="sc fade-rise" data-delay=".24s">
-        <div class="sc-icon">🎞</div>
-        <h3>Brand & Commercial Edits</h3>
-        <p>Polished promotional videos for products, services, and campaigns — paced for engagement, finished for broadcast.</p>
-      </div>
-      <div class="sc fade-rise" data-delay=".30s">
-        <div class="sc-icon">📐</div>
-        <h3>Multi-Platform Delivery</h3>
-        <p>One project, every ratio. 9:16, 16:9, 1:1 — color-graded, captioned, and export-ready for any platform.</p>
-      </div>
+<section id="services" class="slp-content-section">
+  <div class="slp-wrap">
+    <div class="slp-section-head reveal">
+      <div class="slp-badge liquid-glass">Capabilities</div>
+      <h2 class="slp-section-title">What I Create.</h2>
     </div>
-
-    <span class="sc-group-label fade-rise" data-delay=".14s">✦ AI Generative Video</span>
-    <div class="sg">
-      <div class="sc fade-rise" data-delay=".18s">
-        <div class="sc-icon">✦</div>
-        <h3>AI Brand Cinematics</h3>
-        <p>Cinematic brand films generated with Kling, Seedance, and Midjourney — no studio required, no limits.</p>
-      </div>
-      <div class="sc fade-rise" data-delay=".24s">
-        <div class="sc-icon">📱</div>
-        <h3>AI Ad Campaigns</h3>
-        <p>High-converting AI video ads that look produced but move at the speed of a prompt — TikTok, Reels, YouTube.</p>
-      </div>
-      <div class="sc fade-rise" data-delay=".30s">
-        <div class="sc-icon">⚡</div>
-        <h3>Fast-Turn AI Content</h3>
-        <p>Premium-quality AI-generated content delivered in 24–48 hours — from brief to final file, ready to post.</p>
-      </div>
+    <div class="slp-grid">
+      <article class="slp-card liquid-glass reveal">
+        <div class="slp-icon-circle liquid-glass-strong">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3 4 7l5 1"></path><path d="m18 3 2 4-5 1"></path><path d="M3 7h18v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path><path d="m10 12 5 3-5 3z"></path></svg></div>
+        <h3>Short-Form Editing</h3>
+        <p>Scroll-stopping edits for Instagram Reels, TikTok, and YouTube Shorts — cut in CapCut or Premiere Pro to hook viewers in 3 seconds.</p>
+      </article>
+      <article class="slp-card liquid-glass reveal">
+        <div class="slp-icon-circle liquid-glass-strong">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="m22 8-6 4 6 4z"></path></svg></div>
+        <h3>Brand &amp; Commercial</h3>
+        <p>Polished promotional videos and brand films — paced for engagement, finished with clean color and sound design.</p>
+      </article>
+      <article class="slp-card liquid-glass reveal">
+        <div class="slp-icon-circle liquid-glass-strong">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path><path d="M12 2v20"></path><path d="M2 12h20"></path></svg></div>
+        <h3>AI Cinematics</h3>
+        <p>Fully AI-generated brand films and ad campaigns with Kling, Seedance, and Midjourney — produced look, prompt speed.</p>
+      </article>
+      <article class="slp-card liquid-glass reveal">
+        <div class="slp-icon-circle liquid-glass-strong">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg></div>
+        <h3>Fast-Turn Delivery</h3>
+        <p>Premium-quality content delivered in 24–48 hours — from brief to final file, in every ratio you need.</p>
+      </article>
     </div>
   </div>
-</section>
-
-<!-- ─── PORTFOLIO ─── -->
-<section id="portfolio" style="background:#000;">
-
-  <!-- Video Editing -->
-  <div style="padding:100px 48px 48px;">
-    <div style="max-width:1200px;margin:0 auto;">
-      <span class="section-label fade-rise visible">Portfolio</span>
-      <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:8px;">Video Editing</h2>
-      <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:32px;">CapCut & Premiere Pro — crafted frame by frame.</p>
-      <div id="portfolio-editing-container"></div>
-    </div>
-  </div>
-
-  <!-- AI Generative Video -->
-  <div style="padding:48px 48px 100px;">
-    <div style="max-width:1200px;margin:0 auto;">
-      <span class="section-label fade-rise visible">AI Generative Video</span>
-      <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:8px;">Crafted by AI.</h2>
-      <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:32px;">Generative visuals powered by Kling, Seedance, Midjourney, and more.</p>
-      <div id="portfolio-ai-container"></div>
-    </div>
-  </div>
-
 </section>
 
 <!-- ─── PROCESS ─── -->
-<section id="process" style="padding:100px 48px;background:var(--bg-layer);">
-  <div style="max-width:1100px;margin:0 auto;">
-    <span class="section-label fade-rise visible">Process</span>
-    <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:12px;">How I Work</h2>
-    <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:44px;">From brief to delivery — clear, fast, and collaborative.</p>
-    <div class="process-grid">
-      <div class="process-step fade-rise" data-delay=".08s">
-        <span class="process-num">01</span>
-        <div class="process-icon">💬</div>
-        <h3>Brief</h3>
-        <p>Share your goal, references, and platform. We'll decide together: editing, AI generation, or both.</p>
-      </div>
-      <div class="process-step fade-rise" data-delay=".16s">
-        <span class="process-num">02</span>
-        <div class="process-icon">✦</div>
-        <h3>Concept</h3>
-        <p>Visual concept and moodboard — style, pacing, tone. Cut strategy for editing or prompt direction for AI.</p>
-      </div>
-      <div class="process-step fade-rise" data-delay=".24s">
-        <span class="process-num">03</span>
-        <div class="process-icon">⚡</div>
-        <h3>Production</h3>
-        <p>Editing in CapCut or Premiere Pro, AI generation with Kling & Seedance, color grading, sound design.</p>
-      </div>
-      <div class="process-step fade-rise" data-delay=".32s">
-        <span class="process-num">04</span>
-        <div class="process-icon">🎬</div>
-        <h3>Delivery</h3>
-        <p>Final files in your format — 4K, multi-ratio, platform-ready. Revisions included. 24–72 hour turnaround.</p>
-      </div>
-    </div>
-    <div style="margin-top:32px;background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-      <div>
-        <p style="font-family:var(--font-serif);font-style:italic;font-size:17px;font-weight:400;margin-bottom:4px;color:#fff;">Ready to start your project?</p>
-        <p style="color:var(--text-muted);font-size:14px;font-weight:300;">Typical turnaround: 24–72 hours from brief to delivery.</p>
-      </div>
-      <a href="#contact" style="background:var(--accent);color:#fff;padding:13px 26px;border-radius:980px;font-size:14px;font-weight:600;white-space:nowrap;">Get in Touch →</a>
-    </div>
+<section id="process" class="slp-video-section slp-start">
+  <div class="slp-video-content">
+    <div class="slp-badge liquid-glass reveal">How It Works</div>
+    <h2 class="slp-section-title reveal">You share it. I bring it to life.</h2>
+    <p class="slp-section-copy reveal">Share your goal, references, and platform — we decide together whether editing, AI generation, or both is the right move. Then: concept, production, and delivery. Typical turnaround, 24–72 hours.</p>
+    <a class="slp-btn liquid-glass-strong reveal" href="#contact">Start a Project
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
   </div>
 </section>
 
 <!-- ─── CONTACT ─── -->
-<section id="contact" style="padding:120px 48px;background:#000;position:relative;overflow:hidden;">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(0,113,227,.07),transparent);pointer-events:none;"></div>
-  <div style="max-width:760px;margin:0 auto;text-align:center;position:relative;">
-    <span class="section-label" style="display:block;text-align:center;margin-bottom:16px;">Contact</span>
-    <h2 class="section-heading fade-rise" data-delay=".06s" style="font-size:clamp(2.2rem,6vw,4.8rem);margin-bottom:18px;">Let's Make Something People Can't Stop Watching.</h2>
-    <p class="fade-rise" data-delay=".14s" style="color:var(--text-muted);font-size:18px;margin-bottom:36px;line-height:1.65;font-weight:300;">Whether you need a crisp brand edit or a fully AI-generated campaign — I'm here to bring it to life.</p>
-    <div class="fade-rise" data-delay=".20s" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
-      <a id="btn-email" href="mailto:khldridwan@email.com" style="background:var(--accent);color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:600;">Send Email</a>
-      <a id="btn-wa" href="https://wa.me/6289532229859" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">WhatsApp</a>
-      <a id="btn-upwork" href="https://www.upwork.com/freelancers/~01e5682385430ca93a" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">Upwork</a>
-      <a href="https://www.linkedin.com/in/khalid-ridwan" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">LinkedIn</a>
+<section id="contact" class="slp-video-section slp-cta">
+  <div class="slp-video-content">
+    <h2 class="slp-section-title reveal">Let's make something people can't stop watching.</h2>
+    <p class="slp-section-copy reveal">Whether you need a crisp brand edit or a fully AI-generated campaign — I'm here to bring it to life.</p>
+    <div class="slp-cta-actions reveal">
+      <a class="slp-btn liquid-glass-strong" id="btn-email" href="mailto:khldridwan@email.com">Send Email
+<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></a>
+      <a class="slp-btn slp-secondary" id="btn-wa" href="https://wa.me/6289532229859" target="_blank" rel="noopener">WhatsApp</a>
     </div>
-    <div class="fade-rise" data-delay=".28s" style="border-top:1px solid rgba(255,255,255,.08);padding-top:36px;display:flex;gap:52px;justify-content:center;flex-wrap:wrap;align-items:flex-start;">
-      <div>
-        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Email</p>
-        <p id="info-email" style="font-size:14px;">khldridwan@email.com</p>
-      </div>
-      <div>
-        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">WhatsApp</p>
-        <p id="info-wa" style="font-size:14px;">+62 895 3222 98559</p>
-      </div>
-      <div>
-        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Based In</p>
-        <p style="font-size:14px;">Indonesia 🇮🇩</p>
-      </div>
-      <div>
-        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Turnaround</p>
-        <p style="font-size:14px;">24–72 Hours</p>
-      </div>
+    <div class="contact-info reveal">
+      <div><div class="lbl">Email</div><div class="val" id="info-email">khldridwan@email.com</div></div>
+      <div><div class="lbl">WhatsApp</div><div class="val" id="info-wa">+62 895 3222 98559</div></div>
+      <div><div class="lbl">Based In</div><div class="val">Indonesia 🇮🇩</div></div>
+      <div><div class="lbl">Turnaround</div><div class="val">24–72 Hours</div></div>
     </div>
+    <footer class="slp-footerbar">
+      <span id="footer-copy">© 2026 Synthly Studio. All rights reserved.</span>
+      <div class="slp-footerlinks">
+        <a id="btn-upwork" href="https://www.upwork.com/freelancers/~01e5682385430ca93a" target="_blank" rel="noopener">Upwork</a>
+        <a href="https://www.linkedin.com/in/khalid-ridwan" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </footer>
   </div>
 </section>
 
-<!-- ─── FOOTER ─── -->
-<footer style="background:var(--bg-layer);border-top:1px solid rgba(255,255,255,.07);padding:20px 48px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
-  <span id="footer-copy" style="font-size:12px;color:var(--text-faint);">© 2025 Synthly Studio. All rights reserved.</span>
-  <span style="font-size:12px;color:var(--text-faint);">Video Editor & AI Creator · Indonesia 🇮🇩</span>
-</footer>
+</main>
 
 <!-- ─── VIDEO MODAL ─── -->
-<div id="video-modal" class="hidden"
-  style="position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;"
-  onclick="if(event.target===this)closeModal();">
-  <iframe id="modal-video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;border:none;"></iframe>
-  <button onclick="closeModal()"
-    style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
+<div id="video-modal" class="hidden" onclick="if(event.target===this)closeModal();">
+  <iframe id="modal-video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border:0;border-radius:14px;"></iframe>
+  <button onclick="closeModal()" aria-label="Close"
+    style="position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
 </div>
 
 <script>
 /* ─── DATA ─── */
-const content = {
-  studioName:    "Synthly Studio",
-  heroLine1:     "Edit. Generate.",
-  heroLine2:     "Tell the Story.",
-  heroSub:       "Video editing with CapCut & Premiere Pro, and AI-generated cinematics — for brands, creators, and campaigns that demand attention.",
-  aboutTitle:    "Two Crafts, One Vision",
-  aboutDesc:     "Synthly Studio blends precise video editing with cutting-edge AI generation. Armed with CapCut, Premiere Pro, and the latest generative AI tools, I craft content that's built to perform — whether it's a tight brand reel or a fully AI-generated cinematic.",
-  aboutLocation: "Based in Indonesia, working with brands and creators worldwide.",
-  ownerName:     "Khalid Ridwan",
-  ownerTitle:    "Video Editor & AI Video Creator",
-  email:         "khldridwan@email.com",
-  whatsapp:      "+62 895 3222 98559",
-  upworkUrl:     "https://www.upwork.com/freelancers/~01e5682385430ca93a",
-  linkedinUrl:   "https://www.linkedin.com/in/khalid-ridwan",
-};
-
 const portfolioEditing = [
-  { id:1, title:"DHI",        tag:"Corporate Edit · Premiere Pro", ytId:"2suUfN7MMDo", isShort:false },
-  { id:2, title:"Cat Choize", tag:"Product Ad · CapCut Edit",      ytId:"oI2vnEiqGcM", isShort:true  },
-  { id:3, title:"Raich",      tag:"Beauty Edit · CapCut",          ytId:"0TKH_7UT0Jc",  isShort:true  },
+  { title:"Rekor MURI — Hanania", tag:"Event Recap · Short",        ytId:"B5_c8Ii349Y", isShort:true  },
+  { title:"Recap Dubai",          tag:"Travel Recap · Short",       ytId:"QKVeLhW1MCs", isShort:true  },
+  { title:"Recap Awkarin",        tag:"Creator Recap · Edit",       ytId:"NXygfrZDZac", isShort:false },
+  { title:"Recap Luxury",         tag:"Lifestyle Recap · Edit",     ytId:"tvkMqGHibAo", isShort:false },
 ];
 
 const portfolioAI = [
-  { id:4, title:"Profil",              tag:"AI Video · Self Promo",         ytId:"_LjAeWipoS4", isShort:false },
-  { id:5, title:"Chuba",               tag:"Brand Content · AI Generated",  ytId:"7QaFqdYSePw", isShort:true  },
-  { id:6, title:"Valord — 5AM",        tag:"AI Cinematic",                  ytId:"Ne6Uonu83C0",  isShort:true  },
-  { id:7, title:"Valord — Imperium",   tag:"Brand Ad · AI Generated",       ytId:"ItffkpLzAs8",  isShort:true  },
+  { title:"DHI",                  tag:"Demo Project",                  ytId:"2suUfN7MMDo", isShort:false },
+  { title:"Profil",               tag:"AI Video · Self Promo",         ytId:"_LjAeWipoS4", isShort:false },
+  { title:"Chuba",                tag:"Brand Content · AI Generated",  ytId:"7QaFqdYSePw", isShort:true  },
+  { title:"Cat Choize",           tag:"Creative Ad · Product",         ytId:"oI2vnEiqGcM", isShort:true  },
+  { title:"Raich",                tag:"Beauty · AI Generated",         ytId:"0TKH_7UT0Jc", isShort:true  },
+  { title:"Valord — 5AM",         tag:"AI Cinematic",                  ytId:"Ne6Uonu83C0", isShort:true  },
+  { title:"Valord — Imperium",    tag:"Brand Ad · AI Generated",       ytId:"ItffkpLzAs8", isShort:true  },
 ];
 
-const marqueeItems = [
-  { value:"CapCut Pro" },
-  { value:"Premiere Pro" },
-  { value:"Kling 3.0" },
-  { value:"Seedance 2.0" },
-  { value:"Midjourney" },
-  { value:"Flux" },
-  { value:"Leonardo AI" },
-  { value:"GPT Image" },
-  { value:"Claude AI" },
-];
+/* ─── HELPERS ─── */
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-const profileSrc = "kr9.jpg";
-let menuOpen = false;
-
-/* ─── CONTENT ─── */
-function applyContent() {
-  document.title = content.studioName;
-  setText("nav-logo",       content.studioName);
-  setText("hero-line1",     content.heroLine1);
-  setText("hero-line2",     content.heroLine2);
-  setText("hero-sub",       content.heroSub);
-  setText("about-title",    content.aboutTitle);
-  setText("about-desc",     content.aboutDesc);
-  setText("about-location", content.aboutLocation);
-  setText("owner-name",     content.ownerName);
-  setText("owner-title",    content.ownerTitle);
-  setText("footer-copy",    "© 2025 " + content.studioName + ". All rights reserved.");
-  setText("info-email",     content.email);
-  setText("info-wa",        content.whatsapp);
-  setAttr("btn-email",   "href", "mailto:" + content.email);
-  setAttr("btn-wa",      "href", "https://wa.me/" + content.whatsapp.replace(/\D/g,""));
-  setAttr("btn-upwork",  "href", content.upworkUrl);
-  setAttr("profile-img", "src",  profileSrc);
-}
-function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-function setAttr(id, a, v) { const el = document.getElementById(id); if (el) el[a] = v; }
-
-/* ─── PORTFOLIO ─── */
-function escHtml(s) {
-  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function videoCard(item){
+  const thumb = "https://i.ytimg.com/vi/" + esc(item.ytId) + "/hqdefault.jpg";
+  return '<div class="vcard ' + (item.isShort ? 'short' : '') + '" data-yt="' + esc(item.ytId) + '" data-short="' + (item.isShort?'1':'0') + '">'
+    + '<img src="' + thumb + '" alt="' + esc(item.title) + '" loading="lazy">'
+    + '<div class="vcard-shade"></div>'
+    + '<div class="vcard-play liquid-glass-strong"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M8 5v14l11-7z"></path></svg></div>'
+    + '<div class="vcard-info"><div class="vcard-title">' + esc(item.title) + '</div><div class="vcard-tag">' + esc(item.tag) + '</div></div>'
+    + '</div>';
 }
 
-function videoCardHTML(item, featured) {
-  const thumb = `https://img.youtube.com/vi/${escHtml(item.ytId)}/hqdefault.jpg`;
-  return `
-    <div class="video-card${featured?" featured":""}" data-ytid="${escHtml(item.ytId)}" data-isshort="${item.isShort?'1':'0'}">
-      <img src="${thumb}" alt="${escHtml(item.title)}">
-      <div class="vc-overlay"></div>
-      <div class="vc-info">
-        <p class="vc-title${featured?" featured":""}">${escHtml(item.title)}</p>
-        <p class="vc-tag">${escHtml(item.tag)}</p>
-      </div>
-      <div class="vc-play">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-      </div>
-    </div>`;
+function renderWork(items, gridId){
+  const grid = document.getElementById(gridId);
+  if(!grid) return;
+  grid.innerHTML = items.map(videoCard).join("");
 }
 
-function renderPortfolioSection(items, containerId) {
-  const c = document.getElementById(containerId);
-  if (!c || !items.length) return;
-  let html = `<div style="margin-bottom:14px;">${videoCardHTML(items[0], true)}</div>`;
-  const rest = items.slice(1);
-  if (rest.length) html += `<div class="ps">${rest.map(i => videoCardHTML(i, false)).join("")}</div>`;
-  c.innerHTML = html;
-  c.querySelectorAll(".video-card").forEach(card => {
-    card.addEventListener("click", () => openModal(card.dataset.ytid, card.dataset.isshort === "1"));
-  });
-}
-
-/* ─── MARQUEE ─── */
-function renderMarquee() {
-  const track = document.getElementById("marquee-track");
-  if (!track) return;
-  const set = marqueeItems.map(item =>
-    `<span class="marquee-item">${escHtml(item.value)}</span><span class="marquee-sep">✦</span>`
-  ).join("");
-  track.innerHTML = set + set;
-}
-
-/* ─── NAV SCROLL ─── */
-window.addEventListener("scroll", () => {
-  document.getElementById("main-nav").classList.toggle("scrolled", window.scrollY > 40);
-}, {passive:true});
-
-/* ─── RESPONSIVE ─── */
-function checkMobile() {
-  const mob = window.innerWidth < 768;
-  document.getElementById("hamburger").style.display = mob ? "flex" : "none";
-  document.getElementById("nav-links").style.display  = mob ? "none" : "flex";
-}
-window.addEventListener("resize", checkMobile);
-checkMobile();
-
-/* ─── MOBILE MENU ─── */
-function toggleMenu() {
-  menuOpen = !menuOpen;
-  document.getElementById("mobile-menu").classList.toggle("hidden", !menuOpen);
-  const [h1,h2,h3] = ["hb1","hb2","hb3"].map(id => document.getElementById(id));
-  if (menuOpen) {
-    h1.style.transform = "rotate(45deg) translateY(6.5px)";
-    h2.style.background = "transparent";
-    h3.style.transform  = "rotate(-45deg) translateY(-6.5px)";
-  } else {
-    h1.style.transform = h3.style.transform = "";
-    h2.style.background = "#86868b";
-  }
-}
-function closeMenu() {
-  menuOpen = false;
-  document.getElementById("mobile-menu").classList.add("hidden");
-  ["hb1","hb2","hb3"].forEach((id,i) => {
-    const el = document.getElementById(id);
-    el.style.transform = ""; if (i===1) el.style.background = "#86868b";
-  });
-}
-
-/* ─── VIDEO MODAL ─── */
-function openModal(ytId, isShort) {
-  const modal  = document.getElementById("video-modal");
+/* ─── MODAL ─── */
+function openModal(ytId, isShort){
+  const modal = document.getElementById("video-modal");
   const iframe = document.getElementById("modal-video");
-  iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
-  iframe.style.cssText = isShort
-    ? "border-radius:14px;border:none;height:80svh;width:auto;aspect-ratio:9/16;max-width:calc(80svh * 9/16);"
-    : "border-radius:14px;border:none;width:min(100%, calc(80svh * 16/9));aspect-ratio:16/9;";
+  iframe.src = "https://www.youtube-nocookie.com/embed/" + ytId + "?autoplay=1&rel=0&modestbranding=1&playsinline=1";
+  if(isShort){
+    iframe.style.cssText = "border:0;border-radius:14px;height:85svh;width:auto;aspect-ratio:9/16;max-width:100%;";
+  } else {
+    iframe.style.cssText = "border:0;border-radius:14px;width:min(100%,calc(85svh*16/9));aspect-ratio:16/9;";
+  }
   modal.classList.remove("hidden");
-  modal.style.display = "flex";
 }
-function closeModal() {
-  const modal  = document.getElementById("video-modal");
+function closeModal(){
+  const modal = document.getElementById("video-modal");
   document.getElementById("modal-video").src = "";
   modal.classList.add("hidden");
-  modal.style.display = "";
 }
 
-/* ─── ESC KEY ─── */
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") {
-    if (!document.getElementById("video-modal").classList.contains("hidden")) closeModal();
-    if (menuOpen) closeMenu();
-  }
-});
-
-/* ─── SCROLL REVEAL ─── */
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const el = entry.target;
-      el.style.animationDelay = el.dataset.delay || "0s";
-      el.classList.add("visible");
-      revealObserver.unobserve(el);
-    }
-  });
-}, { threshold: 0.12 });
+/* ─── BLUR TEXT (hero animation) ─── */
+function setupBlurText(root){
+  const text = (root.textContent.trim() || root.getAttribute("data-blur-text") || "");
+  const delay = parseInt(root.getAttribute("data-blur-delay") || "100", 10);
+  const words = text.split(/\s+/).filter(Boolean);
+  root.setAttribute("aria-label", text);
+  root.innerHTML = words.map(function(word, i){
+    return '<span class="slp-blur-word" style="--slp-word-delay:' + (i * delay) + 'ms">' + esc(word) + '</span>';
+  }).join(" ");
+}
 
 /* ─── INIT ─── */
-applyContent();
-renderPortfolioSection(portfolioEditing, "portfolio-editing-container");
-renderPortfolioSection(portfolioAI,      "portfolio-ai-container");
-renderMarquee();
+document.addEventListener("DOMContentLoaded", function(){
+  renderWork(portfolioEditing, "work-editing-grid");
+  renderWork(portfolioAI, "work-ai-grid");
 
-document.querySelectorAll(".fade-rise:not(.visible)").forEach(el => revealObserver.observe(el));
+  /* video card + media card click → modal */
+  document.querySelectorAll("[data-yt]").forEach(function(el){
+    el.addEventListener("click", function(){
+      openModal(el.getAttribute("data-yt"), el.getAttribute("data-short") === "1");
+    });
+  });
+
+  /* nav toggle */
+  document.querySelectorAll("[data-slp-menu-root]").forEach(function(nav){
+    const button = nav.querySelector("[data-slp-menu-toggle]");
+    if(!button) return;
+    button.addEventListener("click", function(){
+      const open = nav.classList.toggle("slp-open");
+      button.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    nav.querySelectorAll(".slp-mobile-panel a").forEach(function(link){
+      link.addEventListener("click", function(){
+        nav.classList.remove("slp-open");
+        button.setAttribute("aria-expanded", "false");
+      });
+    });
+  });
+
+  /* hero blur-word animation */
+  const blurTargets = document.querySelectorAll("[data-blur-text]");
+  blurTargets.forEach(setupBlurText);
+  blurTargets.forEach(function(t){ t.classList.add("slp-blur-visible"); });
+
+  /* scroll reveal */
+  if("IntersectionObserver" in window){
+    const obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add("in"); obs.unobserve(e.target); }
+      });
+    }, { threshold:.14 });
+    document.querySelectorAll(".reveal").forEach(function(el){ obs.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
+  }
+
+  /* ESC closes modal / menu */
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){
+      const modal = document.getElementById("video-modal");
+      if(!modal.classList.contains("hidden")) closeModal();
+      document.querySelectorAll(".slp-nav.slp-open").forEach(function(n){ n.classList.remove("slp-open"); });
+    }
+  });
+});
+</script>
+
+<script data-scaletify-template-mobile-nav>
+(function(){
+  if(window.__scaletifyTemplateMobileNav) return;
+  window.__scaletifyTemplateMobileNav = true;
+  function labelOf(el){ return (el && (el.textContent || el.getAttribute('aria-label') || el.getAttribute('alt') || '') || '').replace(/\s+/g,' ').trim(); }
+  function keyOf(el){ return ((el && (el.className || '') || '') + ' ' + (el && (el.id || '') || '') + ' ' + labelOf(el)).toLowerCase(); }
+  function isAction(el){ return /cta|btn|button|action|checkout|order|pesan|beli|daftar|gabung|join|started|konsultasi|booking|touch/.test(keyOf(el)); }
+  function isFooter(el){ return !!(el && el.closest && el.closest('footer')); }
+  function firstMatch(root, selectors){ for(var i=0;i<selectors.length;i++){ var f=root.querySelector(selectors[i]); if(f && !isAction(f)) return f; } return null; }
+  function findBrand(root){ return firstMatch(root, ['[class*="brand"]','[class*="logo"]','a[href] img','img','a[href]']); }
+  function cloneBrand(root){
+    var brand = findBrand(root);
+    var link = document.createElement('a');
+    link.className = 'st-mobile-brand';
+    link.href = '#home';
+    if(brand){ link.innerHTML = brand.innerHTML || labelOf(brand); } else { link.textContent = document.title || 'Brand'; }
+    return link;
+  }
+  function collectLinks(root){
+    var all = root.querySelectorAll('.slp-nav-links a[href]');
+    var seen = {}, links = [];
+    Array.prototype.forEach.call(all, function(a){
+      var text = labelOf(a), href = a.getAttribute('href') || '#', key = text.toLowerCase()+'|'+href;
+      if(!text || seen[key]) return;
+      seen[key] = true;
+      var c = document.createElement('a'); c.href = href; c.textContent = text; links.push(c);
+    });
+    return links.slice(0,8);
+  }
+  function findNavRoot(){ return document.querySelector('nav.slp-nav'); }
+  function initMobileNav(){
+    var root = findNavRoot();
+    if(!root || root.querySelector('.st-mobile-shell')) return;
+    var brand = cloneBrand(root);
+    var mobileLinks = collectLinks(root);
+    root.classList.add('st-mobile-nav');
+    var shell = document.createElement('div'); shell.className = 'st-mobile-shell';
+    var button = document.createElement('button');
+    button.type='button'; button.className='st-mobile-menu-btn';
+    button.setAttribute('aria-label','Buka navigasi'); button.setAttribute('aria-expanded','false');
+    button.innerHTML = '<span></span><span></span><span></span>';
+    var panel = document.createElement('div'); panel.className='st-mobile-panel'; panel.setAttribute('aria-label','Navigasi mobile');
+    mobileLinks.forEach(function(link){
+      link.addEventListener('click', function(){ panel.classList.remove('is-open'); button.setAttribute('aria-expanded','false'); });
+      panel.appendChild(link);
+    });
+    button.addEventListener('click', function(){
+      if(!panel.children.length) return;
+      var open = panel.classList.toggle('is-open');
+      button.setAttribute('aria-expanded', open ? 'true':'false');
+    });
+    shell.appendChild(brand); shell.appendChild(button);
+    root.insertBefore(shell, root.firstChild);
+    root.insertBefore(panel, shell.nextSibling);
+  }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', initMobileNav); } else { initMobileNav(); }
+})();
 </script>
 </body>
 </html>
