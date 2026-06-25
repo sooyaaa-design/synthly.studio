@@ -2,204 +2,196 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Synthly Studio — Video Editor & AI Video Creator. CapCut, Premiere Pro & generative AI. Based in Indonesia.">
 <title>Synthly Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  ::-webkit-scrollbar{width:5px;}
-  ::-webkit-scrollbar-thumb{background:#333;border-radius:3px;}
-  ::selection{background:rgba(0,113,227,0.3);}
-  a{text-decoration:none;}
+/* ─── RESET ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,video,iframe{display:block;max-width:100%}
 
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
-    background:#000;color:#f5f5f7;overflow-x:hidden;
-  }
+/* ─── DESIGN TOKENS ─── */
+:root{
+  --font-serif:"Instrument Serif",Georgia,serif;
+  --font-body:"Barlow",-apple-system,BlinkMacSystemFont,sans-serif;
+  --bg-base:#000;
+  --bg-layer:#0a0a0a;
+  --bg-card:#111;
+  --text-primary:#f5f5f7;
+  --text-muted:#86868b;
+  --text-faint:#6e6e73;
+  --accent:#0071e3;
+}
 
-  @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:0.8;}}
-  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+/* ─── LIQUID GLASS ─── */
+.lg{
+  background:rgba(255,255,255,.045);
+  backdrop-filter:blur(4px) saturate(160%);
+  -webkit-backdrop-filter:blur(4px) saturate(160%);
+  border:1px solid rgba(255,255,255,.12);
+  position:relative;
+}
+.lg::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.04) 40%,rgba(255,255,255,.10) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;
+}
+.lg-strong{
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(50px) saturate(180%);
+  -webkit-backdrop-filter:blur(50px) saturate(180%);
+  border:1px solid rgba(255,255,255,.18);
+  position:relative;
+}
+.lg-strong::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.15) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;
+}
 
-  .ha{animation:fadeUp 0.85s cubic-bezier(0.25,0.46,0.45,0.94) both;}
-  .ha:nth-child(1){animation-delay:0.05s;}
-  .ha:nth-child(2){animation-delay:0.18s;}
-  .ha:nth-child(3){animation-delay:0.30s;}
-  .ha:nth-child(4){animation-delay:0.42s;}
-  .pls{animation:pulse 2.4s ease-in-out infinite;}
-  .nl:hover{color:#f5f5f7!important;}
-  .sc:hover{background:#181818!important;}
+/* ─── TYPOGRAPHY UTILITIES ─── */
+.section-label{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:block}
+.section-heading{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:clamp(2rem,4vw,3.8rem);letter-spacing:-.02em;line-height:1.1;color:var(--text-primary)}
+.section-sub{color:var(--text-muted);font-size:17px;font-weight:300;line-height:1.65;margin-top:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 16px;border-radius:980px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+.badge-accent{color:var(--accent);border-color:rgba(0,113,227,.3);background:rgba(0,113,227,.08)}
 
-  .mm{
-    position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:90;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:32px;animation:fadeIn 0.2s ease;
-  }
+/* ─── NAV ─── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;background:transparent;transition:background .35s,border-color .35s;display:flex;align-items:center;justify-content:space-between;padding:0 48px;border-bottom:1px solid transparent}
+nav.scrolled{background:rgba(0,0,0,.75);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom-color:rgba(255,255,255,.08)}
+#nav-logo{font-family:var(--font-serif);font-style:italic;font-size:19px;font-weight:400;color:#fff;letter-spacing:-.01em}
+.nl{font-size:14px;font-weight:500;color:rgba(255,255,255,.7);padding:6px 12px;border-radius:980px;transition:color .2s,background .2s}
+.nl:hover{color:#fff;background:rgba(255,255,255,.07)}
+#hamburger{display:none;flex-direction:column;gap:5px;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);border-radius:10px}
+#hb1,#hb2,#hb3{width:18px;height:1.5px;background:#86868b;border-radius:99px;transition:transform .22s,background .22s}
 
-  /* Grid helpers */
-  .ag{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
-  .sg{display:grid;grid-template-columns:repeat(3,1fr);}
-  .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-  .ps{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  .cm{display:flex;justify-content:center;gap:52px;flex-wrap:wrap;}
+/* ─── MOBILE MENU ─── */
+.mm{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.88);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;animation:fadeIn .25s ease}
+.mm a.mlink{font-family:var(--font-serif);font-style:italic;font-size:32px;font-weight:400;color:rgba(255,255,255,.8);letter-spacing:-.01em;transition:color .2s}
+.mm a.mlink:hover{color:#fff}
+.hidden{display:none!important}
 
-  @media(max-width:1023px){
-    .sg{grid-template-columns:repeat(2,1fr)!important;}
-    .pg{grid-template-columns:repeat(2,1fr)!important;}
-  }
-  @media(max-width:767px){
-    .ag{grid-template-columns:1fr!important;gap:36px!important;}
-    .sg{grid-template-columns:1fr!important;}
-    .pg{grid-template-columns:1fr!important;}
-    .ps{grid-template-columns:1fr!important;}
-    .cm{gap:28px;}
-    .nl{display:none!important;}
-    nav{padding:0 20px!important;}
-    .hero-btns a{padding:12px 22px!important;font-size:14px!important;}
-    .section-pad{padding:68px 20px!important;}
-    .contact-section{padding:68px 20px!important;}
-    .hero-h1{font-size:clamp(2.5rem,11vw,8rem)!important;}
-    .hero-sub{font-size:14px!important;margin-bottom:32px!important;}
-    footer{flex-direction:column;padding:16px 20px!important;text-align:center;}
-  }
+/* ─── ANIMATIONS ─── */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeRise{from{opacity:0;transform:translateY(28px);filter:blur(4px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.7}}
+@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ha{opacity:0;animation:fadeRise .9s cubic-bezier(.25,.46,.45,.94) forwards}
+.ha:nth-child(1){animation-delay:.05s}
+.ha:nth-child(2){animation-delay:.14s}
+.ha:nth-child(3){animation-delay:.22s}
+.ha:nth-child(4){animation-delay:.32s}
+.ha:nth-child(5){animation-delay:.42s}
+.pls{animation:pulse 2.4s ease-in-out infinite}
+.fade-rise{opacity:0;animation:fadeRise .85s cubic-bezier(.25,.46,.45,.94) forwards;animation-play-state:paused}
+.fade-rise.visible{animation-play-state:running}
 
-  /* Nav */
-  nav{
-    position:fixed;top:0;left:0;right:0;z-index:100;height:52px;
-    background:transparent;transition:background 0.3s,border-color 0.3s,backdrop-filter 0.3s;
-    display:flex;align-items:center;justify-content:space-between;padding:0 48px;
-    border-bottom:1px solid transparent;
-  }
-  nav.scrolled{
-    background:rgba(0,0,0,0.85);
-    backdrop-filter:saturate(180%) blur(20px);
-    -webkit-backdrop-filter:saturate(180%) blur(20px);
-    border-bottom-color:rgba(255,255,255,0.08);
-  }
+/* ─── HERO ─── */
+.hero-h1{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:clamp(3rem,9vw,8rem);letter-spacing:-.04em;line-height:1;color:#fff}
 
-  /* Video card */
-  .video-card{
-    position:relative;border-radius:16px;overflow:hidden;
-    aspect-ratio:16/9;cursor:pointer;background:#141414;
-    border:1px solid rgba(255,255,255,0.08);
-    transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.4s;
-  }
-  .video-card.featured{border-radius:20px;}
-  .video-card:hover{transform:scale(1.01);box-shadow:0 24px 60px rgba(0,0,0,0.6);}
-  .video-card video{width:100%;height:100%;object-fit:cover;display:block;}
-  .vc-overlay{
-    position:absolute;inset:0;
-    background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.15) 45%,transparent 100%);
-    opacity:0.75;transition:opacity 0.3s;
-  }
-  .video-card:hover .vc-overlay{opacity:1;}
-  .vc-info{
-    position:absolute;bottom:0;left:0;right:0;padding:16px 18px;
-    transform:translateY(5px);transition:transform 0.3s;
-  }
-  .video-card.featured .vc-info{padding:22px 26px;}
-  .video-card:hover .vc-info{transform:translateY(0);}
-  .vc-play{
-    position:absolute;top:50%;left:50%;
-    transform:translate(-50%,-50%) scale(0.7);
-    opacity:0;transition:all 0.3s;
-    width:50px;height:50px;
-    background:rgba(255,255,255,0.15);
-    backdrop-filter:blur(12px);border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    border:1.5px solid rgba(255,255,255,0.3);
-  }
-  .video-card:hover .vc-play{transform:translate(-50%,-50%) scale(1);opacity:1;}
+/* ─── MARQUEE ─── */
+.marquee-wrap{overflow:hidden;width:100%;background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);padding:14px 0}
+.marquee-track{display:flex;width:max-content;animation:marqueeScroll 32s linear infinite}
+.marquee-item{display:inline-flex;align-items:center;padding:0 28px;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;transition:color .2s}
+.marquee-item:hover{color:var(--text-primary)}
+.marquee-sep{color:rgba(255,255,255,.14);padding:0 2px}
 
-  .hidden{display:none!important;}
+/* ─── LAYOUT GRIDS ─── */
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.ps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-  /* ── Marquee ticker ── */
-  .marquee-wrap{
-    overflow:hidden;width:100%;
-    background:#0a0a0a;
-    border-top:1px solid rgba(255,255,255,0.06);
-    border-bottom:1px solid rgba(255,255,255,0.06);
-    padding:14px 0;
-    position:relative;
-  }
-  .marquee-track{
-    display:flex;align-items:center;gap:0;
-    width:max-content;
-    animation:marqueeScroll 28s linear infinite;
-  }
-  .marquee-wrap:hover .marquee-track{animation-play-state:paused;}
-  @keyframes marqueeScroll{
-    from{transform:translateX(0);}
-    to{transform:translateX(-50%);}
-  }
-  .marquee-item{
-    display:inline-flex;align-items:center;gap:10px;
-    padding:0 32px;white-space:nowrap;
-    font-size:12px;font-weight:500;letter-spacing:0.12em;
-    text-transform:uppercase;color:#6e6e73;
-    transition:color 0.2s;
-  }
-  .marquee-item img{
-    height:18px;width:auto;opacity:0.45;
-    filter:brightness(10);
-    transition:opacity 0.2s;
-  }
-  .marquee-item:hover{color:#f5f5f7;}
-  .marquee-item:hover img{opacity:0.85;}
-  .marquee-sep{
-    color:rgba(255,255,255,0.15);
-    font-size:10px;flex-shrink:0;
-  }
+/* ─── SERVICE CARDS ─── */
+.sc{padding:38px 32px;background:var(--bg-layer);transition:background .25s}
+.sc:hover{background:#181818}
+.sc h3{font-family:var(--font-serif);font-style:italic;font-size:19px;font-weight:400;letter-spacing:-.01em;margin-bottom:10px;color:#fff}
+.sc p{color:var(--text-muted);font-size:14px;line-height:1.75;font-weight:300}
+.sc-icon{font-size:22px;margin-bottom:14px}
+.sc-group-label{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px;display:block}
 
-  /* ── Process section ── */
-  .process-step{
-    display:flex;flex-direction:column;gap:12px;
-    padding:38px 32px;
-    background:#0a0a0a;
-    transition:background 0.25s;
-    position:relative;
-  }
-  .process-step:hover{background:#111;}
-  .process-num{
-    font-size:11px;font-weight:700;letter-spacing:0.18em;
-    color:rgba(0,113,227,0.5);text-transform:uppercase;
-    font-family:monospace;
-  }
-  .process-icon{font-size:24px;margin-bottom:4px;}
-  .process-step h3{font-size:17px;font-weight:600;letter-spacing:-0.03em;margin-bottom:6px;}
-  .process-step p{color:#86868b;font-size:14px;line-height:1.72;}
+/* ─── VIDEO CARDS ─── */
+.video-card{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;cursor:pointer;background:var(--bg-card);border:1px solid rgba(255,255,255,.08);transition:transform .3s,box-shadow .3s,border-color .3s}
+.video-card:hover{transform:scale(1.015);box-shadow:0 28px 70px rgba(0,0,0,.7);border-color:rgba(255,255,255,.18)}
+.video-card.featured{border-radius:20px}
+.video-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vc-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.85) 100%);opacity:.75;transition:opacity .3s}
+.video-card:hover .vc-overlay{opacity:.92}
+.vc-info{position:absolute;bottom:0;left:0;right:0;padding:16px 20px;transform:translateY(4px);transition:transform .3s}
+.video-card:hover .vc-info{transform:translateY(0)}
+.vc-title{font-family:var(--font-serif);font-style:italic;font-size:15px;font-weight:400;color:#fff;margin-bottom:4px}
+.vc-title.featured{font-size:20px}
+.vc-tag{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.vc-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s,transform .3s}
+.video-card:hover .vc-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* ─── PROCESS ─── */
+.process-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.process-step{padding:38px 32px;background:var(--bg-layer);transition:background .25s}
+.process-step:hover{background:#181818}
+.process-num{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,113,227,.5);font-family:monospace}
+.process-icon{font-size:22px;margin:16px 0 12px}
+.process-step h3{font-family:var(--font-serif);font-style:italic;font-size:18px;font-weight:400;color:#fff;margin-bottom:8px}
+.process-step p{color:var(--text-muted);font-size:14px;line-height:1.72;font-weight:300}
+
+/* ─── ABOUT TAG PILLS ─── */
+.about-tag{border:1px solid rgba(255,255,255,.12);border-radius:980px;padding:5px 14px;font-size:12px;color:var(--text-muted);background:rgba(255,255,255,.04)}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#000}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
+::selection{background:rgba(0,113,227,.3)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1023px){
+  .sg{grid-template-columns:repeat(2,1fr)}
+  .process-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:767px){
+  nav{padding:0 20px}
+  .ag{grid-template-columns:1fr;gap:48px}
+  .sg{grid-template-columns:1fr}
+  .hero-h1{font-size:clamp(2.8rem,12vw,8rem)!important}
+  .section-heading{font-size:2rem!important}
+}
+@media(max-width:560px){
+  nav{padding:0 16px}
+  .ps{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
 <!-- ─── NAV ─── -->
 <nav id="main-nav">
-  <a href="#home" id="nav-logo" style="font-size:17px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Synthly Studio</a>
-  <div style="display:flex;gap:26px;align-items:center;">
-    <a href="#about"     class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">About</a>
-    <a href="#services"  class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Services</a>
-    <a href="#portfolio" class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Portfolio</a>
-    <a href="#process"   class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Process</a>
-    <a href="#contact"   class="nl" style="color:#86868b;font-size:13px;transition:color 0.2s;">Contact</a>
-    <button id="hamburger" onclick="toggleMenu()"
-      style="background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:36px;height:36px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:5px;padding:8px;">
-      <span id="hb1" style="display:block;width:16px;height:1.5px;background:#86868b;transition:all 0.22s;"></span>
-      <span id="hb2" style="display:block;width:16px;height:1.5px;background:#86868b;transition:all 0.22s;"></span>
-      <span id="hb3" style="display:block;width:16px;height:1.5px;background:#86868b;transition:all 0.22s;"></span>
-    </button>
+  <a id="nav-logo" href="#home">Synthly Studio</a>
+  <div id="nav-links" style="display:flex;align-items:center;gap:2px;">
+    <a class="nl" href="#about">About</a>
+    <a class="nl" href="#services">Services</a>
+    <a class="nl" href="#portfolio">Portfolio</a>
+    <a class="nl" href="#process">Process</a>
+    <a class="nl" href="#contact" style="background:var(--accent);color:#fff;font-size:13px;font-weight:600;padding:7px 18px;margin-left:6px;">Get in Touch</a>
   </div>
+  <button id="hamburger" onclick="toggleMenu()" aria-label="Open menu">
+    <span id="hb1"></span><span id="hb2"></span><span id="hb3"></span>
+  </button>
 </nav>
 
 <!-- ─── MOBILE MENU ─── -->
 <div id="mobile-menu" class="mm hidden">
-  <a href="#about"     onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">About</a>
-  <a href="#services"  onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Services</a>
-  <a href="#portfolio" onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Portfolio</a>
-  <a href="#process"   onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Process</a>
-  <a href="#contact"   onclick="closeMenu()" style="font-size:26px;font-weight:700;letter-spacing:-0.03em;color:#f5f5f7;">Contact</a>
-  <div style="height:1px;width:48px;background:rgba(255,255,255,0.08);"></div>
+  <a class="mlink" href="#about"     onclick="closeMenu()">About</a>
+  <a class="mlink" href="#services"  onclick="closeMenu()">Services</a>
+  <a class="mlink" href="#portfolio" onclick="closeMenu()">Portfolio</a>
+  <a class="mlink" href="#process"   onclick="closeMenu()">Process</a>
+  <div style="height:1px;width:48px;background:rgba(255,255,255,.1);"></div>
   <a href="#contact" onclick="closeMenu()"
-    style="background:#0071e3;color:#fff;border-radius:980px;padding:13px 32px;font-size:16px;font-weight:500;">Get in Touch →</a>
+    style="background:var(--accent);color:#fff;border-radius:980px;padding:13px 32px;font-size:15px;font-weight:600;">Start a Project →</a>
 </div>
 
 <!-- ─── HERO ─── -->
@@ -207,61 +199,56 @@
   <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
     <iframe
       src="https://www.youtube-nocookie.com/embed/_LjAeWipoS4?autoplay=1&mute=1&loop=1&controls=0&playlist=_LjAeWipoS4&rel=0&showinfo=0&modestbranding=1&disablekb=1"
-      style="position:absolute;top:50%;left:50%;width:177.78vh;height:100vh;min-width:100%;min-height:56.25vw;transform:translate(-50%,-50%);filter:brightness(0.36) saturate(1.1);pointer-events:none;border:none;"
-      frameborder="0"
-      allow="autoplay; encrypted-media"
-      title="Hero background video">
+      style="position:absolute;top:50%;left:50%;width:177.78vh;height:100vh;min-width:100%;min-height:56.25vw;transform:translate(-50%,-50%);filter:brightness(0.32) saturate(1.1);pointer-events:none;border:none;"
+      frameborder="0" allow="autoplay; encrypted-media" title="Hero background video">
     </iframe>
   </div>
-  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 30%,transparent 55%,rgba(0,0,0,0.95) 100%);"></div>
-  <div style="position:relative;text-align:center;padding:0 32px;max-width:960px;width:100%;">
-    <p class="ha" style="font-size:12px;letter-spacing:0.22em;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:28px;font-weight:500;">AI Generative Video Studio</p>
-    <h1 id="hero-line1" class="ha hero-h1" style="font-size:clamp(3rem,9vw,8rem);font-weight:700;letter-spacing:-0.04em;line-height:1;color:#fff;margin-bottom:0;">Visual Stories,</h1>
-    <h1 id="hero-line2" class="ha hero-h1" style="font-size:clamp(3rem,9vw,8rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;color:#fff;margin-bottom:36px;">Crafted by AI.</h1>
-    <p id="hero-sub" class="ha hero-sub" style="font-size:18px;color:rgba(255,255,255,0.65);max-width:520px;margin:0 auto 44px;line-height:1.65;font-weight:300;">Cinematic AI-generated videos for brands, campaigns, and creators — at the speed of imagination.</p>
-    <div class="ha hero-btns" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <a href="#portfolio" style="background:#fff;color:#000;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;">View Our Work</a>
-      <a href="#contact" style="background:rgba(255,255,255,0.12);color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1.5px solid rgba(255,255,255,0.25);backdrop-filter:blur(12px);">Get in Touch</a>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,transparent 30%,transparent 55%,rgba(0,0,0,.96) 100%);"></div>
+  <div style="position:relative;text-align:center;padding:0 32px;max-width:960px;width:100%;display:flex;flex-direction:column;align-items:center;">
+    <div class="ha badge badge-accent" style="margin-bottom:28px;">Video Editor · AI Video Creator</div>
+    <h1 id="hero-line1" class="ha hero-h1" style="margin-bottom:0;">Edit. Generate.</h1>
+    <h1 id="hero-line2" class="ha hero-h1" style="margin-bottom:36px;">Tell the Story.</h1>
+    <p id="hero-sub" class="ha" style="font-size:18px;color:rgba(255,255,255,.65);max-width:520px;margin-bottom:44px;line-height:1.65;font-weight:300;">Video editing with CapCut & Premiere Pro, and AI-generated cinematics — for brands, creators, and campaigns that demand attention.</p>
+    <div class="ha" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="#portfolio" style="background:#fff;color:#000;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:600;">View My Work</a>
+      <a href="#contact" style="background:rgba(255,255,255,.1);color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(12px);">Get in Touch</a>
     </div>
   </div>
-  <div class="pls" style="position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);"></div>
+  <div class="pls" style="position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);"></div>
 </section>
 
-<!-- ─── MARQUEE TICKER ─── -->
-<div id="marquee-section" class="marquee-wrap">
-  <div class="marquee-track" id="marquee-track">
-    <!-- items injected by JS (x2 for seamless loop) -->
-  </div>
+<!-- ─── MARQUEE ─── -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee-track"></div>
 </div>
 
 <!-- ─── ABOUT ─── -->
-<section id="about" class="section-pad" style="padding:120px 48px;background:#000;">
+<section id="about" style="padding:120px 48px;background:#000;">
   <div style="max-width:1100px;margin:0 auto;">
     <div class="ag">
       <div>
-        <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">About</p>
-        <h2 id="about-title" style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;line-height:1.08;margin-bottom:18px;">AI Video, Human Vision</h2>
-        <p id="about-desc" style="color:#86868b;font-size:17px;line-height:1.82;margin-bottom:14px;">Synthly Studio is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that&#8217;s not just stunning &#8212; it converts.</p>
-        <p id="about-location" style="color:#6e6e73;font-size:15px;line-height:1.7;margin-bottom:28px;">Based in Indonesia, serving clients worldwide.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Ads</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Branding</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">UGC</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Social Media</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Product Showcase</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Music Visuals</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Fashion</span>
-          <span style="border:1px solid rgba(255,255,255,0.14);border-radius:980px;padding:5px 13px;font-size:12px;color:#86868b;">Storytelling</span>
+        <span class="section-label fade-rise visible">About</span>
+        <h2 id="about-title" class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:18px;">Two Crafts, One Vision</h2>
+        <p id="about-desc" class="fade-rise" data-delay=".16s" style="color:var(--text-muted);font-size:17px;line-height:1.82;margin-bottom:14px;font-weight:300;">Synthly Studio blends precise video editing with cutting-edge AI generation. Armed with CapCut, Premiere Pro, and the latest generative AI tools, I craft content that's built to perform — whether it's a tight brand reel or a fully AI-generated cinematic.</p>
+        <p id="about-location" class="fade-rise" data-delay=".22s" style="color:var(--text-faint);font-size:15px;line-height:1.7;margin-bottom:28px;font-weight:300;">Based in Indonesia, working with brands and creators worldwide.</p>
+        <div class="fade-rise" data-delay=".28s" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span class="about-tag">Video Editing</span>
+          <span class="about-tag">CapCut</span>
+          <span class="about-tag">Premiere Pro</span>
+          <span class="about-tag">AI Generation</span>
+          <span class="about-tag">Reels</span>
+          <span class="about-tag">Brand Video</span>
+          <span class="about-tag">Short-Form</span>
+          <span class="about-tag">Product Ads</span>
         </div>
       </div>
-      <div style="position:relative;">
+      <div style="position:relative;" class="fade-rise" data-delay=".1s">
         <div style="border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:#141414;">
-          <img id="profile-img" src="kr9.jpg" alt="Owner"
-            style="width:100%;height:100%;object-fit:cover;display:block;">
+          <img id="profile-img" src="kr9.jpg" alt="Khalid Ridwan" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
-        <div style="position:absolute;bottom:18px;left:18px;right:18px;background:rgba(10,10,10,0.78);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:14px;padding:15px 18px;border:1px solid rgba(255,255,255,0.08);">
-          <p id="owner-name" style="font-weight:600;font-size:15px;letter-spacing:-0.02em;margin-bottom:2px;">Khalid Ridwan</p>
-          <p id="owner-title" style="color:#86868b;font-size:13px;">AI Video Director &amp; Creative Technologist</p>
+        <div class="lg-strong" style="position:absolute;bottom:18px;left:18px;right:18px;border-radius:14px;padding:15px 18px;">
+          <p id="owner-name" style="font-family:var(--font-serif);font-style:italic;font-size:16px;font-weight:400;margin-bottom:3px;color:#fff;">Khalid Ridwan</p>
+          <p id="owner-title" style="color:var(--text-muted);font-size:13px;font-weight:300;">Video Editor & AI Video Creator</p>
         </div>
       </div>
     </div>
@@ -269,127 +256,146 @@
 </section>
 
 <!-- ─── SERVICES ─── -->
-<section id="services" class="section-pad" style="padding:100px 48px;background:#0a0a0a;">
+<section id="services" style="padding:100px 48px;background:var(--bg-layer);">
   <div style="max-width:1100px;margin:0 auto;">
-    <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">Services</p>
-    <h2 style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;margin-bottom:36px;">What We Create</h2>
-    <div class="sg" style="gap:1px;background:rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">🎬</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">Ad Campaigns</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">High-converting AI video ads for Instagram Reels, TikTok, YouTube — crafted to stop the scroll and drive action.</p>
+    <span class="section-label fade-rise visible">Services</span>
+    <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:40px;">What I Create</h2>
+
+    <span class="sc-group-label fade-rise" data-delay=".14s">✂ Video Editing</span>
+    <div class="sg" style="margin-bottom:48px;">
+      <div class="sc fade-rise" data-delay=".18s">
+        <div class="sc-icon">✂️</div>
+        <h3>Reels & Short-Form Editing</h3>
+        <p>Fast-paced, scroll-stopping edits for Instagram Reels, TikTok, and YouTube Shorts — cut in CapCut or Premiere Pro.</p>
       </div>
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">✦</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">Brand Films</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">Cinematic brand identity videos that tell your story with emotion, style, and visual clarity.</p>
+      <div class="sc fade-rise" data-delay=".24s">
+        <div class="sc-icon">🎞</div>
+        <h3>Brand & Commercial Edits</h3>
+        <p>Polished promotional videos for products, services, and campaigns — paced for engagement, finished for broadcast.</p>
       </div>
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">📱</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">UGC-Style Content</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">AI-generated content that feels authentic. Native-looking videos that blend naturally into any feed.</p>
+      <div class="sc fade-rise" data-delay=".30s">
+        <div class="sc-icon">📐</div>
+        <h3>Multi-Platform Delivery</h3>
+        <p>One project, every ratio. 9:16, 16:9, 1:1 — color-graded, captioned, and export-ready for any platform.</p>
       </div>
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">🛍️</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">Product Showcase</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">Visually rich product videos — no studio required. Stunning environments, motion, and lighting.</p>
+    </div>
+
+    <span class="sc-group-label fade-rise" data-delay=".14s">✦ AI Generative Video</span>
+    <div class="sg">
+      <div class="sc fade-rise" data-delay=".18s">
+        <div class="sc-icon">✦</div>
+        <h3>AI Brand Cinematics</h3>
+        <p>Cinematic brand films generated with Kling, Seedance, and Midjourney — no studio required, no limits.</p>
       </div>
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">🎵</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">Music Visuals</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">Lyric videos, visualizers, and cinematic music video concepts — the perfect visual companion for any artist.</p>
+      <div class="sc fade-rise" data-delay=".24s">
+        <div class="sc-icon">📱</div>
+        <h3>AI Ad Campaigns</h3>
+        <p>High-converting AI video ads that look produced but move at the speed of a prompt — TikTok, Reels, YouTube.</p>
       </div>
-      <div class="sc" style="background:#0a0a0a;padding:38px 32px;transition:background 0.25s;">
-        <div style="font-size:22px;margin-bottom:12px;">⚡</div>
-        <h3 style="font-size:18px;font-weight:600;letter-spacing:-0.03em;margin-bottom:8px;">Fast-Turn Content</h3>
-        <p style="color:#86868b;font-size:14px;line-height:1.72;">Premium-quality content delivered in 24–48 hours via our streamlined AI workflow.</p>
+      <div class="sc fade-rise" data-delay=".30s">
+        <div class="sc-icon">⚡</div>
+        <h3>Fast-Turn AI Content</h3>
+        <p>Premium-quality AI-generated content delivered in 24–48 hours — from brief to final file, ready to post.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ─── PORTFOLIO ─── -->
-<section id="portfolio" class="section-pad" style="padding:100px 48px;background:#000;">
-  <div style="max-width:1200px;margin:0 auto;">
-    <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">Portfolio</p>
-    <h2 style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;">Selected Work</h2>
-    <p style="color:#86868b;font-size:17px;margin-bottom:32px;">AI-generated video projects across brands, music, and campaigns.</p>
-    <div id="portfolio-container"></div>
+<section id="portfolio" style="background:#000;">
+
+  <!-- Video Editing -->
+  <div style="padding:100px 48px 48px;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <span class="section-label fade-rise visible">Portfolio</span>
+      <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:8px;">Video Editing</h2>
+      <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:32px;">CapCut & Premiere Pro — crafted frame by frame.</p>
+      <div id="portfolio-editing-container"></div>
+    </div>
   </div>
+
+  <!-- AI Generative Video -->
+  <div style="padding:48px 48px 100px;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <span class="section-label fade-rise visible">AI Generative Video</span>
+      <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:8px;">Crafted by AI.</h2>
+      <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:32px;">Generative visuals powered by Kling, Seedance, Midjourney, and more.</p>
+      <div id="portfolio-ai-container"></div>
+    </div>
+  </div>
+
 </section>
 
 <!-- ─── PROCESS ─── -->
-<section id="process" class="section-pad" style="padding:100px 48px;background:#0a0a0a;">
+<section id="process" style="padding:100px 48px;background:var(--bg-layer);">
   <div style="max-width:1100px;margin:0 auto;">
-    <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">Process</p>
-    <h2 style="font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;letter-spacing:-0.04em;margin-bottom:12px;">How We Work</h2>
-    <p style="color:#86868b;font-size:17px;margin-bottom:44px;">From brief to final delivery — a streamlined, transparent process.</p>
-
-    <div class="process-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
-      <div class="process-step">
+    <span class="section-label fade-rise visible">Process</span>
+    <h2 class="section-heading fade-rise" data-delay=".08s" style="margin-bottom:12px;">How I Work</h2>
+    <p class="section-sub fade-rise" data-delay=".14s" style="margin-bottom:44px;">From brief to delivery — clear, fast, and collaborative.</p>
+    <div class="process-grid">
+      <div class="process-step fade-rise" data-delay=".08s">
         <span class="process-num">01</span>
         <div class="process-icon">💬</div>
         <h3>Brief</h3>
-        <p>Share your vision, references, and goals. We align on the creative direction before a single frame is generated.</p>
+        <p>Share your goal, references, and platform. We'll decide together: editing, AI generation, or both.</p>
       </div>
-      <div class="process-step">
+      <div class="process-step fade-rise" data-delay=".16s">
         <span class="process-num">02</span>
         <div class="process-icon">✦</div>
         <h3>Concept</h3>
-        <p>We craft a visual concept and moodboard tailored to your brand — style, tone, pacing, and narrative arc.</p>
+        <p>Visual concept and moodboard — style, pacing, tone. Cut strategy for editing or prompt direction for AI.</p>
       </div>
-      <div class="process-step">
+      <div class="process-step fade-rise" data-delay=".24s">
         <span class="process-num">03</span>
         <div class="process-icon">⚡</div>
         <h3>Production</h3>
-        <p>AI generation, shot composition, color grading, and sound design — all handled in our streamlined pipeline.</p>
+        <p>Editing in CapCut or Premiere Pro, AI generation with Kling & Seedance, color grading, sound design.</p>
       </div>
-      <div class="process-step">
+      <div class="process-step fade-rise" data-delay=".32s">
         <span class="process-num">04</span>
         <div class="process-icon">🎬</div>
         <h3>Delivery</h3>
-        <p>Final file in your format of choice — 4K, multi-ratio, ready for any platform. Revisions included.</p>
+        <p>Final files in your format — 4K, multi-ratio, platform-ready. Revisions included. 24–72 hour turnaround.</p>
       </div>
     </div>
-
-    <div style="margin-top:32px;background:#141414;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div style="margin-top:32px;background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
       <div>
-        <p style="font-weight:600;font-size:16px;letter-spacing:-0.02em;margin-bottom:4px;">Ready to start your project?</p>
-        <p style="color:#86868b;font-size:14px;">Typical turnaround: 24–72 hours from brief to delivery.</p>
+        <p style="font-family:var(--font-serif);font-style:italic;font-size:17px;font-weight:400;margin-bottom:4px;color:#fff;">Ready to start your project?</p>
+        <p style="color:var(--text-muted);font-size:14px;font-weight:300;">Typical turnaround: 24–72 hours from brief to delivery.</p>
       </div>
-      <a href="#contact" style="background:#0071e3;color:#fff;padding:13px 26px;border-radius:980px;font-size:14px;font-weight:500;white-space:nowrap;">Get in Touch →</a>
+      <a href="#contact" style="background:var(--accent);color:#fff;padding:13px 26px;border-radius:980px;font-size:14px;font-weight:600;white-space:nowrap;">Get in Touch →</a>
     </div>
   </div>
 </section>
 
 <!-- ─── CONTACT ─── -->
-<section id="contact" class="contact-section" style="padding:120px 48px;background:#000;position:relative;overflow:hidden;">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%, rgba(0,113,227,0.07), transparent);pointer-events:none;"></div>
+<section id="contact" style="padding:120px 48px;background:#000;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(0,113,227,.07),transparent);pointer-events:none;"></div>
   <div style="max-width:760px;margin:0 auto;text-align:center;position:relative;">
-    <p style="font-size:12px;letter-spacing:0.18em;color:#0071e3;text-transform:uppercase;margin-bottom:16px;font-weight:500;">Contact</p>
-    <h2 style="font-size:clamp(2rem,6vw,5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;margin-bottom:18px;">Let&#8217;s Create Something Cinematic.</h2>
-    <p style="color:#86868b;font-size:18px;margin-bottom:36px;line-height:1.65;">Cinematic AI-generated videos for brands, campaigns, and creators — reach out below.</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
-      <a id="btn-email" href="mailto:khldridwan@email.com" style="background:#0071e3;color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;">Send Email</a>
-      <a id="btn-wa" href="https://wa.me/6289532229859" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">WhatsApp</a>
-      <a id="btn-upwork" href="https://www.upwork.com/freelancers/~01e5682385430ca93a" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">Upwork</a>
-      <a href="https://www.linkedin.com/in/khalid-ridwan" target="_blank" style="background:#141414;color:#f5f5f7;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,0.14);">LinkedIn</a>
+    <span class="section-label" style="display:block;text-align:center;margin-bottom:16px;">Contact</span>
+    <h2 class="section-heading fade-rise" data-delay=".06s" style="font-size:clamp(2.2rem,6vw,4.8rem);margin-bottom:18px;">Let's Make Something People Can't Stop Watching.</h2>
+    <p class="fade-rise" data-delay=".14s" style="color:var(--text-muted);font-size:18px;margin-bottom:36px;line-height:1.65;font-weight:300;">Whether you need a crisp brand edit or a fully AI-generated campaign — I'm here to bring it to life.</p>
+    <div class="fade-rise" data-delay=".20s" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;">
+      <a id="btn-email" href="mailto:khldridwan@email.com" style="background:var(--accent);color:#fff;padding:14px 28px;border-radius:980px;font-size:15px;font-weight:600;">Send Email</a>
+      <a id="btn-wa" href="https://wa.me/6289532229859" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">WhatsApp</a>
+      <a id="btn-upwork" href="https://www.upwork.com/freelancers/~01e5682385430ca93a" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">Upwork</a>
+      <a href="https://www.linkedin.com/in/khalid-ridwan" target="_blank" style="background:#141414;color:var(--text-primary);padding:14px 28px;border-radius:980px;font-size:15px;font-weight:500;border:1px solid rgba(255,255,255,.14);">LinkedIn</a>
     </div>
-    <div class="cm" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:36px;">
+    <div class="fade-rise" data-delay=".28s" style="border-top:1px solid rgba(255,255,255,.08);padding-top:36px;display:flex;gap:52px;justify-content:center;flex-wrap:wrap;align-items:flex-start;">
       <div>
-        <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">Email</p>
+        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Email</p>
         <p id="info-email" style="font-size:14px;">khldridwan@email.com</p>
       </div>
       <div>
-        <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">WhatsApp</p>
+        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">WhatsApp</p>
         <p id="info-wa" style="font-size:14px;">+62 895 3222 98559</p>
       </div>
       <div>
-        <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">Based In</p>
+        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Based In</p>
         <p style="font-size:14px;">Indonesia 🇮🇩</p>
       </div>
       <div>
-        <p style="font-size:10px;letter-spacing:0.2em;color:#6e6e73;text-transform:uppercase;margin-bottom:5px;font-weight:500;">Turnaround</p>
+        <p style="font-size:10px;letter-spacing:.2em;color:var(--text-faint);text-transform:uppercase;margin-bottom:5px;font-weight:600;">Turnaround</p>
         <p style="font-size:14px;">24–72 Hours</p>
       </div>
     </div>
@@ -397,65 +403,67 @@
 </section>
 
 <!-- ─── FOOTER ─── -->
-<footer style="background:#0a0a0a;border-top:1px solid rgba(255,255,255,0.08);padding:20px 48px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
-  <span id="footer-copy" style="font-size:12px;color:#6e6e73;">© 2025 Synthly Studio. All rights reserved.</span>
-  <span style="font-size:12px;color:#6e6e73;">AI-powered · Indonesia 🇮🇩</span>
+<footer style="background:var(--bg-layer);border-top:1px solid rgba(255,255,255,.07);padding:20px 48px;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
+  <span id="footer-copy" style="font-size:12px;color:var(--text-faint);">© 2025 Synthly Studio. All rights reserved.</span>
+  <span style="font-size:12px;color:var(--text-faint);">Video Editor & AI Creator · Indonesia 🇮🇩</span>
 </footer>
 
 <!-- ─── VIDEO MODAL ─── -->
 <div id="video-modal" class="hidden"
-  style="position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;"
+  style="position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;"
   onclick="if(event.target===this)closeModal();">
-  <iframe id="modal-video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
-    style="border-radius:14px;border:none;"></iframe>
+  <iframe id="modal-video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;border:none;"></iframe>
   <button onclick="closeModal()"
-    style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
+    style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">✕</button>
 </div>
 
 <script>
-/* ─── HARDCODED DATA ─── */
+/* ─── DATA ─── */
 const content = {
   studioName:    "Synthly Studio",
-  heroLine1:     "Visual Stories,",
-  heroLine2:     "Crafted by AI.",
-  heroSub:       "Cinematic AI-generated videos for brands, campaigns, and creators \u2014 at the speed of imagination.",
-  aboutTitle:    "AI Video, Human Vision",
-  aboutDesc:     "Synthly Studio is an AI-powered video studio specializing in high-impact visuals for brands, advertisers, and content creators. We combine cutting-edge generative AI with deep creative direction to produce content that\u2019s not just stunning \u2014 it converts.",
-  aboutLocation: "Based in Indonesia, serving clients worldwide.",
+  heroLine1:     "Edit. Generate.",
+  heroLine2:     "Tell the Story.",
+  heroSub:       "Video editing with CapCut & Premiere Pro, and AI-generated cinematics — for brands, creators, and campaigns that demand attention.",
+  aboutTitle:    "Two Crafts, One Vision",
+  aboutDesc:     "Synthly Studio blends precise video editing with cutting-edge AI generation. Armed with CapCut, Premiere Pro, and the latest generative AI tools, I craft content that's built to perform — whether it's a tight brand reel or a fully AI-generated cinematic.",
+  aboutLocation: "Based in Indonesia, working with brands and creators worldwide.",
   ownerName:     "Khalid Ridwan",
-  ownerTitle:    "AI Video Director & Creative Technologist",
+  ownerTitle:    "Video Editor & AI Video Creator",
   email:         "khldridwan@email.com",
   whatsapp:      "+62 895 3222 98559",
   upworkUrl:     "https://www.upwork.com/freelancers/~01e5682385430ca93a",
   linkedinUrl:   "https://www.linkedin.com/in/khalid-ridwan",
 };
 
-const portfolio = [
-  { id:1, title:"DHI",                     tag:"Demo Project",                    ytId:"2suUfN7MMDo", isShort:false },
-  { id:2, title:"Profil",                  tag:"AI Video Producer",               ytId:"_LjAeWipoS4", isShort:false },
-  { id:3, title:"Chuba",                   tag:"Brand Content \u00b7 AI Generated",   ytId:"7QaFqdYSePw", isShort:true  },
-  { id:4, title:"Cat Choize",              tag:"Creative Ad \u00b7 Product Showcase",  ytId:"oI2vnEiqGcM", isShort:true  },
-  { id:5, title:"Raich",                   tag:"Beauty",                           ytId:"0TKH_7UT0Jc",  isShort:true  },
-  { id:6, title:"Valord \u2014 5AM",       tag:"AI Cinematic",                    ytId:"Ne6Uonu83C0",  isShort:true  },
-  { id:7, title:"Valord \u2014 Imperium",  tag:"Brand Ad",                        ytId:"ItffkpLzAs8",  isShort:true  },
+const portfolioEditing = [
+  { id:1, title:"DHI",        tag:"Corporate Edit · Premiere Pro", ytId:"2suUfN7MMDo", isShort:false },
+  { id:2, title:"Cat Choize", tag:"Product Ad · CapCut Edit",      ytId:"oI2vnEiqGcM", isShort:true  },
+  { id:3, title:"Raich",      tag:"Beauty Edit · CapCut",          ytId:"0TKH_7UT0Jc",  isShort:true  },
+];
+
+const portfolioAI = [
+  { id:4, title:"Profil",              tag:"AI Video · Self Promo",         ytId:"_LjAeWipoS4", isShort:false },
+  { id:5, title:"Chuba",               tag:"Brand Content · AI Generated",  ytId:"7QaFqdYSePw", isShort:true  },
+  { id:6, title:"Valord — 5AM",        tag:"AI Cinematic",                  ytId:"Ne6Uonu83C0",  isShort:true  },
+  { id:7, title:"Valord — Imperium",   tag:"Brand Ad · AI Generated",       ytId:"ItffkpLzAs8",  isShort:true  },
 ];
 
 const marqueeItems = [
-  { type:"text", value:"Seedance 2.0" },
-  { type:"text", value:"Kling 3.0" },
-  { type:"text", value:"Midjourney" },
-  { type:"text", value:"Flux" },
-  { type:"text", value:"Leonardo AI" },
-  { type:"text", value:"CapCut Pro" },
-  { type:"text", value:"GPT Image" },
-  { type:"text", value:"Claude AI" },
+  { value:"CapCut Pro" },
+  { value:"Premiere Pro" },
+  { value:"Kling 3.0" },
+  { value:"Seedance 2.0" },
+  { value:"Midjourney" },
+  { value:"Flux" },
+  { value:"Leonardo AI" },
+  { value:"GPT Image" },
+  { value:"Claude AI" },
 ];
 
 const profileSrc = "kr9.jpg";
-
 let menuOpen = false;
 
-/* ─── APPLY CONTENT TO DOM ─── */
+/* ─── CONTENT ─── */
 function applyContent() {
   document.title = content.studioName;
   setText("nav-logo",       content.studioName);
@@ -467,7 +475,7 @@ function applyContent() {
   setText("about-location", content.aboutLocation);
   setText("owner-name",     content.ownerName);
   setText("owner-title",    content.ownerTitle);
-  setText("footer-copy",    "\u00a9 2025 " + content.studioName + ". All rights reserved.");
+  setText("footer-copy",    "© 2025 " + content.studioName + ". All rights reserved.");
   setText("info-email",     content.email);
   setText("info-wa",        content.whatsapp);
   setAttr("btn-email",   "href", "mailto:" + content.email);
@@ -475,64 +483,49 @@ function applyContent() {
   setAttr("btn-upwork",  "href", content.upworkUrl);
   setAttr("profile-img", "src",  profileSrc);
 }
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function setAttr(id, a, v) { const el = document.getElementById(id); if (el) el[a] = v; }
 
-function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
-function setAttr(id, attr, val) { const el = document.getElementById(id); if (el) el[attr] = val; }
-
-/* ─── PORTFOLIO RENDERING ─── */
+/* ─── PORTFOLIO ─── */
 function escHtml(s) {
   return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 function videoCardHTML(item, featured) {
-  const fs = featured ? "19px" : "14px", ts = featured ? "11px" : "10px";
   const thumb = `https://img.youtube.com/vi/${escHtml(item.ytId)}/hqdefault.jpg`;
   return `
     <div class="video-card${featured?" featured":""}" data-ytid="${escHtml(item.ytId)}" data-isshort="${item.isShort?'1':'0'}">
-      <img src="${thumb}" alt="${escHtml(item.title)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+      <img src="${thumb}" alt="${escHtml(item.title)}">
       <div class="vc-overlay"></div>
       <div class="vc-info">
-        <p style="font-weight:600;letter-spacing:-0.02em;margin-bottom:4px;font-size:${fs};color:#fff;">${escHtml(item.title)}</p>
-        <p style="color:#0071e3;font-size:${ts};letter-spacing:0.1em;text-transform:uppercase;font-weight:500;">${escHtml(item.tag)}</p>
+        <p class="vc-title${featured?" featured":""}">${escHtml(item.title)}</p>
+        <p class="vc-tag">${escHtml(item.tag)}</p>
       </div>
       <div class="vc-play">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
       </div>
     </div>`;
 }
 
-function renderPortfolio() {
-  const c = document.getElementById("portfolio-container");
-  if (!portfolio.length) { c.innerHTML = ""; return; }
-  let html = "";
-  if (portfolio[0]) html += `<div style="margin-bottom:14px;">${videoCardHTML(portfolio[0], true)}</div>`;
-  const r1 = portfolio.slice(1,3);
-  if (r1.length) { html += `<div class="ps" style="margin-bottom:14px;">${r1.map(i=>videoCardHTML(i,false)).join("")}</div>`; }
-  const r2 = portfolio.slice(3);
-  if (r2.length) { html += `<div class="ps">${r2.map(i=>videoCardHTML(i,false)).join("")}</div>`; }
+function renderPortfolioSection(items, containerId) {
+  const c = document.getElementById(containerId);
+  if (!c || !items.length) return;
+  let html = `<div style="margin-bottom:14px;">${videoCardHTML(items[0], true)}</div>`;
+  const rest = items.slice(1);
+  if (rest.length) html += `<div class="ps">${rest.map(i => videoCardHTML(i, false)).join("")}</div>`;
   c.innerHTML = html;
-
   c.querySelectorAll(".video-card").forEach(card => {
     card.addEventListener("click", () => openModal(card.dataset.ytid, card.dataset.isshort === "1"));
   });
 }
 
-/* ─── MARQUEE RENDERING ─── */
+/* ─── MARQUEE ─── */
 function renderMarquee() {
   const track = document.getElementById("marquee-track");
   if (!track) return;
-  function buildSet() {
-    return marqueeItems.map(item => {
-      let inner = "";
-      if (item.type === "img" && item.value) {
-        inner = `<img src="${escHtml(item.value)}" alt="tool">`;
-      } else {
-        inner = escHtml(item.value || "");
-      }
-      return `<span class="marquee-item">${inner}</span><span class="marquee-sep">✦</span>`;
-    }).join("");
-  }
-  const set = buildSet();
+  const set = marqueeItems.map(item =>
+    `<span class="marquee-item">${escHtml(item.value)}</span><span class="marquee-sep">✦</span>`
+  ).join("");
   track.innerHTML = set + set;
 }
 
@@ -541,10 +534,11 @@ window.addEventListener("scroll", () => {
   document.getElementById("main-nav").classList.toggle("scrolled", window.scrollY > 40);
 }, {passive:true});
 
-/* ─── RESPONSIVE: hamburger ─── */
+/* ─── RESPONSIVE ─── */
 function checkMobile() {
   const mob = window.innerWidth < 768;
   document.getElementById("hamburger").style.display = mob ? "flex" : "none";
+  document.getElementById("nav-links").style.display  = mob ? "none" : "flex";
 }
 window.addEventListener("resize", checkMobile);
 checkMobile();
@@ -553,7 +547,7 @@ checkMobile();
 function toggleMenu() {
   menuOpen = !menuOpen;
   document.getElementById("mobile-menu").classList.toggle("hidden", !menuOpen);
-  const [h1,h2,h3] = ["hb1","hb2","hb3"].map(id=>document.getElementById(id));
+  const [h1,h2,h3] = ["hb1","hb2","hb3"].map(id => document.getElementById(id));
   if (menuOpen) {
     h1.style.transform = "rotate(45deg) translateY(6.5px)";
     h2.style.background = "transparent";
@@ -577,35 +571,46 @@ function openModal(ytId, isShort) {
   const modal  = document.getElementById("video-modal");
   const iframe = document.getElementById("modal-video");
   iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
-  if (isShort) {
-    iframe.style.cssText = "border-radius:14px;border:none;height:80svh;width:auto;aspect-ratio:9/16;max-width:calc(80svh * 9/16);";
-  } else {
-    iframe.style.cssText = "border-radius:14px;border:none;width:min(100%, calc(80svh * 16/9));aspect-ratio:16/9;";
-  }
+  iframe.style.cssText = isShort
+    ? "border-radius:14px;border:none;height:80svh;width:auto;aspect-ratio:9/16;max-width:calc(80svh * 9/16);"
+    : "border-radius:14px;border:none;width:min(100%, calc(80svh * 16/9));aspect-ratio:16/9;";
   modal.classList.remove("hidden");
   modal.style.display = "flex";
 }
 function closeModal() {
   const modal  = document.getElementById("video-modal");
-  const iframe = document.getElementById("modal-video");
-  iframe.src = "";
+  document.getElementById("modal-video").src = "";
   modal.classList.add("hidden");
   modal.style.display = "";
 }
 
-/* ─── KEYBOARD: ESC to close modal ─── */
+/* ─── ESC KEY ─── */
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
-    const modal = document.getElementById("video-modal");
-    if (!modal.classList.contains("hidden")) closeModal();
+    if (!document.getElementById("video-modal").classList.contains("hidden")) closeModal();
     if (menuOpen) closeMenu();
   }
 });
 
+/* ─── SCROLL REVEAL ─── */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      el.style.animationDelay = el.dataset.delay || "0s";
+      el.classList.add("visible");
+      revealObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.12 });
+
 /* ─── INIT ─── */
 applyContent();
-renderPortfolio();
+renderPortfolioSection(portfolioEditing, "portfolio-editing-container");
+renderPortfolioSection(portfolioAI,      "portfolio-ai-container");
 renderMarquee();
+
+document.querySelectorAll(".fade-rise:not(.visible)").forEach(el => revealObserver.observe(el));
 </script>
 </body>
 </html>
